@@ -1,7 +1,10 @@
 from docx import Document
 from docx.shared import Pt, Cm
 from datetime import datetime
+import logging
 import os
+
+logger = logging.getLogger(__name__)
 
 def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path):
     doc = Document("szablon.docx")
@@ -30,13 +33,13 @@ def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path):
                 run = tabela_trener.cell(1, 1).paragraphs[0].clear().add_run()
                 run.add_picture(podpis_path, width=Cm(3.5))
             except Exception as e:
-                print(f"Błąd przy podpisie: {e}")
+                logger.warning("Błąd przy podpisie: %s", e)
 
     return doc
 
 def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, miesiac, rok):
     doc = Document(szablon_path)
-    print("[DEBUG] Generowanie raportu dla miesiąca:", miesiac, "rok:", rok)
+    logger.debug("Generowanie raportu dla miesiąca: %s rok: %s", miesiac, rok)
 
     for para in doc.paragraphs:
         if "zleceniobiorca:" in para.text.lower():
@@ -47,7 +50,7 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
             para.text = f"w {miesiac:02d}.{rok}"
 
     dni_miesiaca = [d for d in zajecia if d.data.month == miesiac and d.data.year == rok]
-    print("[DEBUG] Liczba zajęć w miesiącu:", len(dni_miesiaca))
+    logger.debug("Liczba zajęć w miesiącu: %s", len(dni_miesiaca))
 
     suma = 0
     for tabela in doc.tables:
@@ -56,17 +59,17 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
             for col_idx, cell in enumerate(row.cells):
                 for par in cell.paragraphs:
                     txt = par.text.strip()
-                    print(f"[DEBUG] Zawartość komórki: '{txt}'")
+                    logger.debug("Zawartość komórki: '%s'", txt)
                     txt_clean = txt.rstrip(".").strip().lstrip("0")
                     if txt_clean.isdigit():
                         dzien = int(txt_clean)
-                        print(f"[DEBUG] Sprawdzam dzień: {dzien}")
+                        logger.debug("Sprawdzam dzień: %s", dzien)
             if dzien:
                 laczny_czas = sum(
                     float(str(zaj.czas_trwania).replace(",", ".")) for zaj in dni_miesiaca if zaj.data.day == dzien
                 )
                 if laczny_czas > 0:
-                    print(f"[DEBUG] Łączny czas zajęć dla dnia {dzien}: {laczny_czas}")
+                    logger.debug("Łączny czas zajęć dla dnia %s: %s", dzien, laczny_czas)
                     godziny_txt = str(laczny_czas).replace(".0", "") + "h"
                     if len(row.cells) >= 3:
                         row.cells[1].text = godziny_txt
@@ -75,7 +78,7 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
                             try:
                                 row.cells[2].paragraphs[0].clear().add_run().add_picture(podpis_path, width=Cm(2.5))
                             except Exception as e:
-                                print(f"Błąd podpisu przy dniu {dzien}: {e}")
+                                logger.warning("Błąd podpisu przy dniu %s: %s", dzien, e)
                     suma += laczny_czas
 
     for row in doc.tables[-1].rows:
@@ -91,7 +94,7 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
                             try:
                                 row.cells[idx + 2].paragraphs[0].clear().add_run().add_picture(podpis_path, width=Cm(2.5))
                             except Exception as e:
-                                print(f"Błąd podpisu w wierszu 'Łącznie': {e}")
+                                logger.warning("Błąd podpisu w wierszu 'Łącznie': %s", e)
 
     for par in doc.paragraphs:
         if "(czytelny podpis zleceniobiorcy)" in par.text.lower():
@@ -100,7 +103,7 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
                 try:
                     par.clear().add_run().add_picture(podpis_path, width=Cm(3.5))
                 except Exception as e:
-                    print(f"Błąd podpisu na dole: {e}")
+                    logger.warning("Błąd podpisu na dole: %s", e)
 
     return doc
 
