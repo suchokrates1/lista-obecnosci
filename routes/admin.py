@@ -1,7 +1,12 @@
 from flask import render_template, request, redirect, url_for, flash, send_file, abort
 from flask_login import login_required, current_user
 from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik
-from utils import email_do_koordynatora, send_plain_email
+from utils import (
+    email_do_koordynatora,
+    send_plain_email,
+    ALLOWED_EXTENSIONS,
+    ALLOWED_MIME_TYPES,
+)
 from doc_generator import generuj_raport_miesieczny
 from io import BytesIO
 from werkzeug.utils import secure_filename
@@ -11,9 +16,6 @@ import logging
 from . import routes_bp
 
 logger = logging.getLogger(__name__)
-
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
-ALLOWED_MIME_TYPES = {"image/png", "image/jpeg"}
 
 @routes_bp.route('/admin')
 @login_required

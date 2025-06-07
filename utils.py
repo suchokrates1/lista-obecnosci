@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
+# Allowed signature upload formats
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+ALLOWED_MIME_TYPES = {"image/png", "image/jpeg"}
+
 
 def is_valid_email(value: str) -> bool:
     """Return True if ``value`` looks like a valid e-mail address."""
