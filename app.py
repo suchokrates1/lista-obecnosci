@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_wtf import CSRFProtect
 from dotenv import load_dotenv
 import logging
 import os
@@ -12,6 +13,7 @@ load_dotenv()
 migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = "routes.login"  # Redirect to login page when unauthorized
+csrf = CSRFProtect()
 
 def create_app():
     logging.basicConfig(level=logging.INFO)
@@ -26,6 +28,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    csrf.init_app(app)
 
     # Rejestracja blueprintów
     from routes import routes_bp
