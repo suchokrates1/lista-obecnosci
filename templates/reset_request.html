@@ -5,9 +5,9 @@
     <h2 class="mb-4 text-center">Reset hasła</h2>
     <form method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="mb-3">
-        <label for="login" class="form-label">Adres e-mail:</label>
-        <input type="email" class="form-control" id="login" name="login" required>
+      <div class="form-floating mb-3">
+        <input type="email" class="form-control" id="login" name="login" placeholder="Adres e-mail" required autocomplete="username" tabindex="1">
+        <label for="login">Adres e-mail:</label>
       </div>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -17,11 +17,11 @@
         {% endif %}
       {% endwith %}
       <div class="d-grid">
-        <button type="submit" class="btn btn-primary">Wyślij link</button>
+        <button type="submit" class="btn btn-primary" tabindex="2">Wyślij link</button>
       </div>
     </form>
     <div class="text-center mt-3">
-      <a href="{{ url_for('routes.login') }}">Powrót do logowania</a>
+      <a href="{{ url_for('routes.login') }}" tabindex="3">Powrót do logowania</a>
     </div>
   </div>
 {% endblock %}
