@@ -32,13 +32,15 @@
         <input type="password" class="form-control" id="hasło" name="hasło" placeholder="Hasło" required autocomplete="current-password" tabindex="2">
         <label for="hasło">Hasło:</label>
       </div>
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
+      <div aria-live="polite" role="status">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
       <div class="d-grid mt-3">
         <button type="submit" class="btn btn-primary" tabindex="3">Zaloguj się</button>
       </div>

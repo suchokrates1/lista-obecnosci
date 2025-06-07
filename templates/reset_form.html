@@ -9,13 +9,15 @@
         <input type="password" class="form-control" id="password" name="password" placeholder="Nowe hasło" required autocomplete="new-password" tabindex="1">
         <label for="password">Nowe hasło:</label>
       </div>
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
+      <div aria-live="polite" role="status">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
       <div class="d-grid">
         <button type="submit" class="btn btn-primary" tabindex="2">Zmień hasło</button>
       </div>

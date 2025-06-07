@@ -28,13 +28,15 @@
 {% endif %}
   <h1 class="mb-4 text-center">Lista obecności – ShareOKO</h1>
 
-  {% with messages = get_flashed_messages(with_categories=True) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+  <div aria-live="polite" role="status">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
   <form method="POST" enctype="multipart/form-data" aria-label="Formularz listy obecności">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
