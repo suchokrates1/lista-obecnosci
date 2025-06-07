@@ -22,7 +22,12 @@ SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
 
 
 def load_db_settings(app) -> None:
-    """Load configuration from the Setting table into ``os.environ``."""
+    """Load configuration from the Setting table into ``os.environ``.
+
+    All entries from :class:`~model.Setting` are loaded into environment
+    variables named after the key in upper case, e.g. ``email_list_subject``
+    becomes ``EMAIL_LIST_SUBJECT``.
+    """
     from model import Setting  # imported lazily to avoid circular imports
 
     with app.app_context():
@@ -88,13 +93,15 @@ def email_do_koordynatora(buf, data, typ="lista"):
     msg = EmailMessage()
 
     if typ == "raport":
-        msg["Subject"] = f"Raport miesięczny – {data}"
-        body = "W załączniku raport miesięczny do umowy."
+        subject_tmpl = os.getenv("EMAIL_REPORT_SUBJECT", "Raport miesięczny – {date}")
+        body_tmpl = os.getenv("EMAIL_REPORT_BODY", "W załączniku raport miesięczny do umowy.")
         filename = f"raport_{data}.docx"
     else:
-        msg["Subject"] = f"Lista obecności – {data}"
-        body = "W załączniku lista obecności z zajęć."
+        subject_tmpl = os.getenv("EMAIL_LIST_SUBJECT", "Lista obecności – {date}")
+        body_tmpl = os.getenv("EMAIL_LIST_BODY", "W załączniku lista obecności z zajęć.")
         filename = f"lista_{data}.docx"
+    msg["Subject"] = subject_tmpl.format(date=data)
+    body = body_tmpl.format(date=data)
 
     footer = os.getenv("EMAIL_FOOTER", "")
     if footer:
@@ -134,8 +141,17 @@ def email_do_koordynatora(buf, data, typ="lista"):
         raise
 
 
-def send_plain_email(to_addr: str, subject: str, body: str) -> None:
-    """Send a simple text e-mail."""
+def send_plain_email(
+    to_addr: str,
+    subject_key: str,
+    body_key: str,
+    default_subject: str,
+    default_body: str,
+    **fmt,
+) -> None:
+    """Send a simple text e-mail using templates from environment variables."""
+    subject = os.getenv(subject_key, default_subject).format(**fmt)
+    body = os.getenv(body_key, default_body).format(**fmt)
     msg = EmailMessage()
     msg["Subject"] = subject
     footer = os.getenv("EMAIL_FOOTER", "")

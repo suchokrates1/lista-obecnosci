@@ -20,8 +20,15 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `EMAIL_SENDER_NAME` – name used in the *From* header.
   - `EMAIL_FOOTER` – text appended to every outgoing message.
   - `MAX_SIGNATURE_SIZE` – optional limit for uploaded signature images in bytes (default `1048576`).
+  - `EMAIL_LIST_SUBJECT` / `EMAIL_LIST_BODY` – templates for attendance lists (`{date}` placeholder).
+  - `EMAIL_REPORT_SUBJECT` / `EMAIL_REPORT_BODY` – templates for monthly reports (`{date}` placeholder).
+  - `REGISTRATION_EMAIL_SUBJECT` / `REGISTRATION_EMAIL_BODY` – templates for registration notifications (`{name}`, `{login}`, `{link}`).
   - `REG_EMAIL_SUBJECT` / `REG_EMAIL_BODY` – templates for the account activation e-mail.
-  - `RESET_EMAIL_SUBJECT` / `RESET_EMAIL_BODY` – templates for password reset messages.
+  - `RESET_EMAIL_SUBJECT` / `RESET_EMAIL_BODY` – templates for password reset messages (`{link}`).
+
+The placeholders shown above are substituted automatically when the e-mails are
+sent. For example, `{date}` is replaced with the list or report date and `{link}`
+with the appropriate URL.
 
 You can export them in your shell or copy `.env.example` to `.env` when using docker-compose.
 
@@ -69,7 +76,10 @@ registration and login.
 ## Admin settings
 
 The administrator can change mail-related options from `/admin/settings`.
-Values for `SMTP_HOST`, `SMTP_PORT`, `EMAIL_RECIPIENT`, `EMAIL_SENDER_NAME`,
-`EMAIL_LOGIN`, `EMAIL_PASSWORD`, `EMAIL_FOOTER` and the e-mail templates are
-saved in the database and override environment variables on the next start.
-The same form allows changing the admin login and password.
+SMTP credentials and footer are followed by a set of tabs with message
+templates for the different e-mails sent by the application (attendance list,
+monthly report, registration notification, account activation and password
+reset). Each tab contains inputs for the subject and body of a single e-mail.
+Values entered here are stored in the database and override environment
+variables on the next start.  The same form allows changing the admin login and
+password.

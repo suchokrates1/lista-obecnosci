@@ -98,10 +98,14 @@ def register():
                 "routes.approve_user", id=user.id, _external=True
             )
             send_plain_email(
-                "kontakt@vestmedia.pl",
-                "Nowa rejestracja prowadzącego",
-                f"Zarejestrował się {imie} {nazwisko} (login: {login_val}).\n"
-                f"Potwierdź konto tutaj: {approve_link}"
+                os.getenv('EMAIL_RECIPIENT', 'kontakt@vestmedia.pl'),
+                'REGISTRATION_EMAIL_SUBJECT',
+                'REGISTRATION_EMAIL_BODY',
+                'Nowa rejestracja prowadzącego',
+                'Zarejestrował się {name} (login: {login}).\nPotwierdź konto tutaj: {link}',
+                name=f"{imie} {nazwisko}",
+                login=login_val,
+                link=approve_link
             )
         except smtplib.SMTPException:
             logger.exception('Failed to send registration email')
@@ -129,8 +133,11 @@ def reset_request():
                     link = url_for("routes.reset_with_token", token=token, _external=True)
                     send_plain_email(
                         user.login,
-                        os.getenv('RESET_EMAIL_SUBJECT', 'Reset hasła w ShareOKO'),
-                        os.getenv('RESET_EMAIL_BODY', f'Aby ustawić nowe hasło, otwórz link: {link}')
+                        'RESET_EMAIL_SUBJECT',
+                        'RESET_EMAIL_BODY',
+                        'Reset hasła w ShareOKO',
+                        'Aby ustawić nowe hasło, otwórz link: {link}',
+                        link=link
                     )
                     logger.info("Sent password reset email to %s", user.login)
                 except smtplib.SMTPException:
