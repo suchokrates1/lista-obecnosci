@@ -20,6 +20,8 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
 
 You can export them in your shell or copy `.env.example` to `.env` when using docker-compose.
 
+A `.dockerignore` file keeps the image small by skipping development files like `.git` and the `migrations` directory when building.
+
 ## Database setup
 
 Install the required packages first:
