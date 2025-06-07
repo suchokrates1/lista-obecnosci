@@ -4,3 +4,4 @@ flask_migrate
 flask_login
 python-dotenv
 python-docx
+Flask-WTF

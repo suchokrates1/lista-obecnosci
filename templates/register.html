@@ -9,6 +9,7 @@
   <div class="container mt-5 mb-5" style="max-width: 600px;">
     <h2 class="mb-4 text-center">Rejestracja prowadzącego</h2>
     <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="mb-3">
         <label for="imie" class="form-label">Imię:</label>
         <input type="text" class="form-control" id="imie" name="imie" required>
