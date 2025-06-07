@@ -17,6 +17,7 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `SMTP_PORT` – port of the SMTP server (465 enables SSL).
   - `EMAIL_LOGIN` – SMTP user name.
   - `EMAIL_PASSWORD` – SMTP password.
+  - `MAX_SIGNATURE_SIZE` – optional limit for uploaded signature images in bytes (default `1048576`).
 
 You can export them in your shell or copy `.env.example` to `.env` when using docker-compose.
 
@@ -52,6 +53,7 @@ The files `szablon.docx` (attendance template) and `rejestr.docx` (monthly repor
 
 Only PNG and JPG files are accepted when uploading signature images in the admin
 or trainer panels. Files with other extensions or MIME types will be rejected.
+Uploads larger than the value of `MAX_SIGNATURE_SIZE` (default 1 MB) will also be refused.
 
 ## Login format
 
