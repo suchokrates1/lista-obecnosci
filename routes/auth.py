@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from model import db, Uzytkownik, Prowadzacy, Uczestnik
-from utils import send_plain_email
+from utils import send_plain_email, is_valid_email
 import os
 import uuid
 import smtplib
@@ -17,6 +17,10 @@ def login():
     if request.method == "POST":
         login_val = request.form.get("login")
         haslo = request.form.get("hasło")
+
+        if not is_valid_email(login_val):
+            flash("Login musi być prawidłowym adresem e-mail", "danger")
+            return redirect(url_for("routes.login"))
 
         user = Uzytkownik.query.filter_by(login=login_val).first()
         if user and check_password_hash(user.haslo_hash, haslo):
@@ -54,6 +58,10 @@ def register():
 
         if not all([imie, nazwisko, numer_umowy, lista_uczestnikow, login_val, haslo]):
             flash("Wszystkie pola oprócz podpisu są wymagane", "danger")
+            return redirect(url_for("routes.register"))
+
+        if not is_valid_email(login_val):
+            flash("Login musi być prawidłowym adresem e-mail", "danger")
             return redirect(url_for("routes.register"))
 
         if Uzytkownik.query.filter_by(login=login_val).first():
