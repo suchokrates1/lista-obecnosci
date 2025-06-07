@@ -19,6 +19,35 @@
   </nav>
 
   <main class="container mt-5 mb-5">
+    {% if new_users %}
+    <h2 class="mb-4">Konta oczekujące na zatwierdzenie</h2>
+    <table class="table table-bordered align-middle">
+      <thead class="table-warning">
+        <tr>
+          <th>ID</th>
+          <th>Login</th>
+          <th>Imię i nazwisko</th>
+          <th>Akcja</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in new_users %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>{{ u.login }}</td>
+          <td>{{ u.prowadzacy.imie }} {{ u.prowadzacy.nazwisko }}</td>
+          <td>
+            <form action="{{ url_for('routes.approve_user', id=u.id) }}" method="POST" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-success">Akceptuj</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <hr class="my-4">
+    {% endif %}
+
     <h2 class="mb-4">Lista prowadzących</h2>
 
     {% with messages = get_flashed_messages(with_categories=True) %}
