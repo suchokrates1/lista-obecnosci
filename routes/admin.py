@@ -165,7 +165,7 @@ def usun_prowadzacego(id):
     return redirect(url_for('routes.admin_dashboard'))
 
 
-@routes_bp.route('/approve_user/<int:id>', methods=['POST'])
+@routes_bp.route('/approve_user/<int:id>', methods=['POST', 'GET'])
 @login_required
 def approve_user(id):
     if current_user.role != 'admin':
