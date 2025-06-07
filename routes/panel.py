@@ -95,7 +95,7 @@ def pobierz_zajecie(id):
         zaj.data.strftime('%Y-%m-%d'),
         str(zaj.czas_trwania).replace('.', ','),
         obecni,
-        prow.nazwisko,
+        f"{prow.imie} {prow.nazwisko}",
         os.path.join('static', prow.podpis_filename)
     )
 
