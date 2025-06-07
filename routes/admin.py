@@ -4,6 +4,7 @@ from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik
 from utils import email_do_koordynatora, send_plain_email
 from doc_generator import generuj_raport_miesieczny
 from io import BytesIO
+from werkzeug.utils import secure_filename
 import os
 from . import routes_bp
 
@@ -113,8 +114,9 @@ def dodaj_prowadzacego():
         db.session.add(prow)
         db.session.flush()
 
-    if podpis:
-        filename = f"{trener}.{podpis.filename.split('.')[-1]}"
+    if podpis and podpis.filename:
+        sanitized = secure_filename(podpis.filename)
+        filename = f"{prow.id}_{sanitized}"
         path = os.path.join('static', filename)
         podpis.save(path)
         prow.podpis_filename = filename

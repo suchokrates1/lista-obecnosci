@@ -1,9 +1,11 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 from model import db, Uzytkownik, Prowadzacy, Uczestnik
 from utils import send_plain_email
 import os
+import uuid
 from . import routes_bp
 
 @routes_bp.route("/login", methods=["GET", "POST"])
@@ -56,8 +58,8 @@ def register():
 
         filename = None
         if podpis and podpis.filename:
-            ext = podpis.filename.rsplit(".", 1)[-1]
-            filename = f"{nazwisko}_{login_val}.{ext}"
+            sanitized = secure_filename(podpis.filename)
+            filename = f"{uuid.uuid4().hex}_{sanitized}"
             path = os.path.join("static", filename)
             podpis.save(path)
 
