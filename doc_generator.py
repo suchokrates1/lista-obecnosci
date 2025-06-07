@@ -1,6 +1,5 @@
 from docx import Document
 from docx.shared import Pt, Cm
-from datetime import datetime
 import logging
 import os
 

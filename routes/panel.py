@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, send_file, request,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from io import BytesIO
-from model import db, Prowadzacy, Uczestnik, Zajecia
+from model import db, Uczestnik, Zajecia
 from doc_generator import generuj_liste_obecnosci
 from . import routes_bp
 import os
