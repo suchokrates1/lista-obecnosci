@@ -6,7 +6,7 @@ from model import db, Uczestnik, Zajecia
 from doc_generator import generuj_liste_obecnosci
 from . import routes_bp
 import os
-from utils import ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES
+from utils import ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, SIGNATURE_MAX_SIZE
 
 
 @routes_bp.route('/panel')
@@ -46,6 +46,11 @@ def panel_update_profile():
         if ext not in ALLOWED_EXTENSIONS or podpis.mimetype not in ALLOWED_MIME_TYPES:
             flash('Nieobsługiwany format pliku podpisu. Dozwolone są PNG i JPG.', 'danger')
             return redirect(url_for('routes.panel'))
+        podpis.stream.seek(0, os.SEEK_END)
+        if podpis.stream.tell() > SIGNATURE_MAX_SIZE:
+            flash('Plik podpisu jest zbyt du\u017cy.', 'danger')
+            return redirect(url_for('routes.panel'))
+        podpis.stream.seek(0)
 
     if podpis and sanitized:
         filename = f"{prow.id}_{sanitized}"

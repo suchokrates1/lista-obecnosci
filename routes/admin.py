@@ -6,6 +6,7 @@ from utils import (
     send_plain_email,
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
+    SIGNATURE_MAX_SIZE,
 )
 from doc_generator import generuj_raport_miesieczny
 from io import BytesIO
@@ -134,6 +135,11 @@ def dodaj_prowadzacego():
         if ext not in ALLOWED_EXTENSIONS or podpis.mimetype not in ALLOWED_MIME_TYPES:
             flash('Nieobsługiwany format pliku podpisu. Dozwolone są PNG i JPG.', 'danger')
             return redirect(url_for('routes.admin_dashboard'))
+        podpis.stream.seek(0, os.SEEK_END)
+        if podpis.stream.tell() > SIGNATURE_MAX_SIZE:
+            flash('Plik podpisu jest zbyt du\u017cy.', 'danger')
+            return redirect(url_for('routes.admin_dashboard'))
+        podpis.stream.seek(0)
 
     if podpis and sanitized:
         filename = f"{prow.id}_{sanitized}"
