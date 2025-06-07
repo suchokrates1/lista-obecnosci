@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Flask
+instance/
+.env
+*.env
+
+# Dokumenty Word i generowane pliki
+*.docx
+*.pdf
+
+# Logi
+*.log
+
+# System plików i backupy
+.DS_Store
+*.swp
+*.bak
+*.tmp
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# Docker
+*.pid
+*.sock
+*.db
+.env.*
+*.db-journal
+
+# Pliki z podpisami i szablonami (jeśli nie chcesz ich commitować)
+static/*.jpg
+static/*.png
+szablon.docx
+rejestr.docx
