@@ -31,8 +31,8 @@ def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path):
             try:
                 run = tabela_trener.cell(1, 1).paragraphs[0].clear().add_run()
                 run.add_picture(podpis_path, width=Cm(3.5))
-            except Exception as e:
-                logger.warning("Błąd przy podpisie: %s", e)
+            except Exception:
+                logger.exception("Błąd przy podpisie")
 
     return doc
 
@@ -76,8 +76,8 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
                         if os.path.exists(podpis_path):
                             try:
                                 row.cells[2].paragraphs[0].clear().add_run().add_picture(podpis_path, width=Cm(2.5))
-                            except Exception as e:
-                                logger.warning("Błąd podpisu przy dniu %s: %s", dzien, e)
+                            except Exception:
+                                logger.exception("Błąd podpisu przy dniu %s", dzien)
                     suma += laczny_czas
 
     for row in doc.tables[-1].rows:
@@ -92,8 +92,8 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
                         if os.path.exists(podpis_path):
                             try:
                                 row.cells[idx + 2].paragraphs[0].clear().add_run().add_picture(podpis_path, width=Cm(2.5))
-                            except Exception as e:
-                                logger.warning("Błąd podpisu w wierszu 'Łącznie': %s", e)
+                            except Exception:
+                                logger.exception("Błąd podpisu w wierszu 'Łącznie'")
 
     for par in doc.paragraphs:
         if "(czytelny podpis zleceniobiorcy)" in par.text.lower():
@@ -101,8 +101,8 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
             if os.path.exists(podpis_path):
                 try:
                     par.clear().add_run().add_picture(podpis_path, width=Cm(3.5))
-                except Exception as e:
-                    logger.warning("Błąd podpisu na dole: %s", e)
+                except Exception:
+                    logger.exception("Błąd podpisu na dole")
 
     return doc
 
