@@ -38,6 +38,7 @@
           <td>{{ u.prowadzacy.imie }} {{ u.prowadzacy.nazwisko }}</td>
           <td>
             <form action="{{ url_for('routes.approve_user', id=u.id) }}" method="POST" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-sm btn-success">Akceptuj</button>
             </form>
           </td>
@@ -92,6 +93,7 @@
               <i class="bi bi-pencil"></i>
             </button>
             <form action="{{ url_for('routes.usun_prowadzacego', id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-sm text-danger"><i class="bi bi-trash"></i></button>
             </form>
             <button class="btn btn-sm text-primary" data-bs-toggle="modal" data-bs-target="#raportModal{{ p.id }}">
@@ -104,6 +106,7 @@
           <div class="modal-dialog">
             <div class="modal-content">
               <form method="GET" action="{{ url_for('routes.raport', prowadzacy_id=p.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-header">
                   <h5 class="modal-title" id="raportModalLabel{{ p.id }}">Raport miesięczny</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
@@ -159,6 +162,7 @@
           </td>
           <td>
             <form action="{{ url_for('routes.usun_zajecie', id=z.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć zajęcia?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-sm text-danger"><i class="bi bi-trash"></i></button>
             </form>
           </td>
@@ -172,6 +176,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <form method="POST" action="/dodaj" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="modal-header">
             <h5 class="modal-title" id="dodajModalLabel">Dodaj / Edytuj prowadzącego</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>

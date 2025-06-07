@@ -27,6 +27,7 @@
 
     <h2 class="mb-4">Moje dane</h2>
     <form method="POST" action="{{ url_for('routes.panel_update_profile') }}" enctype="multipart/form-data" class="mb-5">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="row g-3">
         <div class="col-md-4">
           <label for="imie" class="form-label">Imię:</label>
@@ -52,6 +53,7 @@
 
     <h2 class="mb-4">Uczestnicy</h2>
     <form method="POST" action="{{ url_for('routes.panel_update_participants') }}" class="mb-5">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="mb-3">
         <textarea class="form-control" name="uczestnicy" rows="5">{% for u in uczestnicy %}{{ u.imie_nazwisko }}{% if not loop.last %}
 {% endif %}{% endfor %}</textarea>
@@ -84,6 +86,7 @@
           <td class="text-nowrap">
             <a href="{{ url_for('routes.pobierz_zajecie', id=z.id) }}" class="btn btn-sm text-primary"><i class="bi bi-download"></i></a>
             <form action="{{ url_for('routes.usun_moje_zajecie', id=z.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Usunąć zajęcia?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-sm text-danger"><i class="bi bi-trash"></i></button>
             </form>
           </td>
