@@ -7,6 +7,9 @@ from doc_generator import generuj_liste_obecnosci
 from . import routes_bp
 import os
 
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+ALLOWED_MIME_TYPES = {"image/png", "image/jpeg"}
+
 
 @routes_bp.route('/panel')
 @login_required
@@ -38,8 +41,15 @@ def panel_update_profile():
     prow.numer_umowy = request.form.get('numer_umowy')
 
     podpis = request.files.get('podpis')
+    sanitized = None
     if podpis and podpis.filename:
         sanitized = secure_filename(podpis.filename)
+        ext = sanitized.rsplit('.', 1)[-1].lower()
+        if ext not in ALLOWED_EXTENSIONS or podpis.mimetype not in ALLOWED_MIME_TYPES:
+            flash('Nieobsługiwany format pliku podpisu. Dozwolone są PNG i JPG.', 'danger')
+            return redirect(url_for('routes.panel'))
+
+    if podpis and sanitized:
         filename = f"{prow.id}_{sanitized}"
         path = os.path.join('static', filename)
         podpis.save(path)
