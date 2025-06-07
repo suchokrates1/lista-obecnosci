@@ -43,6 +43,38 @@
           <label for="max_signature_size" class="form-label">Limit rozmiaru podpisu (bajty):</label>
           <input type="number" class="form-control" id="max_signature_size" name="max_signature_size" value="{{ values.max_signature_size }}">
         </div>
+        <div class="col-md-6">
+          <label for="email_sender_name" class="form-label">Nazwa nadawcy:</label>
+          <input type="text" class="form-control" id="email_sender_name" name="email_sender_name" value="{{ values.email_sender_name }}">
+        </div>
+        <div class="col-md-6">
+          <label for="email_login" class="form-label">Login SMTP:</label>
+          <input type="email" class="form-control" id="email_login" name="email_login" value="{{ values.email_login }}">
+        </div>
+        <div class="col-md-6">
+          <label for="email_password" class="form-label">Hasło SMTP:</label>
+          <input type="password" class="form-control" id="email_password" name="email_password" value="{{ values.email_password }}">
+        </div>
+        <div class="col-12">
+          <label for="email_footer" class="form-label">Stopka e-mail:</label>
+          <textarea class="form-control" id="email_footer" name="email_footer" rows="2">{{ values.email_footer }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label for="reg_email_subject" class="form-label">Temat akceptacji:</label>
+          <input type="text" class="form-control" id="reg_email_subject" name="reg_email_subject" value="{{ values.reg_email_subject }}">
+        </div>
+        <div class="col-md-6">
+          <label for="reset_email_subject" class="form-label">Temat resetu hasła:</label>
+          <input type="text" class="form-control" id="reset_email_subject" name="reset_email_subject" value="{{ values.reset_email_subject }}">
+        </div>
+        <div class="col-12">
+          <label for="reg_email_body" class="form-label">Treść akceptacji:</label>
+          <textarea class="form-control" id="reg_email_body" name="reg_email_body" rows="2">{{ values.reg_email_body }}</textarea>
+        </div>
+        <div class="col-12">
+          <label for="reset_email_body" class="form-label">Treść resetu hasła:</label>
+          <textarea class="form-control" id="reset_email_body" name="reset_email_body" rows="2">{{ values.reset_email_body }}</textarea>
+        </div>
       </div>
       <hr class="my-4">
       <h5>Dane administratora</h5>

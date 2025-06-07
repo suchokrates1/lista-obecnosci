@@ -17,7 +17,11 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `SMTP_PORT` – port of the SMTP server (465 enables SSL).
   - `EMAIL_LOGIN` – SMTP user name.
   - `EMAIL_PASSWORD` – SMTP password.
+  - `EMAIL_SENDER_NAME` – name used in the *From* header.
+  - `EMAIL_FOOTER` – text appended to every outgoing message.
   - `MAX_SIGNATURE_SIZE` – optional limit for uploaded signature images in bytes (default `1048576`).
+  - `REG_EMAIL_SUBJECT` / `REG_EMAIL_BODY` – templates for the account activation e-mail.
+  - `RESET_EMAIL_SUBJECT` / `RESET_EMAIL_BODY` – templates for password reset messages.
 
 You can export them in your shell or copy `.env.example` to `.env` when using docker-compose.
 
@@ -65,6 +69,7 @@ registration and login.
 ## Admin settings
 
 The administrator can change mail-related options from `/admin/settings`.
-Values for `SMTP_HOST`, `SMTP_PORT`, `EMAIL_RECIPIENT` and `MAX_SIGNATURE_SIZE`
-are saved in the database and override environment variables on the next start.
+Values for `SMTP_HOST`, `SMTP_PORT`, `EMAIL_RECIPIENT`, `EMAIL_SENDER_NAME`,
+`EMAIL_LOGIN`, `EMAIL_PASSWORD`, `EMAIL_FOOTER` and the e-mail templates are
+saved in the database and override environment variables on the next start.
 The same form allows changing the admin login and password.
