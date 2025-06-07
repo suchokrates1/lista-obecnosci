@@ -11,6 +11,7 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
 - `ADMIN_LOGIN` – e-mail address of the administrator account created by `init_db.py`.
 - `ADMIN_PASSWORD` – password for the administrator account.
 - `DATABASE_URL` – optional database URI (default `sqlite:///obecnosc.db`).
+- `FLASK_HOST` – optional host for development (default `127.0.0.1`).
 - Mail configuration used when sending attendance lists and reports:
   - `EMAIL_RECIPIENT` – address of the coordinator receiving emails.
   - `SMTP_HOST` – SMTP server hostname.
@@ -25,6 +26,10 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `REGISTRATION_EMAIL_SUBJECT` / `REGISTRATION_EMAIL_BODY` – templates for registration notifications (`{name}`, `{login}`, `{link}`).
   - `REG_EMAIL_SUBJECT` / `REG_EMAIL_BODY` – templates for the account activation e-mail.
   - `RESET_EMAIL_SUBJECT` / `RESET_EMAIL_BODY` – templates for password reset messages (`{link}`).
+
+The development server started with `python app.py` listens on
+`127.0.0.1` by default. Set the `FLASK_HOST` variable if you need a
+different address.
 
 The placeholders shown above are substituted automatically when the e-mails are
 sent. For example, `{date}` is replaced with the list or report date and `{link}`
