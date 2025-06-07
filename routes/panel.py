@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, send_file, request
+from flask import render_template, redirect, url_for, flash, send_file, request, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from io import BytesIO
@@ -12,11 +12,11 @@ import os
 @login_required
 def panel():
     if current_user.role != 'prowadzacy':
-        return 'Brak dost\u0119pu', 403
+        abort(403)
 
     prow = current_user.prowadzacy
     if not prow:
-        return 'Brak danych prowad\u0105cego', 404
+        abort(404)
 
     uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
     zajecia = Zajecia.query.filter_by(prowadzacy_id=prow.id).order_by(Zajecia.data.desc()).all()
@@ -27,11 +27,11 @@ def panel():
 @login_required
 def panel_update_profile():
     if current_user.role != 'prowadzacy':
-        return 'Brak dost\u0119pu', 403
+        abort(403)
 
     prow = current_user.prowadzacy
     if not prow:
-        return 'Brak danych', 404
+        abort(404)
 
     prow.imie = request.form.get('imie')
     prow.nazwisko = request.form.get('nazwisko')
@@ -54,11 +54,11 @@ def panel_update_profile():
 @login_required
 def panel_update_participants():
     if current_user.role != 'prowadzacy':
-        return 'Brak dost\u0119pu', 403
+        abort(403)
 
     prow = current_user.prowadzacy
     if not prow:
-        return 'Brak danych', 404
+        abort(404)
 
     lista = request.form.get('uczestnicy')
     prow.uczestnicy.clear()
@@ -77,7 +77,7 @@ def panel_update_participants():
 def pobierz_zajecie(id):
     zaj = Zajecia.query.get(id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
-        return 'Brak dost\u0119pu', 403
+        abort(403)
 
     prow = current_user.prowadzacy
     obecni = [u.imie_nazwisko for u in zaj.obecni]
@@ -104,7 +104,7 @@ def pobierz_zajecie(id):
 def usun_moje_zajecie(id):
     zaj = Zajecia.query.get(id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
-        return 'Brak dost\u0119pu', 403
+        abort(403)
 
     db.session.delete(zaj)
     db.session.commit()
