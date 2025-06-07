@@ -21,6 +21,14 @@
   <main class="container mt-5 mb-5">
     <h2 class="mb-4">Lista prowadzących</h2>
 
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     <table class="table table-striped table-bordered align-middle">
       <thead class="table-dark">
         <tr>
