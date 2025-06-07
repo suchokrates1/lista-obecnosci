@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import logging
 import os
 from model import db, Uzytkownik
+from utils import load_db_settings
 
 load_dotenv()
 
@@ -31,6 +32,7 @@ def create_app():
     # Inicjalizacja rozszerzeń
     db.init_app(app)
     migrate.init_app(app, db)
+    load_db_settings(app)
     login_manager.init_app(app)
     csrf.init_app(app)
 

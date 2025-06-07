@@ -61,3 +61,10 @@ All user logins are e-mail addresses. The administrator login specified by
 `ADMIN_LOGIN` and the login provided during trainer registration must be valid
 e-mail addresses. The application will reject invalid addresses during
 registration and login.
+
+## Admin settings
+
+The administrator can change mail-related options from `/admin/settings`.
+Values for `SMTP_HOST`, `SMTP_PORT`, `EMAIL_RECIPIENT` and `MAX_SIGNATURE_SIZE`
+are saved in the database and override environment variables on the next start.
+The same form allows changing the admin login and password.
