@@ -4,6 +4,10 @@ from model import Prowadzacy
 
 from utils import przetworz_liste_obecnosci, email_do_koordynatora
 from . import routes_bp
+import smtplib
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @routes_bp.route('/', methods=['GET', 'POST'])
@@ -72,8 +76,12 @@ def index():
                         download_name=f'lista_{data_str}.docx',
                     )
                 elif akcja == 'wyslij':
-                    email_do_koordynatora(buf, data_str, typ='lista')
-                    flash('Lista została wysłana e-mailem', 'success')
+                    try:
+                        email_do_koordynatora(buf, data_str, typ='lista')
+                        flash('Lista została wysłana e-mailem', 'success')
+                    except smtplib.SMTPException:
+                        logger.exception('Failed to send attendance email')
+                        flash('Nie udało się wysłać e-maila', 'danger')
                     return redirect(url_for('routes.index'))
 
     return render_template('index.html',
