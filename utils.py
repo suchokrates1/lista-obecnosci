@@ -89,3 +89,31 @@ def email_do_koordynatora(buf, data, typ="lista"):
         logger.info("Mail sent to %s", odbiorca)
     except Exception as e:
         logger.exception("Failed to send email: %s", e)
+
+
+def send_plain_email(to_addr: str, subject: str, body: str) -> None:
+    """Send a simple text e-mail."""
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg.set_content(body)
+    msg["From"] = f"Vest Media <{os.getenv('EMAIL_LOGIN')}>"
+    msg["To"] = to_addr
+
+    host = os.getenv("SMTP_HOST")
+    port = int(os.getenv("SMTP_PORT"))
+    login = os.getenv("EMAIL_LOGIN")
+    password = os.getenv("EMAIL_PASSWORD")
+
+    try:
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port) as smtp:
+                smtp.login(login, password)
+                smtp.send_message(msg)
+        else:
+            with smtplib.SMTP(host, port) as smtp:
+                smtp.starttls()
+                smtp.login(login, password)
+                smtp.send_message(msg)
+        logger.info("Mail sent to %s", to_addr)
+    except Exception as e:
+        logger.exception("Failed to send email: %s", e)
