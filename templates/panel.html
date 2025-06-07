@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
 {% block title %}Panel prowadzącego{% endblock %}
 {% block content %}
-  {% with messages = get_flashed_messages(with_categories=True) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+  <div aria-live="polite" role="status">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
   <h2 class="mb-4">Moje dane</h2>
   <form method="POST" action="{{ url_for('routes.panel_update_profile') }}" enctype="multipart/form-data" class="mb-5">
