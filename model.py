@@ -51,6 +51,8 @@ class Uzytkownik(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String, unique=True, nullable=False)
     haslo_hash = db.Column(db.String, nullable=False)
+    role = db.Column(db.String, nullable=False, default="prowadzacy")
+    approved = db.Column(db.Boolean, default=False)
 
 def init_db(app):
     with app.app_context():
