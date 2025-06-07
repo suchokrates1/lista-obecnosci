@@ -12,7 +12,7 @@ with app.app_context():
 
     if not Uzytkownik.query.filter_by(login=admin_login).first():
         hashed = generate_password_hash(admin_password)
-        admin = Uzytkownik(login=admin_login, haslo_hash=hashed)
+        admin = Uzytkownik(login=admin_login, haslo_hash=hashed, rola="admin")
         db.session.add(admin)
         db.session.commit()
         print(f"✔ Użytkownik administratora '{admin_login}' został dodany.")
