@@ -30,6 +30,14 @@
   <main class="container mt-5 mb-5">
     <h1 class="mb-4 text-center">Lista obecności – ShareOKO</h1>
 
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     <form method="POST" enctype="multipart/form-data" aria-label="Formularz listy obecności">
       <div class="mb-3 d-flex justify-content-between align-items-center">
         <div class="w-100">
@@ -74,11 +82,6 @@
         </button>
       </div>
 
-      <p id="status" class="visually-hidden mt-3 text-center" aria-live="polite" role="status">
-        {% if status %}
-          {{ status }}
-        {% endif %}
-      </p>
     </form>
 
     <div class="modal fade" id="dodajModal" tabindex="-1" aria-labelledby="dodajModalLabel" aria-hidden="true">

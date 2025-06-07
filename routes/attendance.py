@@ -44,6 +44,8 @@ def index():
                                      download_name=f'lista_{data_str}.docx')
                 elif akcja == 'wyslij':
                     email_do_koordynatora(buf, data_str, typ='lista')
+                    flash('Lista została wysłana e-mailem', 'success')
+                    return redirect(url_for('routes.index'))
 
     return render_template('index.html',
                            prowadzacy=prowadzacy,
