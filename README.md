@@ -10,6 +10,7 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
 - `SECRET_KEY` – secret used by Flask for sessions.
 - `ADMIN_LOGIN` – login of the administrator account created by `init_db.py`.
 - `ADMIN_PASSWORD` – password for the administrator account.
+- `DATABASE_URL` – optional database URI (default `sqlite:///obecnosc.db`).
 - Mail configuration used when sending attendance lists and reports:
   - `EMAIL_RECIPIENT` – address of the coordinator receiving emails.
   - `SMTP_HOST` – SMTP server hostname.
