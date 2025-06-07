@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -33,6 +33,14 @@ def create_app():
     # Rejestracja blueprintów
     from routes import routes_bp
     app.register_blueprint(routes_bp)
+
+    @app.errorhandler(403)
+    def forbidden(_):
+        return render_template('403.html'), 403
+
+    @app.errorhandler(404)
+    def not_found(_):
+        return render_template('404.html'), 404
 
     return app
 

@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, send_file
+from flask import render_template, request, redirect, url_for, flash, send_file, abort
 from flask_login import login_required, current_user
 from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik
 from utils import email_do_koordynatora, send_plain_email
@@ -12,7 +12,7 @@ from . import routes_bp
 @login_required
 def admin_dashboard():
     if current_user.role != 'admin':
-        return 'Brak dostępu', 403
+        abort(403)
 
     prowadzacy = Prowadzacy.query.all()
     new_users = (
@@ -39,11 +39,11 @@ def admin_dashboard():
 @login_required
 def usun_zajecie(id):
     if current_user.role != 'admin':
-        return 'Brak dostępu', 403
+        abort(403)
 
     zaj = Zajecia.query.get(id)
     if not zaj:
-        return 'Nie znaleziono zajęć', 404
+        abort(404)
 
     db.session.delete(zaj)
     db.session.commit()
@@ -54,15 +54,15 @@ def usun_zajecie(id):
 @login_required
 def raport(prowadzacy_id):
     if current_user.role != 'admin':
-        return 'Brak dostępu', 403
+        abort(403)
 
     prow = Prowadzacy.query.get(prowadzacy_id)
     if not prow:
-        return 'Nie znaleziono prowadzącego', 404
+        abort(404)
 
     ostatnie = Zajecia.query.filter_by(prowadzacy_id=prowadzacy_id).order_by(Zajecia.data.desc()).first()
     if not ostatnie:
-        return 'Brak zajęć do raportu', 404
+        abort(404)
 
     miesiac = int(request.args.get('miesiac', ostatnie.data.month))
     rok = int(request.args.get('rok', ostatnie.data.year))
@@ -89,7 +89,7 @@ def raport(prowadzacy_id):
 @login_required
 def dodaj_prowadzacego():
     if current_user.role != 'admin':
-        return 'Brak dostępu', 403
+        abort(403)
 
     id_edit = request.form.get('edit_id')
     trener = request.form.get('nowy_trener')
@@ -133,11 +133,11 @@ def dodaj_prowadzacego():
 @login_required
 def usun_prowadzacego(id):
     if current_user.role != 'admin':
-        return 'Brak dostępu', 403
+        abort(403)
 
     prow = Prowadzacy.query.get(id)
     if not prow:
-        return 'Nie znaleziono', 404
+        abort(404)
 
     Uczestnik.query.filter_by(prowadzacy_id=prow.id).delete()
     db.session.delete(prow)
@@ -151,7 +151,7 @@ def usun_prowadzacego(id):
 @login_required
 def approve_user(id):
     if current_user.role != 'admin':
-        return 'Brak dostępu', 403
+        abort(403)
 
     user = Uzytkownik.query.get(id)
     if not user:
