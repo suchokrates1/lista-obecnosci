@@ -19,7 +19,10 @@ def create_app():
     app = Flask(__name__)
 
     # Konfiguracja aplikacji
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev")
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("SECRET_KEY environment variable must be set")
+    app.config["SECRET_KEY"] = secret_key
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "DATABASE_URL", "sqlite:///obecnosc.db"
     )
