@@ -7,7 +7,7 @@ This is a small Flask application for managing attendance.
 The application expects several settings to be provided through environment variables.
 Copy `.env.example` to `.env` and adjust the values, or export them manually:
 
-- `SECRET_KEY` – secret used by Flask for sessions.
+- `SECRET_KEY` – secret used by Flask for sessions. The application will fail to start if this variable is not set.
 - `ADMIN_LOGIN` – e-mail address of the administrator account created by `init_db.py`.
 - `ADMIN_PASSWORD` – password for the administrator account.
 - `DATABASE_URL` – optional database URI (default `sqlite:///obecnosc.db`).
