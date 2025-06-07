@@ -3,7 +3,13 @@ from flask_login import login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from model import db, Uzytkownik, Prowadzacy, Uczestnik, PasswordResetToken
-from utils import send_plain_email, is_valid_email
+from utils import (
+    send_plain_email,
+    is_valid_email,
+    ALLOWED_EXTENSIONS,
+    ALLOWED_MIME_TYPES,
+    SIGNATURE_MAX_SIZE,
+)
 import os
 import uuid
 import smtplib
@@ -70,8 +76,20 @@ def register():
             return redirect(url_for("routes.register"))
 
         filename = None
+        sanitized = None
         if podpis and podpis.filename:
             sanitized = secure_filename(podpis.filename)
+            ext = sanitized.rsplit('.', 1)[-1].lower()
+            if ext not in ALLOWED_EXTENSIONS or podpis.mimetype not in ALLOWED_MIME_TYPES:
+                flash('Nieobsługiwany format pliku podpisu. Dozwolone są PNG i JPG.', 'danger')
+                return redirect(url_for('routes.register'))
+            podpis.stream.seek(0, os.SEEK_END)
+            if podpis.stream.tell() > SIGNATURE_MAX_SIZE:
+                flash('Plik podpisu jest zbyt du\u017cy.', 'danger')
+                return redirect(url_for('routes.register'))
+            podpis.stream.seek(0)
+
+        if podpis and sanitized:
             filename = f"{uuid.uuid4().hex}_{sanitized}"
             path = os.path.join("static", filename)
             podpis.save(path)
