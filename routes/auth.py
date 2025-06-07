@@ -127,7 +127,11 @@ def reset_request():
                 db.session.commit()
                 try:
                     link = url_for("routes.reset_with_token", token=token, _external=True)
-                    send_plain_email(user.login, "Reset hasła w ShareOKO", f"Aby ustawić nowe hasło, otwórz link: {link}")
+                    send_plain_email(
+                        user.login,
+                        os.getenv('RESET_EMAIL_SUBJECT', 'Reset hasła w ShareOKO'),
+                        os.getenv('RESET_EMAIL_BODY', f'Aby ustawić nowe hasło, otwórz link: {link}')
+                    )
                     logger.info("Sent password reset email to %s", user.login)
                 except smtplib.SMTPException:
                     logger.exception("Failed to send password reset email")
