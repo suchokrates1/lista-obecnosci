@@ -26,6 +26,7 @@ class Prowadzacy(db.Model):
 
     uczestnicy = db.relationship("Uczestnik", back_populates="prowadzacy", cascade="all, delete-orphan")
     zajecia = db.relationship("Zajecia", back_populates="prowadzacy", cascade="all, delete-orphan")
+    user = db.relationship("Uzytkownik", back_populates="prowadzacy", uselist=False)
 
 class Uczestnik(db.Model):
     __tablename__ = "uczestnik"
@@ -51,6 +52,11 @@ class Uzytkownik(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String, unique=True, nullable=False)
     haslo_hash = db.Column(db.String, nullable=False)
+    role = db.Column(db.String, nullable=False)
+    approved = db.Column(db.Boolean, default=False)
+    prowadzacy_id = db.Column(db.Integer, db.ForeignKey("prowadzacy.id"))
+
+    prowadzacy = db.relationship("Prowadzacy", back_populates="user")
 
 def init_db(app):
     with app.app_context():
