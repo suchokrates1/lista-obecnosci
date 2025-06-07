@@ -56,7 +56,12 @@ def admin_settings():
     if current_user.role != 'admin':
         abort(403)
 
-    keys = ['smtp_host', 'smtp_port', 'email_recipient', 'max_signature_size']
+    keys = [
+        'smtp_host', 'smtp_port', 'email_recipient', 'max_signature_size',
+        'email_sender_name', 'email_login', 'email_password', 'email_footer',
+        'reg_email_subject', 'reg_email_body', 'reset_email_subject',
+        'reset_email_body'
+    ]
 
     if request.method == 'POST':
         for key in keys:
@@ -239,8 +244,8 @@ def approve_user(id):
     try:
         send_plain_email(
             user.login,
-            'Aktywacja konta w ShareOKO',
-            'Twoje konto zostało zatwierdzone i jest już aktywne.',
+            os.getenv('REG_EMAIL_SUBJECT', 'Aktywacja konta w ShareOKO'),
+            os.getenv('REG_EMAIL_BODY', 'Twoje konto zostało zatwierdzone i jest już aktywne.')
         )
     except smtplib.SMTPException:
         logger.exception('Failed to send activation email')

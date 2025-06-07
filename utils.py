@@ -33,7 +33,7 @@ def load_db_settings(app) -> None:
             settings = []
 
         for setting in settings:
-            os.environ.setdefault(setting.key.upper(), setting.value)
+            os.environ[setting.key.upper()] = setting.value
 
     global SIGNATURE_MAX_SIZE
     SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
@@ -89,14 +89,22 @@ def email_do_koordynatora(buf, data, typ="lista"):
 
     if typ == "raport":
         msg["Subject"] = f"Raport miesięczny – {data}"
-        msg.set_content("W załączniku raport miesięczny do umowy.")
+        body = "W załączniku raport miesięczny do umowy."
         filename = f"raport_{data}.docx"
     else:
         msg["Subject"] = f"Lista obecności – {data}"
-        msg.set_content("W załączniku lista obecności z zajęć.")
+        body = "W załączniku lista obecności z zajęć."
         filename = f"lista_{data}.docx"
 
-    msg["From"] = f"Vest Media <{os.getenv('EMAIL_LOGIN')}>"
+    footer = os.getenv("EMAIL_FOOTER", "")
+    if footer:
+        body = f"{body}\n\n{footer}"
+    msg.set_content(body)
+
+    sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
+    login = os.getenv("EMAIL_LOGIN")
+    password = os.getenv("EMAIL_PASSWORD")
+    msg["From"] = f"{sender_name} <{login}>"
     msg["To"] = odbiorca
 
     buf.seek(0)
@@ -109,8 +117,6 @@ def email_do_koordynatora(buf, data, typ="lista"):
 
     host = os.getenv("SMTP_HOST")
     port = int(os.getenv("SMTP_PORT"))
-    login = os.getenv("EMAIL_LOGIN")
-    password = os.getenv("EMAIL_PASSWORD")
 
     try:
         if port == 465:
@@ -132,14 +138,18 @@ def send_plain_email(to_addr: str, subject: str, body: str) -> None:
     """Send a simple text e-mail."""
     msg = EmailMessage()
     msg["Subject"] = subject
+    footer = os.getenv("EMAIL_FOOTER", "")
+    if footer:
+        body = f"{body}\n\n{footer}"
     msg.set_content(body)
-    msg["From"] = f"Vest Media <{os.getenv('EMAIL_LOGIN')}>"
+    sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
+    login = os.getenv("EMAIL_LOGIN")
+    password = os.getenv("EMAIL_PASSWORD")
+    msg["From"] = f"{sender_name} <{login}>"
     msg["To"] = to_addr
 
     host = os.getenv("SMTP_HOST")
     port = int(os.getenv("SMTP_PORT"))
-    login = os.getenv("EMAIL_LOGIN")
-    password = os.getenv("EMAIL_PASSWORD")
 
     try:
         if port == 465:

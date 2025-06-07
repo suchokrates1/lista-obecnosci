@@ -61,7 +61,14 @@ class Uzytkownik(UserMixin, db.Model):
 
 
 class Setting(db.Model):
-    """Arbitrary key/value configuration setting."""
+    """Arbitrary key/value configuration setting.
+
+    Known keys include SMTP and e-mail options such as ``smtp_host``,
+    ``smtp_port`` and ``email_recipient`` as well as message templates:
+    ``email_sender_name``, ``email_login``, ``email_password``,
+    ``email_footer``, ``reg_email_subject``, ``reg_email_body`` and
+    ``reset_email_subject``/``reset_email_body``.
+    """
 
     __tablename__ = "setting"
     key = db.Column(db.String, primary_key=True)
