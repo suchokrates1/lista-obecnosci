@@ -137,7 +137,7 @@ def dodaj_prowadzacego():
     flash('Prowadzący zapisany', 'success')
     return redirect(url_for('routes.admin_dashboard'))
 
-@routes_bp.route('/usun/<id>', methods=['POST'])
+@routes_bp.route('/usun/<int:id>', methods=['POST'])
 @login_required
 def usun_prowadzacego(id):
     if current_user.role != 'admin':
