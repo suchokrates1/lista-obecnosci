@@ -83,3 +83,14 @@ reset). Each tab contains inputs for the subject and body of a single e-mail.
 Values entered here are stored in the database and override environment
 variables on the next start.  The same form allows changing the admin login and
 password.
+
+## Running tests
+
+Install pytest and run the test suite with:
+
+```bash
+pip install pytest
+pytest
+```
+
+The tests create a temporary SQLite database and verify basic route availability and registration validation logic.
