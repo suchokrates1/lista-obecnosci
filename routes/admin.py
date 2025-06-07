@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, current_user
-from model import db, Prowadzacy, Zajecia, Uczestnik
-from utils import email_do_koordynatora
+from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik
+from utils import email_do_koordynatora, send_plain_email
 from doc_generator import generuj_raport_miesieczny
 from io import BytesIO
 import os
@@ -14,6 +14,9 @@ def admin_dashboard():
         return 'Brak dostępu', 403
 
     prowadzacy = Prowadzacy.query.all()
+    new_users = (
+        Uzytkownik.query.filter_by(role="prowadzacy", approved=False).all()
+    )
     for p in prowadzacy:
         p.uczestnicy = sorted(p.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
 
@@ -23,7 +26,13 @@ def admin_dashboard():
         ostatnie_zajecia = Zajecia.query.filter_by(prowadzacy_id=p.id).order_by(Zajecia.data.desc()).first()
         if ostatnie_zajecia:
             ostatnie[p.id] = ostatnie_zajecia.data
-    return render_template('admin.html', prowadzacy=prowadzacy, zajecia=zajecia, ostatnie=ostatnie)
+    return render_template(
+        'admin.html',
+        prowadzacy=prowadzacy,
+        zajecia=zajecia,
+        ostatnie=ostatnie,
+        new_users=new_users,
+    )
 
 @routes_bp.route('/usun_zajecie/<int:id>', methods=['POST'])
 @login_required
@@ -133,4 +142,31 @@ def usun_prowadzacego(id):
     db.session.commit()
 
     flash('Prowadzący usunięty', 'info')
+    return redirect(url_for('routes.admin_dashboard'))
+
+
+@routes_bp.route('/approve_user/<int:id>', methods=['POST'])
+@login_required
+def approve_user(id):
+    if current_user.login != os.getenv('ADMIN_LOGIN'):
+        return 'Brak dostępu', 403
+
+    user = Uzytkownik.query.get(id)
+    if not user:
+        flash('Nie znaleziono użytkownika', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    user.approved = True
+    db.session.commit()
+
+    try:
+        send_plain_email(
+            user.login,
+            'Aktywacja konta w ShareOKO',
+            'Twoje konto zostało zatwierdzone i jest już aktywne.',
+        )
+    except Exception:
+        pass
+
+    flash('Użytkownik zatwierdzony', 'success')
     return redirect(url_for('routes.admin_dashboard'))
