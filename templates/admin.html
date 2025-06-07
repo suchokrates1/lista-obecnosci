@@ -73,13 +73,18 @@
         <td class="text-nowrap">
           <button class="btn btn-sm" onclick="edytujProwadzacego({{ p.id }}, '{{ p.imie }}', '{{ p.nazwisko }}', '{{ p.numer_umowy }}', [{% for u in p.uczestnicy %}'{{ u.imie_nazwisko }}'{% if not loop.last %}, {% endif %}{% endfor %}])" aria-label="Edytuj prowadzącego">
             <i class="bi bi-pencil"></i>
+            <span class="visually-hidden">Edytuj prowadzącego</span>
           </button>
           <form action="{{ url_for('routes.usun_prowadzacego', id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń prowadzącego"><i class="bi bi-trash"></i></button>
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń prowadzącego">
+              <i class="bi bi-trash"></i>
+              <span class="visually-hidden">Usuń prowadzącego</span>
+            </button>
           </form>
           <button class="btn btn-sm text-primary" data-bs-toggle="modal" data-bs-target="#raportModal{{ p.id }}" aria-label="Raport miesięczny">
             <i class="bi bi-file-earmark-text"></i>
+            <span class="visually-hidden">Raport miesięczny</span>
           </button>
         </td>
       </tr>
@@ -145,7 +150,10 @@
         <td>
           <form action="{{ url_for('routes.usun_zajecie', id=z.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć zajęcia?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia"><i class="bi bi-trash"></i></button>
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia">
+              <i class="bi bi-trash"></i>
+              <span class="visually-hidden">Usuń zajęcia</span>
+            </button>
           </form>
         </td>
       </tr>

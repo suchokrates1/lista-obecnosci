@@ -68,10 +68,16 @@
           </ul>
         </td>
         <td class="text-nowrap">
-          <a href="{{ url_for('routes.pobierz_zajecie', id=z.id) }}" class="btn btn-sm text-primary" aria-label="Pobierz dokument"><i class="bi bi-download"></i></a>
+          <a href="{{ url_for('routes.pobierz_zajecie', id=z.id) }}" class="btn btn-sm text-primary" aria-label="Pobierz dokument">
+            <i class="bi bi-download"></i>
+            <span class="visually-hidden">Pobierz dokument</span>
+          </a>
           <form action="{{ url_for('routes.usun_moje_zajecie', id=z.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Usunąć zajęcia?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia"><i class="bi bi-trash"></i></button>
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia">
+              <i class="bi bi-trash"></i>
+              <span class="visually-hidden">Usuń zajęcia</span>
+            </button>
           </form>
         </td>
       </tr>
