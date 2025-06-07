@@ -5,9 +5,9 @@
     <h2 class="mb-4 text-center">Ustaw nowe hasło</h2>
     <form method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="mb-3">
-        <label for="password" class="form-label">Nowe hasło:</label>
-        <input type="password" class="form-control" id="password" name="password" required>
+      <div class="form-floating mb-3">
+        <input type="password" class="form-control" id="password" name="password" placeholder="Nowe hasło" required autocomplete="new-password" tabindex="1">
+        <label for="password">Nowe hasło:</label>
       </div>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -17,7 +17,7 @@
         {% endif %}
       {% endwith %}
       <div class="d-grid">
-        <button type="submit" class="btn btn-primary">Zmień hasło</button>
+        <button type="submit" class="btn btn-primary" tabindex="2">Zmień hasło</button>
       </div>
     </form>
   </div>

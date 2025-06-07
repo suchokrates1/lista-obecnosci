@@ -24,13 +24,13 @@
     <h2 class="mb-4 text-center">Logowanie</h2>
     <form method="POST" action="/login">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="mb-3">
-        <label for="login" class="form-label">Login:</label>
-        <input type="email" class="form-control" id="login" name="login" required>
+      <div class="form-floating mb-3">
+        <input type="email" class="form-control" id="login" name="login" placeholder="Login" required autocomplete="username" tabindex="1">
+        <label for="login">Login:</label>
       </div>
-      <div class="mb-3">
-        <label for="hasło" class="form-label">Hasło:</label>
-        <input type="password" class="form-control" id="hasło" name="hasło" required>
+      <div class="form-floating mb-3">
+        <input type="password" class="form-control" id="hasło" name="hasło" placeholder="Hasło" required autocomplete="current-password" tabindex="2">
+        <label for="hasło">Hasło:</label>
       </div>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -40,11 +40,11 @@
         {% endif %}
       {% endwith %}
       <div class="d-grid mt-3">
-        <button type="submit" class="btn btn-primary">Zaloguj się</button>
+        <button type="submit" class="btn btn-primary" tabindex="3">Zaloguj się</button>
       </div>
     </form>
     <div class="text-center mt-3">
-      <a href="{{ url_for('routes.register') }}">Zarejestruj się</a>
+      <a href="{{ url_for('routes.register') }}" tabindex="4">Zarejestruj się</a>
     </div>
   </div>
 {% endblock %}
