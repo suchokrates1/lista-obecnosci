@@ -6,7 +6,11 @@ from doc_generator import generuj_raport_miesieczny
 from io import BytesIO
 from werkzeug.utils import secure_filename
 import os
+import smtplib
+import logging
 from . import routes_bp
+
+logger = logging.getLogger(__name__)
 
 @routes_bp.route('/admin')
 @login_required
@@ -76,8 +80,12 @@ def raport(prowadzacy_id):
     buf.seek(0)
 
     if wyslij:
-        email_do_koordynatora(buf, f'{miesiac}_{rok}', typ='raport')
-        flash('Raport został wysłany e-mailem', 'success')
+        try:
+            email_do_koordynatora(buf, f'{miesiac}_{rok}', typ='raport')
+            flash('Raport został wysłany e-mailem', 'success')
+        except smtplib.SMTPException:
+            logger.exception('Failed to send report email')
+            flash('Nie udało się wysłać e-maila', 'danger')
         return redirect(url_for('routes.admin_dashboard'))
 
     return send_file(buf,
@@ -167,8 +175,9 @@ def approve_user(id):
             'Aktywacja konta w ShareOKO',
             'Twoje konto zostało zatwierdzone i jest już aktywne.',
         )
-    except Exception:
-        pass
+    except smtplib.SMTPException:
+        logger.exception('Failed to send activation email')
+        flash('Nie udało się wysłać e-maila do użytkownika', 'danger')
 
     flash('Użytkownik zatwierdzony', 'success')
     return redirect(url_for('routes.admin_dashboard'))
