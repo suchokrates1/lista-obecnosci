@@ -4,7 +4,8 @@ This is a small Flask application for managing attendance.
 
 ## Environment variables
 
-The application expects several settings to be provided through environment variables:
+The application expects several settings to be provided through environment variables.
+Copy `.env.example` to `.env` and adjust the values, or export them manually:
 
 - `SECRET_KEY` – secret used by Flask for sessions.
 - `ADMIN_LOGIN` – login of the administrator account created by `init_db.py`.
@@ -16,7 +17,7 @@ The application expects several settings to be provided through environment vari
   - `EMAIL_LOGIN` – SMTP user name.
   - `EMAIL_PASSWORD` – SMTP password.
 
-You can export them in your shell or put them in an `.env` file when using docker-compose.
+You can export them in your shell or copy `.env.example` to `.env` when using docker-compose.
 
 ## Database setup
 

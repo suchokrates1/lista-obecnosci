@@ -32,6 +32,7 @@ instance/
 *.sock
 *.db
 .env.*
+!.env.example
 *.db-journal
 
 # Pliki z podpisami i szablonami (jeśli nie chcesz ich commitować)
