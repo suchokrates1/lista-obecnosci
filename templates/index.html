@@ -46,7 +46,7 @@
           <label for="prowadzący" class="form-label">Wybierz prowadzącego:</label>
           <select name="prowadzący" id="prowadzący" class="form-select" required aria-required="true">
             {% for p in prowadzacy %}
-              <option value="{{ p.id }}" {% if selected == p.id %}selected{% endif %}>{{ p.nazwisko }}</option>
+              <option value="{{ p.id }}" {% if selected == p.id %}selected{% endif %}>{{ p.imie }} {{ p.nazwisko }}</option>
             {% endfor %}
           </select>
         </div>
