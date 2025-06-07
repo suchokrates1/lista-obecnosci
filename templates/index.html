@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <title>Lista obecności – ShareOKO</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+{% extends 'base.html' %}
+{% block title %}Lista obecności{% endblock %}
+{% block head_extra %}
   <style>
     body {
       background-color: #f4f4f8;
@@ -16,124 +12,116 @@
       font-size: 1.2rem;
     }
   </style>
-</head>
-<body class="bg-light">
-  <a href="#main" class="visually-hidden-focusable">Przejdź do głównej zawartości</a>
-
-  <!-- Ikony w prawym górnym rogu -->
-  <div class="position-absolute top-0 end-0 d-flex flex-column align-items-end m-3" style="z-index: 10;">
-    <button class="btn btn-sm btn-outline-dark mb-2" onclick="toggleTheme()" id="themeToggle" aria-label="Przełącz tryb ciemny/jasny">🌓</button>
-    {% if current_user.role == 'prowadzacy' %}
-    <a href="{{ url_for('routes.panel') }}" class="btn btn-sm btn-dark">Panel</a>
-    {% endif %}
+{% endblock %}
+{% block content %}
+  {% if current_user.role == 'prowadzacy' %}
+  <div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('routes.panel') }}" class="btn btn-dark">Panel</a>
   </div>
+  {% endif %}
+  <h1 class="mb-4 text-center">Lista obecności – ShareOKO</h1>
 
-  <main id="main" class="container mt-5 mb-5">
-    <h1 class="mb-4 text-center">Lista obecności – ShareOKO</h1>
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 
-    {% with messages = get_flashed_messages(with_categories=True) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <form method="POST" enctype="multipart/form-data" aria-label="Formularz listy obecności">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      {% if is_admin %}
-      <div class="mb-3 d-flex justify-content-between align-items-center">
-        <div class="w-100">
-          <label for="prowadzący" class="form-label">Wybierz prowadzącego:</label>
-          <select name="prowadzący" id="prowadzący" class="form-select" required aria-required="true">
-            {% for p in prowadzacy %}
-              <option value="{{ p.id }}" {% if selected == p.id %}selected{% endif %}>{{ p.imie }} {{ p.nazwisko }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <button type="button" class="btn btn-outline-success ms-3" style="white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#dodajModal" aria-label="Dodaj prowadzącego">
-          <i class="bi bi-person-plus"></i>
-        </button>
-      </div>
-      {% else %}
-      <input type="hidden" name="prowadzący" value="{{ selected }}">
-      {% endif %}
-
-      <div class="mb-3">
-        <label for="data" class="form-label">Data zajęć:</label>
-        <input type="date" name="data" id="data" class="form-control" required>
-      </div>
-
-      <div class="mb-3">
-        <label for="czas" class="form-label">Czas trwania zajęć:</label>
-        <input type="text" name="czas" id="czas" class="form-control" value="{{ domyslny_czas }}" required>
-      </div>
-
-      <fieldset class="mb-3" aria-labelledby="uczestnicy-label">
-        <legend id="uczestnicy-label">Lista uczestników (zaznacz obecnych):</legend>
-        {% for osoba in uczestnicy %}
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="obecny" id="check{{ loop.index }}" value="{{ osoba.id }}">
-            <label class="form-check-label" for="check{{ loop.index }}">{{ osoba.imie_nazwisko }}</label>
-          </div>
-        {% endfor %}
-      </fieldset>
-
-      <div class="text-center d-flex flex-column flex-sm-row justify-content-center gap-3">
-        <button type="submit" name="akcja" value="wyslij" class="btn btn-primary">
-          Wyślij do koordynatora
-        </button>
-        <button type="submit" name="akcja" value="pobierz" class="btn btn-outline-secondary">
-          Pobierz dokument
-        </button>
-      </div>
-
-    </form>
-
+  <form method="POST" enctype="multipart/form-data" aria-label="Formularz listy obecności">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% if is_admin %}
-    <div class="modal fade" id="dodajModal" tabindex="-1" aria-labelledby="dodajModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form method="POST" action="/dodaj" enctype="multipart/form-data">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="modal-header">
-              <h5 class="modal-title" id="dodajModalLabel">Dodaj / Edytuj prowadzącego</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
-            </div>
-            <div class="modal-body">
-              <input type="hidden" name="edit_id" id="edit_id">
-              <div class="mb-3">
-                <label for="nowy_imie" class="form-label">Imię prowadzącego:</label>
-                <input type="text" class="form-control" id="nowy_imie" name="nowy_imie" required>
-              </div>
-              <div class="mb-3">
-                <label for="nowy_nazwisko" class="form-label">Nazwisko prowadzącego:</label>
-                <input type="text" class="form-control" id="nowy_nazwisko" name="nowy_nazwisko" required>
-              </div>
-              <div class="mb-3">
-                <label for="nowy_umowa" class="form-label">Numer umowy:</label>
-                <input type="text" class="form-control" id="nowy_umowa" name="nowy_umowa" required>
-              </div>
-              <div class="mb-3">
-                <label for="nowi_uczestnicy" class="form-label">Uczestnicy (po jednym na linię):</label>
-                <textarea class="form-control" id="nowi_uczestnicy" name="nowi_uczestnicy" rows="5" required></textarea>
-              </div>
-              <div class="mb-3">
-                <label for="nowy_podpis" class="form-label">Plik podpisu (.png lub .jpg):</label>
-                <input class="form-control" type="file" name="nowy_podpis" id="nowy_podpis" accept=".png,.jpg,.jpeg">
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="submit" class="btn btn-success">Zapisz prowadzącego</button>
-            </div>
-          </form>
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+      <div class="w-100">
+        <label for="prowadzący" class="form-label">Wybierz prowadzącego:</label>
+        <select name="prowadzący" id="prowadzący" class="form-select" required aria-required="true">
+          {% for p in prowadzacy %}
+            <option value="{{ p.id }}" {% if selected == p.id %}selected{% endif %}>{{ p.imie }} {{ p.nazwisko }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="button" class="btn btn-outline-success ms-3" style="white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#dodajModal" aria-label="Dodaj prowadzącego">
+        <i class="bi bi-person-plus"></i>
+      </button>
+    </div>
+    {% else %}
+    <input type="hidden" name="prowadzący" value="{{ selected }}">
+    {% endif %}
+
+    <div class="mb-3">
+      <label for="data" class="form-label">Data zajęć:</label>
+      <input type="date" name="data" id="data" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="czas" class="form-label">Czas trwania zajęć:</label>
+      <input type="text" name="czas" id="czas" class="form-control" value="{{ domyslny_czas }}" required>
+    </div>
+
+    <fieldset class="mb-3" aria-labelledby="uczestnicy-label">
+      <legend id="uczestnicy-label">Lista uczestników (zaznacz obecnych):</legend>
+      {% for osoba in uczestnicy %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="obecny" id="check{{ loop.index }}" value="{{ osoba.id }}">
+          <label class="form-check-label" for="check{{ loop.index }}">{{ osoba.imie_nazwisko }}</label>
         </div>
+      {% endfor %}
+    </fieldset>
+
+    <div class="text-center d-flex flex-column flex-sm-row justify-content-center gap-3">
+      <button type="submit" name="akcja" value="wyslij" class="btn btn-primary">
+        Wyślij do koordynatora
+      </button>
+      <button type="submit" name="akcja" value="pobierz" class="btn btn-outline-secondary">
+        Pobierz dokument
+      </button>
+    </div>
+  </form>
+
+  {% if is_admin %}
+  <div class="modal fade" id="dodajModal" tabindex="-1" aria-labelledby="dodajModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="POST" action="/dodaj" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="modal-header">
+            <h5 class="modal-title" id="dodajModalLabel">Dodaj / Edytuj prowadzącego</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="edit_id" id="edit_id">
+            <div class="mb-3">
+              <label for="nowy_imie" class="form-label">Imię prowadzącego:</label>
+              <input type="text" class="form-control" id="nowy_imie" name="nowy_imie" required>
+            </div>
+            <div class="mb-3">
+              <label for="nowy_nazwisko" class="form-label">Nazwisko prowadzącego:</label>
+              <input type="text" class="form-control" id="nowy_nazwisko" name="nowy_nazwisko" required>
+            </div>
+            <div class="mb-3">
+              <label for="nowy_umowa" class="form-label">Numer umowy:</label>
+              <input type="text" class="form-control" id="nowy_umowa" name="nowy_umowa" required>
+            </div>
+            <div class="mb-3">
+              <label for="nowi_uczestnicy" class="form-label">Uczestnicy (po jednym na linię):</label>
+              <textarea class="form-control" id="nowi_uczestnicy" name="nowi_uczestnicy" rows="5" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="nowy_podpis" class="form-label">Plik podpisu (.png lub .jpg):</label>
+              <input class="form-control" type="file" name="nowy_podpis" id="nowy_podpis" accept=".png,.jpg,.jpeg">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Zapisz prowadzącego</button>
+          </div>
+        </form>
       </div>
     </div>
-    {% endif %}
-  </main>
+  </div>
+  {% endif %}
 
-  <footer class="text-center text-white bg-dark py-4">
+  <footer class="text-center text-white bg-dark py-4 mt-5">
     <small>
       <i class="bi bi-globe"></i>
       <a href="https://vestmedia.pl" target="_blank" class="text-light text-decoration-underline">vestmedia.pl</a>
@@ -142,32 +130,10 @@
       <a href="mailto:kontakt@vestmedia.pl" class="text-light text-decoration-underline">kontakt@vestmedia.pl</a>
     </small>
   </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+{% block scripts %}
   <script>
-    function toggleTheme() {
-      const html = document.documentElement;
-      const dark = html.classList.toggle('dark-mode');
-      document.body.classList.toggle('bg-dark');
-      document.body.classList.toggle('text-light');
-      document.getElementById("themeToggle").classList.toggle('btn-outline-light');
-      document.getElementById("themeToggle").classList.toggle('btn-outline-dark');
-      localStorage.setItem("theme", dark ? "dark" : "light");
-      const inputs = document.querySelectorAll('.form-control, .form-select, .form-check-input');
-      inputs.forEach(el => el.classList.toggle('bg-secondary'));
-    }
-
     document.getElementById("data").valueAsDate = new Date();
-
-    if (!localStorage.getItem("theme")) {
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        toggleTheme();
-      }
-    }
-    if (localStorage.getItem("theme") === "dark") {
-      toggleTheme();
-    }
-
     {% if is_admin %}
     document.getElementById("prowadzący").addEventListener("change", () => {
       const form = document.querySelector("form");
@@ -180,5 +146,4 @@
     });
     {% endif %}
   </script>
-</body>
-</html>
+{% endblock %}
