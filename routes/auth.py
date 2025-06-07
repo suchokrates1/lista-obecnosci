@@ -22,7 +22,7 @@ def login():
 
             login_user(user)
 
-            if user.role == "admin" or user.login == os.getenv("ADMIN_LOGIN"):
+            if user.role == "admin":
                 return redirect(url_for("routes.admin_dashboard"))
             else:
                 return redirect(url_for("routes.index"))
