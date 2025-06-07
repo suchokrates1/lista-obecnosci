@@ -18,6 +18,7 @@
   </style>
 </head>
 <body class="bg-light">
+  <a href="#main" class="visually-hidden-focusable">Przejdź do głównej zawartości</a>
 
   <!-- Ikony w prawym górnym rogu -->
   <div class="position-absolute top-0 end-0 d-flex flex-column align-items-end m-3" style="z-index: 10;">
@@ -27,7 +28,7 @@
     {% endif %}
   </div>
 
-  <main class="container mt-5 mb-5">
+  <main id="main" class="container mt-5 mb-5">
     <h1 class="mb-4 text-center">Lista obecności – ShareOKO</h1>
 
     {% with messages = get_flashed_messages(with_categories=True) %}
@@ -50,7 +51,7 @@
             {% endfor %}
           </select>
         </div>
-        <button type="button" class="btn btn-outline-success ms-3" style="white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#dodajModal">
+        <button type="button" class="btn btn-outline-success ms-3" style="white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#dodajModal" aria-label="Dodaj prowadzącego">
           <i class="bi bi-person-plus"></i>
         </button>
       </div>
