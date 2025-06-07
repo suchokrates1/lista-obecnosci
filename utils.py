@@ -87,8 +87,9 @@ def email_do_koordynatora(buf, data, typ="lista"):
                 smtp.login(login, password)
                 smtp.send_message(msg)
         logger.info("Mail sent to %s", odbiorca)
-    except Exception as e:
+    except smtplib.SMTPException as e:
         logger.exception("Failed to send email: %s", e)
+        raise
 
 
 def send_plain_email(to_addr: str, subject: str, body: str) -> None:
@@ -115,5 +116,6 @@ def send_plain_email(to_addr: str, subject: str, body: str) -> None:
                 smtp.login(login, password)
                 smtp.send_message(msg)
         logger.info("Mail sent to %s", to_addr)
-    except Exception as e:
+    except smtplib.SMTPException as e:
         logger.exception("Failed to send email: %s", e)
+        raise
