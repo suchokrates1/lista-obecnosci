@@ -1,0 +1,136 @@
+from flask import render_template, request, redirect, url_for, flash, send_file
+from flask_login import login_required, current_user
+from model import db, Prowadzacy, Zajecia, Uczestnik
+from utils import email_do_koordynatora
+from doc_generator import generuj_raport_miesieczny
+from io import BytesIO
+import os
+from . import routes_bp
+
+@routes_bp.route('/admin')
+@login_required
+def admin_dashboard():
+    if current_user.login != os.getenv('ADMIN_LOGIN'):
+        return 'Brak dostępu', 403
+
+    prowadzacy = Prowadzacy.query.all()
+    for p in prowadzacy:
+        p.uczestnicy = sorted(p.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
+
+    zajecia = Zajecia.query.order_by(Zajecia.data.desc()).all()
+    ostatnie = {}
+    for p in prowadzacy:
+        ostatnie_zajecia = Zajecia.query.filter_by(prowadzacy_id=p.id).order_by(Zajecia.data.desc()).first()
+        if ostatnie_zajecia:
+            ostatnie[p.id] = ostatnie_zajecia.data
+    return render_template('admin.html', prowadzacy=prowadzacy, zajecia=zajecia, ostatnie=ostatnie)
+
+@routes_bp.route('/usun_zajecie/<int:id>', methods=['POST'])
+@login_required
+def usun_zajecie(id):
+    if current_user.login != os.getenv('ADMIN_LOGIN'):
+        return 'Brak dostępu', 403
+
+    zaj = Zajecia.query.get(id)
+    if not zaj:
+        return 'Nie znaleziono zajęć', 404
+
+    db.session.delete(zaj)
+    db.session.commit()
+    flash('Zajęcia zostały usunięte', 'info')
+    return redirect(url_for('routes.admin_dashboard'))
+
+@routes_bp.route('/raport/<int:prowadzacy_id>', methods=['GET'])
+@login_required
+def raport(prowadzacy_id):
+    if current_user.login != os.getenv('ADMIN_LOGIN'):
+        return 'Brak dostępu', 403
+
+    prow = Prowadzacy.query.get(prowadzacy_id)
+    if not prow:
+        return 'Nie znaleziono prowadzącego', 404
+
+    ostatnie = Zajecia.query.filter_by(prowadzacy_id=prowadzacy_id).order_by(Zajecia.data.desc()).first()
+    if not ostatnie:
+        return 'Brak zajęć do raportu', 404
+
+    miesiac = int(request.args.get('miesiac', ostatnie.data.month))
+    rok = int(request.args.get('rok', ostatnie.data.year))
+    wyslij = request.args.get('wyslij') == '1'
+
+    wszystkie = Zajecia.query.filter_by(prowadzacy_id=prowadzacy_id).all()
+    doc = generuj_raport_miesieczny(prow, wszystkie, 'rejestr.docx', 'static', miesiac, rok)
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+
+    if wyslij:
+        email_do_koordynatora(buf, f'{miesiac}_{rok}', typ='raport')
+        flash('Raport został wysłany e-mailem', 'success')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    return send_file(buf,
+                     mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                     as_attachment=True,
+                     download_name=f'raport_{miesiac}_{rok}.docx')
+
+@routes_bp.route('/dodaj', methods=['POST'])
+@login_required
+def dodaj_prowadzacego():
+    if current_user.login != os.getenv('ADMIN_LOGIN'):
+        return 'Brak dostępu', 403
+
+    id_edit = request.form.get('edit_id')
+    trener = request.form.get('nowy_trener')
+    numer_umowy = request.form.get('nowy_umowa')
+    uczestnicy = request.form.get('nowi_uczestnicy')
+    podpis = request.files.get('nowy_podpis')
+
+    if not trener or not uczestnicy:
+        flash('Wszystkie pola są wymagane', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    if id_edit:
+        prow = Prowadzacy.query.get(id_edit)
+        if not prow:
+            flash('Nie znaleziono prowadącego', 'danger')
+            return redirect(url_for('routes.admin_dashboard'))
+        prow.nazwisko = trener
+        prow.numer_umowy = numer_umowy
+        prow.uczestnicy.clear()
+    else:
+        prow = Prowadzacy(nazwisko=trener, numer_umowy=numer_umowy)
+        db.session.add(prow)
+        db.session.flush()
+
+    if podpis:
+        filename = f"{trener}.{podpis.filename.split('.')[-1]}"
+        path = os.path.join('static', filename)
+        podpis.save(path)
+        prow.podpis_filename = filename
+
+    for nazwisko in uczestnicy.strip().splitlines():
+        uczestnik = Uczestnik(prowadzacy_id=prow.id, imie_nazwisko=nazwisko)
+        db.session.add(uczestnik)
+
+    db.session.commit()
+    flash('Prowadzący zapisany', 'success')
+    return redirect(url_for('routes.admin_dashboard'))
+
+@routes_bp.route('/usun/<id>', methods=['POST'])
+@login_required
+def usun_prowadzacego(id):
+    if current_user.login != os.getenv('ADMIN_LOGIN'):
+        return 'Brak dostępu', 403
+
+    prow = Prowadzacy.query.get(id)
+    if not prow:
+        return 'Nie znaleziono', 404
+
+    Uczestnik.query.filter_by(prowadzacy_id=prow.id).delete()
+    db.session.delete(prow)
+    db.session.commit()
+
+    flash('Prowadzący usunięty', 'info')
+    return redirect(url_for('routes.admin_dashboard'))

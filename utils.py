@@ -4,7 +4,10 @@ from io import BytesIO
 from datetime import datetime
 import os
 import smtplib
+import logging
 from email.message import EmailMessage
+
+logger = logging.getLogger(__name__)
 
 def przetworz_liste_obecnosci(form, wybrany):
     data_str = form.get("data")
@@ -43,6 +46,7 @@ def przetworz_liste_obecnosci(form, wybrany):
 def email_do_koordynatora(buf, data, typ="lista"):
     odbiorca = os.getenv("EMAIL_RECIPIENT")
     if not odbiorca:
+        logger.warning("EMAIL_RECIPIENT not configured, skipping mail send.")
         return
 
     msg = EmailMessage()
@@ -72,12 +76,16 @@ def email_do_koordynatora(buf, data, typ="lista"):
     login = os.getenv("EMAIL_LOGIN")
     password = os.getenv("EMAIL_PASSWORD")
 
-    if port == 465:
-        with smtplib.SMTP_SSL(host, port) as smtp:
-            smtp.login(login, password)
-            smtp.send_message(msg)
-    else:
-        with smtplib.SMTP(host, port) as smtp:
-            smtp.starttls()
-            smtp.login(login, password)
-            smtp.send_message(msg)
+    try:
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port) as smtp:
+                smtp.login(login, password)
+                smtp.send_message(msg)
+        else:
+            with smtplib.SMTP(host, port) as smtp:
+                smtp.starttls()
+                smtp.login(login, password)
+                smtp.send_message(msg)
+        logger.info("Mail sent to %s", odbiorca)
+    except Exception as e:
+        logger.exception("Failed to send email: %s", e)
