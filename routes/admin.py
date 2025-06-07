@@ -1,16 +1,18 @@
-from flask import render_template, request, redirect, url_for, flash, send_file, abort
+from flask import render_template, request, redirect, url_for, flash, send_file, abort, current_app
 from flask_login import login_required, current_user
-from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik
+from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik, Setting
 from utils import (
     email_do_koordynatora,
     send_plain_email,
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
     SIGNATURE_MAX_SIZE,
+    load_db_settings,
 )
 from doc_generator import generuj_raport_miesieczny
 from io import BytesIO
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash
 import os
 import smtplib
 import logging
@@ -28,6 +30,8 @@ def admin_dashboard():
     new_users = (
         Uzytkownik.query.filter_by(role="prowadzacy", approved=False).all()
     )
+
+
     for p in prowadzacy:
         p.uczestnicy = sorted(p.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
 
@@ -44,6 +48,49 @@ def admin_dashboard():
         ostatnie=ostatnie,
         new_users=new_users,
     )
+
+
+@routes_bp.route('/admin/settings', methods=['GET', 'POST'])
+@login_required
+def admin_settings():
+    if current_user.role != 'admin':
+        abort(403)
+
+    keys = ['smtp_host', 'smtp_port', 'email_recipient', 'max_signature_size']
+
+    if request.method == 'POST':
+        for key in keys:
+            val = request.form.get(key)
+            if val is None:
+                continue
+            setting = Setting.query.get(key)
+            if setting:
+                setting.value = val
+            else:
+                db.session.add(Setting(key=key, value=val))
+            os.environ[key.upper()] = val
+
+        admin_login = request.form.get('admin_login')
+        admin_password = request.form.get('admin_password')
+        admin_user = Uzytkownik.query.filter_by(role='admin').first()
+        if admin_user:
+            if admin_login and admin_login != admin_user.login:
+                admin_user.login = admin_login
+            if admin_password:
+                admin_user.haslo_hash = generate_password_hash(admin_password)
+        db.session.commit()
+        load_db_settings(current_app)
+        flash('Ustawienia zostały zapisane', 'success')
+        return redirect(url_for('routes.admin_settings'))
+
+    values = {}
+    for key in keys:
+        setting = Setting.query.get(key)
+        values[key] = os.getenv(key.upper(), setting.value if setting else '')
+
+    admin_user = Uzytkownik.query.filter_by(role='admin').first()
+    admin_login = admin_user.login if admin_user else ''
+    return render_template('settings.html', values=values, admin_login=admin_login)
 
 @routes_bp.route('/usun_zajecie/<int:id>', methods=['POST'])
 @login_required
