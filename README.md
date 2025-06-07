@@ -45,3 +45,8 @@ Remember to set `FLASK_APP=app:create_app` before running Flask commands.
 ## Templates
 
 The files `szablon.docx` (attendance template) and `rejestr.docx` (monthly report template) must be present in the project root. They are ignored by Git so provide your own copies.
+
+## Signature images
+
+Only PNG and JPG files are accepted when uploading signature images in the admin
+or trainer panels. Files with other extensions or MIME types will be rejected.
