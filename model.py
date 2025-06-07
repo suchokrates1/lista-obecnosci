@@ -60,6 +60,14 @@ class Uzytkownik(UserMixin, db.Model):
     prowadzacy = db.relationship("Prowadzacy", back_populates="user")
 
 
+class Setting(db.Model):
+    """Arbitrary key/value configuration setting."""
+
+    __tablename__ = "setting"
+    key = db.Column(db.String, primary_key=True)
+    value = db.Column(db.String)
+
+
 class PasswordResetToken(db.Model):
     __tablename__ = "password_reset_token"
     id = db.Column(db.Integer, primary_key=True)

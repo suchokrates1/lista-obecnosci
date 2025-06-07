@@ -20,6 +20,18 @@ ALLOWED_MIME_TYPES = {"image/png", "image/jpeg"}
 SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
 
 
+def load_db_settings(app) -> None:
+    """Load configuration from the Setting table into ``os.environ``."""
+    from model import Setting  # imported lazily to avoid circular imports
+
+    with app.app_context():
+        for setting in Setting.query.all():
+            os.environ.setdefault(setting.key.upper(), setting.value)
+
+    global SIGNATURE_MAX_SIZE
+    SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
+
+
 def is_valid_email(value: str) -> bool:
     """Return True if ``value`` looks like a valid e-mail address."""
     if not isinstance(value, str):
