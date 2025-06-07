@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  lista-obecnosci:
+    build: .
+    container_name: lista-obecnosci2
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - proxy
+    volumes:
+      - .:/app  # Montujemy cały folder projektu
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.lista2.rule=Host(`obecnosc.dawidsuchodolski.pl`)"
+      - "traefik.http.routers.lista2.entrypoints=https"
+      - "traefik.http.routers.lista2.tls=true"
+      - "traefik.http.services.lista2.loadbalancer.server.port=5000"
+
+networks:
+  proxy:
+    external: true
