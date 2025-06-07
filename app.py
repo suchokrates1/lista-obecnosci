@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from dotenv import load_dotenv
+import logging
 import os
 from model import db, Uzytkownik
 
@@ -13,6 +14,7 @@ login_manager = LoginManager()
 login_manager.login_view = "routes.login"  # Redirect to login page when unauthorized
 
 def create_app():
+    logging.basicConfig(level=logging.INFO)
     app = Flask(__name__)
 
     # Konfiguracja aplikacji
