@@ -1,0 +1,35 @@
+# Ignore version control and development files
+.git
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments and env files
+.env
+*.env
+!.env.example
+
+# IDE and editor folders
+.vscode/
+.idea/
+
+# Local data and logs
+instance/
+*.db
+*.db-journal
+*.sqlite3
+*.log
+*.pid
+*.sock
+*.tmp
+*.bak
+*.swp
+
+# Migrations are not needed inside the image
+migrations/
+
+# Misc system files
+.DS_Store
