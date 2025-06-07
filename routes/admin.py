@@ -106,12 +106,13 @@ def dodaj_prowadzacego():
         abort(403)
 
     id_edit = request.form.get('edit_id')
-    trener = request.form.get('nowy_trener')
+    imie = request.form.get('nowy_imie')
+    nazwisko = request.form.get('nowy_nazwisko')
     numer_umowy = request.form.get('nowy_umowa')
     uczestnicy = request.form.get('nowi_uczestnicy')
     podpis = request.files.get('nowy_podpis')
 
-    if not trener or not uczestnicy:
+    if not imie or not nazwisko or not uczestnicy:
         flash('Wszystkie pola są wymagane', 'danger')
         return redirect(url_for('routes.admin_dashboard'))
 
@@ -120,11 +121,12 @@ def dodaj_prowadzacego():
         if not prow:
             flash('Nie znaleziono prowadącego', 'danger')
             return redirect(url_for('routes.admin_dashboard'))
-        prow.nazwisko = trener
+        prow.imie = imie
+        prow.nazwisko = nazwisko
         prow.numer_umowy = numer_umowy
         prow.uczestnicy.clear()
     else:
-        prow = Prowadzacy(nazwisko=trener, numer_umowy=numer_umowy)
+        prow = Prowadzacy(imie=imie, nazwisko=nazwisko, numer_umowy=numer_umowy)
         db.session.add(prow)
         db.session.flush()
 
@@ -147,8 +149,8 @@ def dodaj_prowadzacego():
         podpis.save(path)
         prow.podpis_filename = filename
 
-    for nazwisko in uczestnicy.strip().splitlines():
-        uczestnik = Uczestnik(prowadzacy_id=prow.id, imie_nazwisko=nazwisko)
+    for nazw in uczestnicy.strip().splitlines():
+        uczestnik = Uczestnik(prowadzacy_id=prow.id, imie_nazwisko=nazw)
         db.session.add(uczestnik)
 
     db.session.commit()
