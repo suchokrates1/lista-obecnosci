@@ -12,6 +12,9 @@ from . import routes_bp
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+ALLOWED_MIME_TYPES = {"image/png", "image/jpeg"}
+
 @routes_bp.route('/admin')
 @login_required
 def admin_dashboard():
@@ -122,8 +125,15 @@ def dodaj_prowadzacego():
         db.session.add(prow)
         db.session.flush()
 
+    sanitized = None
     if podpis and podpis.filename:
         sanitized = secure_filename(podpis.filename)
+        ext = sanitized.rsplit('.', 1)[-1].lower()
+        if ext not in ALLOWED_EXTENSIONS or podpis.mimetype not in ALLOWED_MIME_TYPES:
+            flash('Nieobsługiwany format pliku podpisu. Dozwolone są PNG i JPG.', 'danger')
+            return redirect(url_for('routes.admin_dashboard'))
+
+    if podpis and sanitized:
         filename = f"{prow.id}_{sanitized}"
         path = os.path.join('static', filename)
         podpis.save(path)
