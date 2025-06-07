@@ -2,6 +2,9 @@ from app import create_app
 from model import db, Uzytkownik
 from werkzeug.security import generate_password_hash
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 app = create_app()
 with app.app_context():
@@ -15,8 +18,8 @@ with app.app_context():
         admin = Uzytkownik(login=admin_login, haslo_hash=hashed)
         db.session.add(admin)
         db.session.commit()
-        print(f"✔ Użytkownik administratora '{admin_login}' został dodany.")
+        logger.debug("✔ Użytkownik administratora '%s' został dodany.", admin_login)
     else:
-        print(f"ℹ Użytkownik '{admin_login}' już istnieje.")
+        logger.debug("ℹ Użytkownik '%s' już istnieje.", admin_login)
 
-    print("✔ Baza danych została zainicjalizowana.")
+    logger.debug("✔ Baza danych została zainicjalizowana.")
