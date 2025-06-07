@@ -16,6 +16,9 @@ EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 ALLOWED_MIME_TYPES = {"image/png", "image/jpeg"}
 
+# Maximum allowed size of uploaded signature files in bytes
+SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
+
 
 def is_valid_email(value: str) -> bool:
     """Return True if ``value`` looks like a valid e-mail address."""
