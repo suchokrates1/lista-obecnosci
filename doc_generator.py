@@ -1,0 +1,106 @@
+from docx import Document
+from docx.shared import Pt, Cm
+from datetime import datetime
+import os
+
+def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path):
+    doc = Document("szablon.docx")
+
+    for para in doc.paragraphs:
+        if "Data zajęć:" in para.text and "Czas trwania zajęć:" in para.text:
+            para.text = f"Data zajęć: {data}    Czas trwania zajęć: {czas}"
+
+    if len(doc.tables) >= 2:
+        tabela_uczestnicy = doc.tables[0]
+        for i in range(1, len(tabela_uczestnicy.rows)):
+            if i - 1 < len(obecni):
+                cell = tabela_uczestnicy.cell(i, 0)
+                cell.text = obecni[i - 1]
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.size = Pt(10)
+            else:
+                for cell in tabela_uczestnicy.row_cells(i):
+                    cell.text = ""
+
+        tabela_trener = doc.tables[1]
+        tabela_trener.cell(1, 0).text = trener
+        if podpis_path and os.path.exists(podpis_path):
+            try:
+                run = tabela_trener.cell(1, 1).paragraphs[0].clear().add_run()
+                run.add_picture(podpis_path, width=Cm(3.5))
+            except Exception as e:
+                print(f"Błąd przy podpisie: {e}")
+
+    return doc
+
+def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, miesiac, rok):
+    doc = Document(szablon_path)
+    print("[DEBUG] Generowanie raportu dla miesiąca:", miesiac, "rok:", rok)
+
+    for para in doc.paragraphs:
+        if "zleceniobiorca:" in para.text.lower():
+            para.text = f"Zleceniobiorca: {prowadzacy.nazwisko}"
+        elif "zlecenia nr" in para.text.lower():
+            para.text = f"Rozliczenie liczby godzin wykonywania usług do umowy zlecenia nr {prowadzacy.numer_umowy}"
+        elif para.text.strip().lower().startswith("w "):
+            para.text = f"w {miesiac:02d}.{rok}"
+
+    dni_miesiaca = [d for d in zajecia if d.data.month == miesiac and d.data.year == rok]
+    print("[DEBUG] Liczba zajęć w miesiącu:", len(dni_miesiaca))
+
+    suma = 0
+    for tabela in doc.tables:
+        for row in tabela.rows:
+            dzien = None
+            for col_idx, cell in enumerate(row.cells):
+                for par in cell.paragraphs:
+                    txt = par.text.strip()
+                    print(f"[DEBUG] Zawartość komórki: '{txt}'")
+                    txt_clean = txt.rstrip(".").strip().lstrip("0")
+                    if txt_clean.isdigit():
+                        dzien = int(txt_clean)
+                        print(f"[DEBUG] Sprawdzam dzień: {dzien}")
+            if dzien:
+                laczny_czas = sum(
+                    float(str(zaj.czas_trwania).replace(",", ".")) for zaj in dni_miesiaca if zaj.data.day == dzien
+                )
+                if laczny_czas > 0:
+                    print(f"[DEBUG] Łączny czas zajęć dla dnia {dzien}: {laczny_czas}")
+                    godziny_txt = str(laczny_czas).replace(".0", "") + "h"
+                    if len(row.cells) >= 3:
+                        row.cells[1].text = godziny_txt
+                        podpis_path = os.path.join(podpis_dir, prowadzacy.podpis_filename)
+                        if os.path.exists(podpis_path):
+                            try:
+                                row.cells[2].paragraphs[0].clear().add_run().add_picture(podpis_path, width=Cm(2.5))
+                            except Exception as e:
+                                print(f"Błąd podpisu przy dniu {dzien}: {e}")
+                    suma += laczny_czas
+
+    for row in doc.tables[-1].rows:
+        zawiera_lacznie = any("łącznie" in cell.text.lower() for cell in row.cells)
+        if zawiera_lacznie:
+            for idx, cell in enumerate(row.cells):
+                if "łącznie" in cell.text.lower():
+                    if idx + 1 < len(row.cells):
+                        row.cells[idx + 1].text = str(suma).replace(".0", "") + "h"
+                    if idx + 2 < len(row.cells):
+                        podpis_path = os.path.join(podpis_dir, prowadzacy.podpis_filename)
+                        if os.path.exists(podpis_path):
+                            try:
+                                row.cells[idx + 2].paragraphs[0].clear().add_run().add_picture(podpis_path, width=Cm(2.5))
+                            except Exception as e:
+                                print(f"Błąd podpisu w wierszu 'Łącznie': {e}")
+
+    for par in doc.paragraphs:
+        if "(czytelny podpis zleceniobiorcy)" in par.text.lower():
+            podpis_path = os.path.join(podpis_dir, prowadzacy.podpis_filename)
+            if os.path.exists(podpis_path):
+                try:
+                    par.clear().add_run().add_picture(podpis_path, width=Cm(3.5))
+                except Exception as e:
+                    print(f"Błąd podpisu na dole: {e}")
+
+    return doc
+

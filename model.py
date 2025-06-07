@@ -1,0 +1,107 @@
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+
+
+
+
+
+
+
+db = SQLAlchemy()
+
+# Tabela pośrednia
+obecnosci = db.Table('obecnosci',
+    db.Column('zajecia_id', db.Integer, db.ForeignKey('zajecia.id')),
+    db.Column('uczestnik_id', db.Integer, db.ForeignKey('uczestnik.id'))
+)
+
+class Prowadzacy(db.Model):
+    __tablename__ = "prowadzacy"
+    id = db.Column(db.Integer, primary_key=True)
+    imie = db.Column(db.String)
+    nazwisko = db.Column(db.String)
+    numer_umowy = db.Column(db.String)  # Dodane pole
+    podpis_filename = db.Column(db.String)
+    domyslny_czas = db.Column(db.Integer)
+
+    uczestnicy = db.relationship("Uczestnik", back_populates="prowadzacy", cascade="all, delete-orphan")
+    zajecia = db.relationship("Zajecia", back_populates="prowadzacy", cascade="all, delete-orphan")
+
+class Uczestnik(db.Model):
+    __tablename__ = "uczestnik"
+    id = db.Column(db.Integer, primary_key=True)
+    imie_nazwisko = db.Column(db.String)
+    prowadzacy_id = db.Column(db.Integer, db.ForeignKey("prowadzacy.id"))
+
+    prowadzacy = db.relationship("Prowadzacy", back_populates="uczestnicy")
+    zajecia = db.relationship("Zajecia", secondary=obecnosci, back_populates="obecni")
+
+class Zajecia(db.Model):
+    __tablename__ = "zajecia"
+    id = db.Column(db.Integer, primary_key=True)
+    prowadzacy_id = db.Column(db.Integer, db.ForeignKey("prowadzacy.id"))
+    data = db.Column(db.DateTime)
+    czas_trwania = db.Column(db.Integer)
+
+    prowadzacy = db.relationship("Prowadzacy", back_populates="zajecia")
+    obecni = db.relationship("Uczestnik", secondary=obecnosci, back_populates="zajecia")
+
+class Uzytkownik(UserMixin, db.Model):
+    __tablename__ = "uzytkownik"
+    id = db.Column(db.Integer, primary_key=True)
+    login = db.Column(db.String, unique=True, nullable=False)
+    haslo_hash = db.Column(db.String, nullable=False)
+
+def init_db(app):
+    with app.app_context():
+        db.create_all()
+
+def get_all_prowadzacych():
+    return Prowadzacy.query.all()
+
+def get_prowadzacy_by_id(id):
+    return Prowadzacy.query.filter_by(id=id).first()
+
+def get_uczestnicy_by_prowadzacy(prowadzacy_id):
+    return Uczestnik.query.filter_by(prowadzacy_id=prowadzacy_id).all()
+
+def get_zajecia_for_prowadzacy(prowadzacy_id):
+    return Zajecia.query.filter_by(prowadzacy_id=prowadzacy_id).all()
+
+def add_zajecie(prowadzacy_id, data, czas, obecni_uczestnicy):
+    zajecie = Zajecia(prowadzacy_id=prowadzacy_id, data=data, czas_trwania=czas)
+    zajecie.obecni.extend(obecni_uczestnicy)
+    db.session.add(zajecie)
+    db.session.commit()
+
+def add_or_update_prowadzacy(id=None, imie=None, nazwisko=None, podpis_filename=None, numer_umowy=None, domyslny_czas=None, uczestnicy_lista=None):
+    if id:
+        prowadzacy = get_prowadzacy_by_id(id)
+        if not prowadzacy:
+            return None
+        prowadzacy.uczestnicy.clear()
+    else:
+        prowadzacy = Prowadzacy()
+
+    prowadzacy.imie = imie
+    prowadzacy.nazwisko = nazwisko
+    prowadzacy.podpis_filename = podpis_filename
+    prowadzacy.numer_umowy = numer_umowy
+    prowadzacy.domyslny_czas = domyslny_czas
+
+    if uczestnicy_lista:
+        for u in uczestnicy_lista:
+            uczestnik = Uczestnik(imie_nazwisko=u)
+            prowadzacy.uczestnicy.append(uczestnik)
+
+    db.session.add(prowadzacy)
+    db.session.commit()
+    return prowadzacy
+
+def delete_prowadzacy(id):
+    prowadzacy = get_prowadzacy_by_id(id)
+    if prowadzacy:
+        db.session.delete(prowadzacy)
+        db.session.commit()
+        return True
+    return False
