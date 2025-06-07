@@ -8,7 +8,7 @@ The application expects several settings to be provided through environment vari
 Copy `.env.example` to `.env` and adjust the values, or export them manually:
 
 - `SECRET_KEY` – secret used by Flask for sessions.
-- `ADMIN_LOGIN` – login of the administrator account created by `init_db.py`.
+- `ADMIN_LOGIN` – e-mail address of the administrator account created by `init_db.py`.
 - `ADMIN_PASSWORD` – password for the administrator account.
 - `DATABASE_URL` – optional database URI (default `sqlite:///obecnosc.db`).
 - Mail configuration used when sending attendance lists and reports:
@@ -52,3 +52,10 @@ The files `szablon.docx` (attendance template) and `rejestr.docx` (monthly repor
 
 Only PNG and JPG files are accepted when uploading signature images in the admin
 or trainer panels. Files with other extensions or MIME types will be rejected.
+
+## Login format
+
+All user logins are e-mail addresses. The administrator login specified by
+`ADMIN_LOGIN` and the login provided during trainer registration must be valid
+e-mail addresses. The application will reject invalid addresses during
+registration and login.
