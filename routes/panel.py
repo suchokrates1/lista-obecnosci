@@ -6,9 +6,7 @@ from model import db, Uczestnik, Zajecia
 from doc_generator import generuj_liste_obecnosci
 from . import routes_bp
 import os
-
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
-ALLOWED_MIME_TYPES = {"image/png", "image/jpeg"}
+from utils import ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES
 
 
 @routes_bp.route('/panel')
