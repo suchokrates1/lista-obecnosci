@@ -32,8 +32,11 @@ def index():
     )
 
     domyslny_czas = (
-        str(wybrany.domyslny_czas).replace('.', ',')
-        if wybrany and wybrany.domyslny_czas
+        str(wybrany.domyslny_czas)
+        .replace('.', ',')
+        .rstrip('0')
+        .rstrip(',')
+        if wybrany and wybrany.domyslny_czas is not None
         else "1,5"
     )
 
