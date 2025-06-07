@@ -6,8 +6,18 @@ import os
 import smtplib
 import logging
 from email.message import EmailMessage
+import re
 
 logger = logging.getLogger(__name__)
+
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def is_valid_email(value: str) -> bool:
+    """Return True if ``value`` looks like a valid e-mail address."""
+    if not isinstance(value, str):
+        return False
+    return bool(EMAIL_REGEX.match(value))
 
 def przetworz_liste_obecnosci(form, wybrany):
     data_str = form.get("data")
