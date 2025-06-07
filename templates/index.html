@@ -22,9 +22,9 @@
   <!-- Ikony w prawym górnym rogu -->
   <div class="position-absolute top-0 end-0 d-flex flex-column align-items-end m-3" style="z-index: 10;">
     <button class="btn btn-sm btn-outline-dark mb-2" onclick="toggleTheme()" id="themeToggle" aria-label="Przełącz tryb ciemny/jasny">🌓</button>
-    <a href="{{ url_for('routes.admin_dashboard') if is_logged else url_for('routes.login') }}" class="btn btn-sm btn-dark">
-      <i class="bi bi-gear"></i>
-    </a>
+    {% if current_user.role == 'prowadzacy' %}
+    <a href="{{ url_for('routes.panel') }}" class="btn btn-sm btn-dark">Panel</a>
+    {% endif %}
   </div>
 
   <main class="container mt-5 mb-5">
