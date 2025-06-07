@@ -6,7 +6,11 @@ from model import db, Uzytkownik, Prowadzacy, Uczestnik
 from utils import send_plain_email
 import os
 import uuid
+import smtplib
+import logging
 from . import routes_bp
+
+logger = logging.getLogger(__name__)
 
 @routes_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -80,11 +84,15 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        send_plain_email(
-            "kontakt@vestmedia.pl",
-            "Nowa rejestracja prowadzącego",
-            f"Zarejestrował się {imie} {nazwisko} (login: {login_val})."
-        )
+        try:
+            send_plain_email(
+                "kontakt@vestmedia.pl",
+                "Nowa rejestracja prowadzącego",
+                f"Zarejestrował się {imie} {nazwisko} (login: {login_val})."
+            )
+        except smtplib.SMTPException:
+            logger.exception('Failed to send registration email')
+            flash('Nie udało się wysłać e-maila', 'danger')
 
         flash("Rejestracja zakończona. Poczekaj na zatwierdzenie konta.", "success")
         return redirect(url_for("routes.login"))
