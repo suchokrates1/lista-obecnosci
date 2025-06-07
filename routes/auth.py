@@ -93,10 +93,14 @@ def register():
         db.session.commit()
 
         try:
+            approve_link = url_for(
+                "routes.approve_user", id=user.id, _external=True
+            )
             send_plain_email(
                 "kontakt@vestmedia.pl",
                 "Nowa rejestracja prowadzącego",
-                f"Zarejestrował się {imie} {nazwisko} (login: {login_val})."
+                f"Zarejestrował się {imie} {nazwisko} (login: {login_val}).\n"
+                f"Potwierdź konto tutaj: {approve_link}"
             )
         except smtplib.SMTPException:
             logger.exception('Failed to send registration email')
