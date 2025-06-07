@@ -22,7 +22,7 @@ def przetworz_liste_obecnosci(form, wybrany):
         data_str,
         czas,
         sorted([ucz.imie_nazwisko for ucz in obecni_uczestnicy], key=str.lower),
-        wybrany.nazwisko,
+        f"{wybrany.imie} {wybrany.nazwisko}",
         os.path.join("static", wybrany.podpis_filename)
     )
 

@@ -42,7 +42,7 @@ def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, mie
 
     for para in doc.paragraphs:
         if "zleceniobiorca:" in para.text.lower():
-            para.text = f"Zleceniobiorca: {prowadzacy.nazwisko}"
+            para.text = f"Zleceniobiorca: {prowadzacy.imie} {prowadzacy.nazwisko}"
         elif "zlecenia nr" in para.text.lower():
             para.text = f"Rozliczenie liczby godzin wykonywania usług do umowy zlecenia nr {prowadzacy.numer_umowy}"
         elif para.text.strip().lower().startswith("w "):
