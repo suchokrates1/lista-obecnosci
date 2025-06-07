@@ -12,7 +12,9 @@ def login():
         user = Uzytkownik.query.filter_by(login=login_val).first()
         if user and check_password_hash(user.haslo_hash, haslo):
             login_user(user)
-            return redirect(url_for("routes.admin_dashboard"))
+            if user.role == "admin":
+                return redirect(url_for("routes.admin_dashboard"))
+            return redirect(url_for("routes.index"))
         flash("Nieprawidłowe dane logowania", "danger")
     return render_template("login.html")
 

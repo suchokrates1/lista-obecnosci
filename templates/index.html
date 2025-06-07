@@ -40,6 +40,7 @@
 
     <form method="POST" enctype="multipart/form-data" aria-label="Formularz listy obecności">
       <div class="mb-3 d-flex justify-content-between align-items-center">
+        {% if is_admin %}
         <div class="w-100">
           <label for="prowadzący" class="form-label">Wybierz prowadzącego:</label>
           <select name="prowadzący" id="prowadzący" class="form-select" required aria-required="true">
@@ -51,6 +52,10 @@
         <button type="button" class="btn btn-outline-success ms-3" style="white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#dodajModal">
           <i class="bi bi-person-plus"></i>
         </button>
+        {% else %}
+        <input type="hidden" name="prowadzący" value="{{ selected }}">
+        <p class="mb-0 fw-bold">Prowadzący: {{ prowadzacy[0].nazwisko if prowadzacy }}</p>
+        {% endif %}
       </div>
 
       <div class="mb-3">
@@ -84,6 +89,7 @@
 
     </form>
 
+    {% if is_admin %}
     <div class="modal fade" id="dodajModal" tabindex="-1" aria-labelledby="dodajModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -118,6 +124,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
   </main>
 
   <footer class="text-center text-white bg-dark py-4">
@@ -155,15 +162,18 @@
       toggleTheme();
     }
 
-    document.getElementById("prowadzący").addEventListener("change", () => {
-      const form = document.querySelector("form");
-      const hidden = document.createElement("input");
-      hidden.type = "hidden";
-      hidden.name = "akcja";
-      hidden.value = "zmien_prowadzacego";
-      form.appendChild(hidden);
-      form.submit();
-    });
+    const prowadzacySelect = document.getElementById("prowadzący");
+    if (prowadzacySelect) {
+      prowadzacySelect.addEventListener("change", () => {
+        const form = document.querySelector("form");
+        const hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = "akcja";
+        hidden.value = "zmien_prowadzacego";
+        form.appendChild(hidden);
+        form.submit();
+      });
+    }
   </script>
 </body>
 </html>

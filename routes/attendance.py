@@ -1,34 +1,39 @@
 from flask import render_template, request, redirect, url_for, flash, send_file
-from flask_login import current_user
+from flask_login import current_user, login_required
 from model import Prowadzacy
 from utils import przetworz_liste_obecnosci, email_do_koordynatora
 from . import routes_bp
-import os
 
 @routes_bp.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
-    prowadzacy = Prowadzacy.query.all()
+    is_admin = current_user.role == 'admin'
     status = None
     akcja = None
+    if is_admin:
+        prowadzacy = Prowadzacy.query.all()
+        try:
+            selected_id = int(request.form.get('prowadzący'))
+        except (TypeError, ValueError):
+            selected_id = prowadzacy[0].id if prowadzacy else None
+        wybrany = Prowadzacy.query.get(selected_id)
+    else:
+        wybrany = Prowadzacy.query.get(current_user.prowadzacy_id)
+        prowadzacy = [wybrany] if wybrany else []
+        selected_id = wybrany.id if wybrany else None
 
-    try:
-        selected_id = int(request.form.get('prowadzący'))
-    except (TypeError, ValueError):
-        selected_id = prowadzacy[0].id if prowadzacy else None
-
-    wybrany = Prowadzacy.query.get(selected_id)
     uczestnicy = sorted(wybrany.uczestnicy, key=lambda x: x.imie_nazwisko.lower()) if wybrany else []
 
     if request.method == 'POST':
         akcja = request.form.get('akcja')
 
-        if akcja == 'zmien_prowadzacego':
+        if akcja == 'zmien_prowadzacego' and is_admin:
             return render_template('index.html',
                                    prowadzacy=prowadzacy,
                                    uczestnicy=uczestnicy,
                                    selected=selected_id,
                                    status=status,
-                                   is_admin=current_user.is_authenticated and current_user.login == os.getenv('ADMIN_LOGIN'),
+                                   is_admin=is_admin,
                                    is_logged=current_user.is_authenticated)
         elif akcja in ['pobierz', 'wyslij']:
             result = przetworz_liste_obecnosci(request.form, wybrany)
@@ -52,5 +57,5 @@ def index():
                            uczestnicy=uczestnicy,
                            selected=selected_id,
                            status=status,
-                           is_admin=current_user.is_authenticated and current_user.login == os.getenv('ADMIN_LOGIN'),
+                           is_admin=is_admin,
                            is_logged=current_user.is_authenticated)
