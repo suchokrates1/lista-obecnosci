@@ -11,8 +11,9 @@ from . import routes_bp
 def index():
     status = None
     akcja = None
+    is_admin = current_user.role == 'admin'
 
-    if current_user.role == 'admin':
+    if is_admin:
         prowadzacy = Prowadzacy.query.all()
         try:
             selected_id = int(request.form.get('prowadzący'))
@@ -33,14 +34,14 @@ def index():
     if request.method == 'POST':
         akcja = request.form.get('akcja')
 
-        if current_user.role == 'admin' and akcja == 'zmien_prowadzacego':
+        if is_admin and akcja == 'zmien_prowadzacego':
             return render_template(
                 'index.html',
                 prowadzacy=prowadzacy,
                 uczestnicy=uczestnicy,
                 selected=selected_id,
                 status=status,
-                is_admin=True,
+                is_admin=is_admin,
                 is_logged=True,
             )
         elif akcja in ['pobierz', 'wyslij']:
@@ -70,5 +71,5 @@ def index():
                            uczestnicy=uczestnicy,
                            selected=selected_id,
                            status=status,
-                           is_admin=current_user.role == 'admin',
+                           is_admin=is_admin,
                            is_logged=True)

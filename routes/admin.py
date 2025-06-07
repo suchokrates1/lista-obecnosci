@@ -11,7 +11,7 @@ from . import routes_bp
 @routes_bp.route('/admin')
 @login_required
 def admin_dashboard():
-    if current_user.login != os.getenv('ADMIN_LOGIN'):
+    if current_user.role != 'admin':
         return 'Brak dostępu', 403
 
     prowadzacy = Prowadzacy.query.all()
@@ -38,7 +38,7 @@ def admin_dashboard():
 @routes_bp.route('/usun_zajecie/<int:id>', methods=['POST'])
 @login_required
 def usun_zajecie(id):
-    if current_user.login != os.getenv('ADMIN_LOGIN'):
+    if current_user.role != 'admin':
         return 'Brak dostępu', 403
 
     zaj = Zajecia.query.get(id)
@@ -53,7 +53,7 @@ def usun_zajecie(id):
 @routes_bp.route('/raport/<int:prowadzacy_id>', methods=['GET'])
 @login_required
 def raport(prowadzacy_id):
-    if current_user.login != os.getenv('ADMIN_LOGIN'):
+    if current_user.role != 'admin':
         return 'Brak dostępu', 403
 
     prow = Prowadzacy.query.get(prowadzacy_id)
@@ -88,7 +88,7 @@ def raport(prowadzacy_id):
 @routes_bp.route('/dodaj', methods=['POST'])
 @login_required
 def dodaj_prowadzacego():
-    if current_user.login != os.getenv('ADMIN_LOGIN'):
+    if current_user.role != 'admin':
         return 'Brak dostępu', 403
 
     id_edit = request.form.get('edit_id')
@@ -132,7 +132,7 @@ def dodaj_prowadzacego():
 @routes_bp.route('/usun/<id>', methods=['POST'])
 @login_required
 def usun_prowadzacego(id):
-    if current_user.login != os.getenv('ADMIN_LOGIN'):
+    if current_user.role != 'admin':
         return 'Brak dostępu', 403
 
     prow = Prowadzacy.query.get(id)
@@ -150,7 +150,7 @@ def usun_prowadzacego(id):
 @routes_bp.route('/approve_user/<int:id>', methods=['POST'])
 @login_required
 def approve_user(id):
-    if current_user.login != os.getenv('ADMIN_LOGIN'):
+    if current_user.role != 'admin':
         return 'Brak dostępu', 403
 
     user = Uzytkownik.query.get(id)
