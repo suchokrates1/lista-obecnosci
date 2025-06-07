@@ -5,33 +5,33 @@
     <h2 class="mb-4 text-center">Rejestracja prowadzącego</h2>
     <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="mb-3">
-        <label for="imie" class="form-label">Imię:</label>
-        <input type="text" class="form-control" id="imie" name="imie" required>
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="imie" name="imie" placeholder="Imię" required tabindex="1">
+        <label for="imie">Imię:</label>
       </div>
-      <div class="mb-3">
-        <label for="nazwisko" class="form-label">Nazwisko:</label>
-        <input type="text" class="form-control" id="nazwisko" name="nazwisko" required>
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="nazwisko" name="nazwisko" placeholder="Nazwisko" required tabindex="2">
+        <label for="nazwisko">Nazwisko:</label>
       </div>
-      <div class="mb-3">
-        <label for="numer_umowy" class="form-label">Numer umowy:</label>
-        <input type="text" class="form-control" id="numer_umowy" name="numer_umowy" required>
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="numer_umowy" name="numer_umowy" placeholder="Numer umowy" required tabindex="3">
+        <label for="numer_umowy">Numer umowy:</label>
       </div>
-      <div class="mb-3">
-        <label for="lista_uczestnikow" class="form-label">Lista uczestników (po jednym na linię):</label>
-        <textarea class="form-control" id="lista_uczestnikow" name="lista_uczestnikow" rows="5" required></textarea>
+      <div class="form-floating mb-3">
+        <textarea class="form-control" id="lista_uczestnikow" name="lista_uczestnikow" placeholder="Lista uczestników" style="height: 7rem" required tabindex="4"></textarea>
+        <label for="lista_uczestnikow">Lista uczestników (po jednym na linię):</label>
       </div>
-      <div class="mb-3">
-        <label for="login" class="form-label">Login (adres e-mail):</label>
-        <input type="email" class="form-control" id="login" name="login" required>
+      <div class="form-floating mb-3">
+        <input type="email" class="form-control" id="login" name="login" placeholder="Login" required autocomplete="username" tabindex="5">
+        <label for="login">Login (adres e-mail):</label>
       </div>
-      <div class="mb-3">
-        <label for="haslo" class="form-label">Hasło:</label>
-        <input type="password" class="form-control" id="haslo" name="haslo" required>
+      <div class="form-floating mb-3">
+        <input type="password" class="form-control" id="haslo" name="haslo" placeholder="Hasło" required autocomplete="new-password" tabindex="6">
+        <label for="haslo">Hasło:</label>
       </div>
-      <div class="mb-3">
-        <label for="podpis" class="form-label">Podpis (.png lub .jpg, opcjonalnie):</label>
-        <input type="file" class="form-control" id="podpis" name="podpis" accept=".png,.jpg,.jpeg">
+      <div class="form-floating mb-3">
+        <input type="file" class="form-control" id="podpis" name="podpis" accept=".png,.jpg,.jpeg" tabindex="7">
+        <label for="podpis">Podpis (.png lub .jpg, opcjonalnie):</label>
       </div>
       {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
@@ -41,11 +41,11 @@
         {% endif %}
       {% endwith %}
       <div class="d-grid">
-        <button type="submit" class="btn btn-primary">Zarejestruj</button>
+        <button type="submit" class="btn btn-primary" tabindex="8">Zarejestruj</button>
       </div>
     </form>
     <div class="text-center mt-3">
-      <a href="{{ url_for('routes.login') }}">Powrót do logowania</a>
+      <a href="{{ url_for('routes.login') }}" tabindex="9">Powrót do logowania</a>
     </div>
   </div>
 {% endblock %}
