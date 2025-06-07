@@ -1,0 +1,16 @@
+body.high-contrast {
+  font-size: 1.2em;
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+body.high-contrast a {
+  color: #0ff !important;
+}
+
+body.high-contrast .btn {
+  font-size: 1em;
+  background-color: #ff0 !important;
+  color: #000 !important;
+  border-color: #ff0 !important;
+}
