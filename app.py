@@ -46,7 +46,7 @@ def create_app():
 
 @login_manager.user_loader
 def load_user(user_id):
-    return Uzytkownik.query.get(int(user_id))
+    return db.session.get(Uzytkownik, int(user_id))
 
 if __name__ == "__main__":
     app = create_app()
