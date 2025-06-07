@@ -1,4 +1,5 @@
 from model import db, Zajecia, Uczestnik
+from sqlalchemy.exc import OperationalError
 from doc_generator import generuj_liste_obecnosci
 from io import BytesIO
 from datetime import datetime
@@ -25,7 +26,13 @@ def load_db_settings(app) -> None:
     from model import Setting  # imported lazily to avoid circular imports
 
     with app.app_context():
-        for setting in Setting.query.all():
+        try:
+            settings = Setting.query.all()
+        except OperationalError:
+            logger.warning("Settings table missing, skipping load.")
+            settings = []
+
+        for setting in settings:
             os.environ.setdefault(setting.key.upper(), setting.value)
 
     global SIGNATURE_MAX_SIZE
