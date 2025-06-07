@@ -14,11 +14,18 @@
   </style>
 {% endblock %}
 {% block content %}
-  {% if current_user.role == 'prowadzacy' %}
+{% if current_user.role == 'admin' %}
+  <div class="d-flex justify-content-end mb-3 action-icons">
+    <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-dark me-2">Panel administratora</a>
+    <a href="{{ url_for('routes.admin_settings') }}" class="btn btn-dark" aria-label="Ustawienia">
+      <i class="bi bi-gear"></i>
+    </a>
+  </div>
+{% elif current_user.role == 'prowadzacy' %}
   <div class="d-flex justify-content-end mb-3">
     <a href="{{ url_for('routes.panel') }}" class="btn btn-dark">Panel</a>
   </div>
-  {% endif %}
+{% endif %}
   <h1 class="mb-4 text-center">Lista obecności – ShareOKO</h1>
 
   {% with messages = get_flashed_messages(with_categories=True) %}
