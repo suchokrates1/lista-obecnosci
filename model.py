@@ -22,7 +22,7 @@ class Prowadzacy(db.Model):
     nazwisko = db.Column(db.String)
     numer_umowy = db.Column(db.String)  # Dodane pole
     podpis_filename = db.Column(db.String)
-    domyslny_czas = db.Column(db.Integer)
+    domyslny_czas = db.Column(db.Float)
 
     uczestnicy = db.relationship("Uczestnik", back_populates="prowadzacy", cascade="all, delete-orphan")
     zajecia = db.relationship("Zajecia", back_populates="prowadzacy", cascade="all, delete-orphan")
@@ -42,7 +42,7 @@ class Zajecia(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     prowadzacy_id = db.Column(db.Integer, db.ForeignKey("prowadzacy.id"))
     data = db.Column(db.DateTime)
-    czas_trwania = db.Column(db.Integer)
+    czas_trwania = db.Column(db.Float)
 
     prowadzacy = db.relationship("Prowadzacy", back_populates="zajecia")
     obecni = db.relationship("Uczestnik", secondary=obecnosci, back_populates="zajecia")
@@ -93,7 +93,13 @@ def add_or_update_prowadzacy(id=None, imie=None, nazwisko=None, podpis_filename=
     prowadzacy.nazwisko = nazwisko
     prowadzacy.podpis_filename = podpis_filename
     prowadzacy.numer_umowy = numer_umowy
-    prowadzacy.domyslny_czas = domyslny_czas
+    if domyslny_czas is not None:
+        try:
+            prowadzacy.domyslny_czas = float(str(domyslny_czas).replace(',', '.'))
+        except ValueError:
+            prowadzacy.domyslny_czas = None
+    else:
+        prowadzacy.domyslny_czas = domyslny_czas
 
     if uczestnicy_lista:
         for u in uczestnicy_lista:
