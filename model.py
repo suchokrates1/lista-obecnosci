@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from datetime import datetime
 
 
 
@@ -57,6 +58,16 @@ class Uzytkownik(UserMixin, db.Model):
     prowadzacy_id = db.Column(db.Integer, db.ForeignKey("prowadzacy.id"))
 
     prowadzacy = db.relationship("Prowadzacy", back_populates="user")
+
+
+class PasswordResetToken(db.Model):
+    __tablename__ = "password_reset_token"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("uzytkownik.id"), nullable=False)
+    token = db.Column(db.String, unique=True, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+
+    user = db.relationship("Uzytkownik")
 
 def init_db(app):
     with app.app_context():
