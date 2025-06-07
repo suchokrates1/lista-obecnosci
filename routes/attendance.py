@@ -31,6 +31,12 @@ def index():
         else []
     )
 
+    domyslny_czas = (
+        str(wybrany.domyslny_czas).replace('.', ',')
+        if wybrany and wybrany.domyslny_czas
+        else "1,5"
+    )
+
     if request.method == 'POST':
         akcja = request.form.get('akcja')
 
@@ -42,6 +48,7 @@ def index():
                 selected=selected_id,
                 status=status,
                 is_admin=is_admin,
+                domyslny_czas=domyslny_czas,
                 is_logged=True,
             )
         elif akcja in ['pobierz', 'wyslij']:
@@ -72,4 +79,5 @@ def index():
                            selected=selected_id,
                            status=status,
                            is_admin=is_admin,
+                           domyslny_czas=domyslny_czas,
                            is_logged=True)
