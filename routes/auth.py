@@ -11,10 +11,20 @@ def login():
     if request.method == "POST":
         login_val = request.form.get("login")
         haslo = request.form.get("hasło")
+
         user = Uzytkownik.query.filter_by(login=login_val).first()
         if user and check_password_hash(user.haslo_hash, haslo):
+            if user.role == "prowadzacy" and not user.approved:
+                flash("Konto prowadzącego nie zostało jeszcze zatwierdzone", "danger")
+                return redirect(url_for("routes.login"))
+
             login_user(user)
-            return redirect(url_for("routes.admin_dashboard"))
+
+            if user.role == "admin" or user.login == os.getenv("ADMIN_LOGIN"):
+                return redirect(url_for("routes.admin_dashboard"))
+            else:
+                return redirect(url_for("routes.index"))
+
         flash("Nieprawidłowe dane logowania", "danger")
     return render_template("login.html")
 
