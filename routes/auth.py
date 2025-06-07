@@ -2,11 +2,12 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
-from model import db, Uzytkownik, Prowadzacy, Uczestnik
+from model import db, Uzytkownik, Prowadzacy, Uczestnik, PasswordResetToken
 from utils import send_plain_email, is_valid_email
 import os
 import uuid
 import smtplib
+from datetime import datetime, timedelta
 import logging
 from . import routes_bp
 
@@ -110,3 +111,52 @@ def register():
         return redirect(url_for("routes.login"))
 
     return render_template("register.html")
+
+
+@routes_bp.route("/reset-request", methods=["GET", "POST"])
+def reset_request():
+    if request.method == "POST":
+        email = request.form.get("login")
+        if email and is_valid_email(email):
+            user = Uzytkownik.query.filter_by(login=email).first()
+            if user:
+                token = uuid.uuid4().hex
+                expires = datetime.utcnow() + timedelta(hours=1)
+                prt = PasswordResetToken(user_id=user.id, token=token, expires_at=expires)
+                db.session.add(prt)
+                db.session.commit()
+                try:
+                    link = url_for("routes.reset_with_token", token=token, _external=True)
+                    send_plain_email(user.login, "Reset hasła w ShareOKO", f"Aby ustawić nowe hasło, otwórz link: {link}")
+                    logger.info("Sent password reset email to %s", user.login)
+                except smtplib.SMTPException:
+                    logger.exception("Failed to send password reset email")
+        flash("Jeśli konto istnieje, wysłaliśmy instrukcje resetu hasła", "info")
+        return redirect(url_for("routes.login"))
+    return render_template("reset_request.html")
+
+
+@routes_bp.route("/reset/<token>", methods=["GET", "POST"])
+def reset_with_token(token):
+    prt = PasswordResetToken.query.filter_by(token=token).first()
+    if not prt or prt.expires_at < datetime.utcnow():
+        if prt:
+            db.session.delete(prt)
+            db.session.commit()
+        logger.info("Invalid or expired reset token used: %s", token)
+        flash("Link do resetu jest nieprawidłowy lub wygasł", "danger")
+        return redirect(url_for("routes.login"))
+
+    if request.method == "POST":
+        new_password = request.form.get("password")
+        if not new_password:
+            flash("Hasło jest wymagane", "danger")
+            return render_template("reset_form.html")
+        prt.user.haslo_hash = generate_password_hash(new_password)
+        db.session.delete(prt)
+        db.session.commit()
+        logger.info("Password reset for user %s", prt.user.login)
+        flash("Hasło zostało zmienione", "success")
+        return redirect(url_for("routes.login"))
+
+    return render_template("reset_form.html")
