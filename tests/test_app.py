@@ -3,7 +3,9 @@ import io
 from PIL import Image
 import pytest
 from app import create_app
-from model import db, Uzytkownik
+from model import db, Uzytkownik, Prowadzacy, Zajecia
+from docx import Document
+from datetime import datetime
 import utils
 from werkzeug.security import generate_password_hash
 
@@ -145,3 +147,84 @@ def test_panel_raport_requires_login(client):
     resp = client.get('/panel/raport')
     assert resp.status_code == 302
     assert '/login' in resp.headers['Location']
+
+
+def _create_trainer(app):
+    """Create a trainer account with one session and return the login."""
+    with app.app_context():
+        prow = Prowadzacy(imie='T', nazwisko='T', numer_umowy='1', podpis_filename='sig.png')
+        db.session.add(prow)
+        db.session.flush()
+        user = Uzytkownik(
+            login='t@example.com',
+            haslo_hash=generate_password_hash('pass'),
+            role='prowadzacy',
+            approved=True,
+            prowadzacy_id=prow.id,
+        )
+        db.session.add(user)
+        zaj = Zajecia(
+            prowadzacy_id=prow.id,
+            data=datetime(2023, 5, 1),
+            czas_trwania=1.0,
+        )
+        db.session.add(zaj)
+        db.session.commit()
+        return user.login
+
+
+def test_panel_raport_access_control(client, app):
+    with app.app_context():
+        user = Uzytkownik(
+            login='a@example.com',
+            haslo_hash=generate_password_hash('x'),
+            role='admin',
+            approved=True,
+        )
+        db.session.add(user)
+        db.session.commit()
+    client.post('/login', data={'login': 'a@example.com', 'hasło': 'x'}, follow_redirects=False)
+    resp = client.get('/panel/raport')
+    assert resp.status_code == 403
+
+
+def test_panel_raport_download(client, app, monkeypatch):
+    login_val = _create_trainer(app)
+
+    def dummy_report(*_a, **_k):
+        doc = Document()
+        doc.add_paragraph('test')
+        return doc
+
+    monkeypatch.setattr('routes.panel.generuj_raport_miesieczny', dummy_report)
+
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.get('/panel/raport')
+    assert resp.status_code == 200
+    assert resp.mimetype == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    assert 'attachment' in resp.headers.get('Content-Disposition', '')
+    assert 'raport_' in resp.headers.get('Content-Disposition', '')
+    assert len(resp.data) > 0
+
+
+def test_panel_raport_email_sending(client, app, monkeypatch):
+    login_val = _create_trainer(app)
+
+    def dummy_report(*_a, **_k):
+        doc = Document()
+        doc.add_paragraph('test')
+        return doc
+
+    sent = {}
+
+    def fake_email(buf, data, typ=None):
+        sent['called'] = True
+
+    monkeypatch.setattr('routes.panel.generuj_raport_miesieczny', dummy_report)
+    monkeypatch.setattr('routes.panel.email_do_koordynatora', fake_email)
+
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.get('/panel/raport?wyslij=1')
+    assert resp.status_code == 302
+    assert resp.headers['Location'].endswith('/panel')
+    assert sent.get('called')
