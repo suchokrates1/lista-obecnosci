@@ -7,8 +7,8 @@ from utils import (
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
     SIGNATURE_MAX_SIZE,
-    REMOVE_SIGNATURE_BG,
     load_db_settings,
+    process_signature,
 )
 from doc_generator import generuj_raport_miesieczny, generuj_liste_obecnosci
 from io import BytesIO
@@ -18,11 +18,6 @@ import os
 from datetime import datetime
 import smtplib
 import logging
-from PIL import Image
-try:
-    from rembg import remove as rembg_remove
-except Exception:  # rembg optional
-    rembg_remove = None
 from . import routes_bp
 
 logger = logging.getLogger(__name__)
@@ -211,29 +206,9 @@ def dodaj_prowadzacego():
 
     if podpis and sanitized:
         base = os.path.splitext(sanitized)[0]
-        ext = sanitized.rsplit('.', 1)[-1].lower()
-        if REMOVE_SIGNATURE_BG:
-            ext = 'png'
-        filename = f"{prow.id}_{base}.{ext}"
-        path = os.path.join('static', filename)
+        orig_ext = sanitized.rsplit('.', 1)[-1].lower()
         try:
-            podpis.stream.seek(0)
-            img = Image.open(podpis.stream)
-            if REMOVE_SIGNATURE_BG:
-                if rembg_remove:
-                    img = rembg_remove(img)
-                img = img.convert('RGBA')
-                datas = img.getdata()
-                new_data = []
-                for item in datas:
-                    if item[0] > 250 and item[1] > 250 and item[2] > 250:
-                        new_data.append((255, 255, 255, 0))
-                    else:
-                        new_data.append(item)
-                img.putdata(new_data)
-                img.save(path, format='PNG')
-            else:
-                img.save(path)
+            filename = process_signature(podpis.stream, f"{prow.id}_{base}", orig_ext)
         except Exception:
             flash('Nie udało się przetworzyć obrazu podpisu', 'danger')
             return redirect(url_for('routes.admin_dashboard'))
