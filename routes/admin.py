@@ -4,15 +4,13 @@ from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik, Setting
 from utils import (
     email_do_koordynatora,
     send_plain_email,
-    ALLOWED_EXTENSIONS,
-    ALLOWED_MIME_TYPES,
-    SIGNATURE_MAX_SIZE,
+    validate_signature,
+    SignatureValidationError,
     load_db_settings,
     process_signature,
 )
 from doc_generator import generuj_raport_miesieczny, generuj_liste_obecnosci
 from io import BytesIO
-from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
 import os
 from datetime import datetime
@@ -193,16 +191,14 @@ def dodaj_prowadzacego():
 
     sanitized = None
     if podpis and podpis.filename:
-        sanitized = secure_filename(podpis.filename)
-        ext = sanitized.rsplit('.', 1)[-1].lower()
-        if ext not in ALLOWED_EXTENSIONS or podpis.mimetype not in ALLOWED_MIME_TYPES:
-            flash('Nieobsługiwany format pliku podpisu. Dozwolone są PNG i JPG.', 'danger')
+        try:
+            sanitized, error = validate_signature(podpis)
+        except SignatureValidationError:
+            flash('Nie udało się przetworzyć obrazu podpisu', 'danger')
             return redirect(url_for('routes.admin_dashboard'))
-        podpis.stream.seek(0, os.SEEK_END)
-        if podpis.stream.tell() > SIGNATURE_MAX_SIZE:
-            flash('Plik podpisu jest zbyt du\u017cy.', 'danger')
+        if error:
+            flash(error, 'danger')
             return redirect(url_for('routes.admin_dashboard'))
-        podpis.stream.seek(0)
 
     if podpis and sanitized:
         base = os.path.splitext(sanitized)[0]

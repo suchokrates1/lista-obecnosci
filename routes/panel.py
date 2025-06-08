@@ -1,6 +1,5 @@
 from flask import render_template, redirect, url_for, flash, send_file, request, abort
 from flask_login import login_required, current_user
-from werkzeug.utils import secure_filename
 from io import BytesIO
 from model import db, Uczestnik, Zajecia
 from doc_generator import generuj_liste_obecnosci
@@ -8,9 +7,8 @@ from datetime import datetime
 from . import routes_bp
 import os
 from utils import (
-    ALLOWED_EXTENSIONS,
-    ALLOWED_MIME_TYPES,
-    SIGNATURE_MAX_SIZE,
+    validate_signature,
+    SignatureValidationError,
     process_signature,
 )
 
@@ -47,16 +45,14 @@ def panel_update_profile():
     podpis = request.files.get('podpis')
     sanitized = None
     if podpis and podpis.filename:
-        sanitized = secure_filename(podpis.filename)
-        ext = sanitized.rsplit('.', 1)[-1].lower()
-        if ext not in ALLOWED_EXTENSIONS or podpis.mimetype not in ALLOWED_MIME_TYPES:
-            flash('Nieobsługiwany format pliku podpisu. Dozwolone są PNG i JPG.', 'danger')
+        try:
+            sanitized, error = validate_signature(podpis)
+        except SignatureValidationError:
+            flash('Nie udało się przetworzyć obrazu podpisu', 'danger')
             return redirect(url_for('routes.panel'))
-        podpis.stream.seek(0, os.SEEK_END)
-        if podpis.stream.tell() > SIGNATURE_MAX_SIZE:
-            flash('Plik podpisu jest zbyt du\u017cy.', 'danger')
+        if error:
+            flash(error, 'danger')
             return redirect(url_for('routes.panel'))
-        podpis.stream.seek(0)
 
     if podpis and sanitized:
         base = os.path.splitext(sanitized)[0]
