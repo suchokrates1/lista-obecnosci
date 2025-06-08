@@ -69,10 +69,11 @@ The files `szablon.docx` (attendance template) and `rejestr.docx` (monthly repor
 Only PNG and JPG files are accepted when uploading signature images in the admin
 or trainer panels. Files with other extensions or MIME types will be rejected.
 Uploads larger than the value of `MAX_SIGNATURE_SIZE` (default 1 MB) will also be refused.
-If `REMOVE_SIGNATURE_BG` is set, the application removes white background from uploaded signatures and stores them as PNG files.
-The processing is handled by `utils.process_signature()` using the `Pillow`
-library. Installing the optional `rembg` package allows for more advanced
-background removal when the option is enabled.
+If `REMOVE_SIGNATURE_BG` is set, the application removes white background from
+uploaded signatures and stores them as PNG files. The helper
+`utils.process_signature(file)` performs this conversion and returns the saved
+filename using the `Pillow` library. Installing the optional `rembg` package
+allows for more advanced background removal when the option is enabled.
 
 ## Login format
 

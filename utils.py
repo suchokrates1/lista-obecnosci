@@ -9,6 +9,7 @@ import logging
 from email.message import EmailMessage
 import re
 from werkzeug.utils import secure_filename
+import uuid
 from PIL import Image
 try:
     from rembg import remove as rembg_remove  # type: ignore
@@ -227,20 +228,15 @@ def send_plain_email(
         raise
 
 
-def process_signature(file, dest_base, original_ext):
-    """Process an uploaded signature image and save it to ``static/``.
+def process_signature(file):
+    """Process an uploaded signature image and save it to ``static/`` as PNG.
 
-    ``file`` should be a file-like object positioned at the start. ``dest_base``
-    is used as the filename without extension while ``original_ext`` is the
-    extension of the uploaded file. If ``REMOVE_SIGNATURE_BG`` is enabled the
-    output is always a PNG with white background removed using ``rembg`` when
-    available.
-
-    The function returns the final filename placed inside ``static/``.
+    ``file`` should be a file-like object positioned at the start. A random
+    filename is generated and returned. When ``REMOVE_SIGNATURE_BG`` is enabled,
+    white background is removed using ``rembg`` when available.
     """
 
-    ext = "png" if REMOVE_SIGNATURE_BG else original_ext.lower()
-    filename = f"{dest_base}.{ext}"
+    filename = f"{uuid.uuid4().hex}.png"
     path = os.path.join("static", filename)
     try:
         file.seek(0)
@@ -257,9 +253,7 @@ def process_signature(file, dest_base, original_ext):
                 else:
                     new_data.append(item)
             img.putdata(new_data)
-            img.save(path, format="PNG")
-        else:
-            img.save(path)
+        img.save(path, format="PNG")
     except Exception:
         logger.exception("Failed to process signature image")
         raise

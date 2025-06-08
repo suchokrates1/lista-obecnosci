@@ -1,5 +1,6 @@
 import io
 from werkzeug.datastructures import FileStorage
+from PIL import Image
 
 import utils
 from utils import is_valid_email
@@ -33,3 +34,18 @@ def test_validate_signature_too_big(monkeypatch):
     name, error = utils.validate_signature(fs)
     assert name is None
     assert error
+
+
+def test_process_signature(monkeypatch, tmp_path):
+    monkeypatch.setattr(utils, 'REMOVE_SIGNATURE_BG', False)
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / 'static').mkdir()
+    img = Image.new('RGB', (1, 1), (255, 0, 0))
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+    filename = utils.process_signature(buf)
+    saved = tmp_path / 'static' / filename
+    assert saved.exists()
+    out = Image.open(saved)
+    assert out.format == 'PNG'
