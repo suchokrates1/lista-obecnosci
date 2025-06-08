@@ -139,3 +139,9 @@ def test_panel_requires_login(client):
     resp = client.get('/panel')
     assert resp.status_code == 302
     assert '/login' in resp.headers['Location']
+
+
+def test_panel_raport_requires_login(client):
+    resp = client.get('/panel/raport')
+    assert resp.status_code == 302
+    assert '/login' in resp.headers['Location']
