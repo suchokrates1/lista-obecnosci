@@ -1,0 +1,39 @@
+<div class="modal fade" id="dodajModal" tabindex="-1" aria-labelledby="dodajModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="/dodaj" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="dodajModalLabel">Dodaj / Edytuj prowadzącego</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="edit_id" id="edit_id">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="nowy_imie" name="nowy_imie" placeholder="Imię" required tabindex="1">
+            <label for="nowy_imie">Imię prowadzącego:</label>
+          </div>
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="nowy_nazwisko" name="nowy_nazwisko" placeholder="Nazwisko" required tabindex="2">
+            <label for="nowy_nazwisko">Nazwisko prowadzącego:</label>
+          </div>
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="nowy_umowa" name="nowy_umowa" placeholder="Numer umowy" required tabindex="3">
+            <label for="nowy_umowa">Numer umowy:</label>
+          </div>
+          <div class="form-floating mb-3">
+            <textarea class="form-control" id="nowi_uczestnicy" name="nowi_uczestnicy" placeholder="Uczestnicy" style="height: 7rem" required tabindex="4"></textarea>
+            <label for="nowi_uczestnicy">Uczestnicy (po jednym na linię):</label>
+          </div>
+          <div class="form-floating mb-3">
+            <input class="form-control" type="file" name="nowy_podpis" id="nowy_podpis" accept=".png,.jpg,.jpeg" tabindex="5">
+            <label for="nowy_podpis">Plik podpisu (.png lub .jpg):</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success" tabindex="6">Zapisz prowadzącego</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
