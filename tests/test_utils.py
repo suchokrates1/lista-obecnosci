@@ -3,6 +3,7 @@ from werkzeug.datastructures import FileStorage
 from PIL import Image
 
 import utils
+import pytest
 from utils import is_valid_email
 
 
@@ -49,3 +50,19 @@ def test_process_signature(monkeypatch, tmp_path):
     assert saved.exists()
     out = Image.open(saved)
     assert out.format == 'PNG'
+
+def test_validate_signature_none():
+    name, error = utils.validate_signature(None)
+    assert name is None
+    assert error is None
+
+
+class FailingStream(io.BytesIO):
+    def seek(self, *a, **k):
+        raise IOError('fail')
+
+
+def test_validate_signature_exception():
+    fs = FileStorage(FailingStream(b'x'), filename='sig.png', content_type='image/png')
+    with pytest.raises(utils.SignatureValidationError):
+        utils.validate_signature(fs)
