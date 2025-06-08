@@ -20,6 +20,7 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `EMAIL_SENDER_NAME` – name used in the *From* header.
   - `EMAIL_FOOTER` – text appended to every outgoing message.
   - `MAX_SIGNATURE_SIZE` – optional limit for uploaded signature images in bytes (default `1048576`).
+  - `REMOVE_SIGNATURE_BG` – when set to `1`, white background is removed from uploaded signatures.
   - `EMAIL_LIST_SUBJECT` / `EMAIL_LIST_BODY` – templates for attendance lists (`{date}` placeholder).
   - `EMAIL_REPORT_SUBJECT` / `EMAIL_REPORT_BODY` – templates for monthly reports (`{date}` placeholder).
   - `REGISTRATION_EMAIL_SUBJECT` / `REGISTRATION_EMAIL_BODY` – templates for registration notifications (`{name}`, `{login}`, `{link}`).
@@ -65,6 +66,7 @@ The files `szablon.docx` (attendance template) and `rejestr.docx` (monthly repor
 Only PNG and JPG files are accepted when uploading signature images in the admin
 or trainer panels. Files with other extensions or MIME types will be rejected.
 Uploads larger than the value of `MAX_SIGNATURE_SIZE` (default 1 MB) will also be refused.
+If `REMOVE_SIGNATURE_BG` is set, the application removes white background from uploaded signatures and stores them as PNG files.
 
 ## Login format
 

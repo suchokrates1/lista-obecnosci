@@ -19,6 +19,8 @@ ALLOWED_MIME_TYPES = {"image/png", "image/jpeg"}
 
 # Maximum allowed size of uploaded signature files in bytes
 SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
+# Whether to clean white background from signatures
+REMOVE_SIGNATURE_BG = os.getenv("REMOVE_SIGNATURE_BG", "0").lower() in {"1", "true", "yes"}
 
 
 def load_db_settings(app) -> None:
@@ -40,8 +42,9 @@ def load_db_settings(app) -> None:
         for setting in settings:
             os.environ[setting.key.upper()] = setting.value
 
-    global SIGNATURE_MAX_SIZE
+    global SIGNATURE_MAX_SIZE, REMOVE_SIGNATURE_BG
     SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
+    REMOVE_SIGNATURE_BG = os.getenv("REMOVE_SIGNATURE_BG", "0").lower() in {"1", "true", "yes"}
 
 
 def is_valid_email(value: str) -> bool:
