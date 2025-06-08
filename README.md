@@ -101,5 +101,4 @@ Install pytest and run the test suite with:
 pip install pytest
 pytest
 ```
-
-The tests create a temporary SQLite database and verify basic route availability and registration validation logic.
+The tests create a temporary SQLite database and verify route availability, registration, login, access control and helper utilities.
