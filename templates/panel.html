@@ -70,6 +70,10 @@
           </ul>
         </td>
         <td class="text-nowrap">
+          <a href="{{ url_for('routes.panel_edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia">
+            <i class="bi bi-pencil"></i>
+            <span class="visually-hidden">Edytuj zajęcia</span>
+          </a>
           <a href="{{ url_for('routes.pobierz_zajecie', id=z.id) }}" class="btn btn-sm text-primary" aria-label="Pobierz dokument">
             <i class="bi bi-download"></i>
             <span class="visually-hidden">Pobierz dokument</span>

@@ -149,7 +149,15 @@
             {% endfor %}
           </ul>
         </td>
-        <td>
+        <td class="text-nowrap">
+          <a href="{{ url_for('routes.edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia">
+            <i class="bi bi-pencil"></i>
+            <span class="visually-hidden">Edytuj zajęcia</span>
+          </a>
+          <a href="{{ url_for('routes.pobierz_zajecie_admin', id=z.id) }}" class="btn btn-sm text-primary" aria-label="Pobierz dokument">
+            <i class="bi bi-download"></i>
+            <span class="visually-hidden">Pobierz dokument</span>
+          </a>
           <form action="{{ url_for('routes.usun_zajecie', id=z.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć zajęcia?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia">
