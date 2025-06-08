@@ -35,6 +35,12 @@ You can export them in your shell or copy `.env.example` to `.env` when using do
 
 A `.dockerignore` file keeps the image small by skipping development files like `.git` and the `migrations` directory when building.
 
+### Asynchronous e-mail sending
+
+The helper functions `send_plain_email` and `email_do_koordynatora` accept a
+`queue=True` argument. When enabled, outgoing messages are queued and delivered
+by a background thread instead of being sent immediately.
+
 ## Database setup
 
 Install the required packages first:
