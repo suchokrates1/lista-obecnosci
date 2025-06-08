@@ -9,11 +9,12 @@ from utils import (
     SIGNATURE_MAX_SIZE,
     load_db_settings,
 )
-from doc_generator import generuj_raport_miesieczny
+from doc_generator import generuj_raport_miesieczny, generuj_liste_obecnosci
 from io import BytesIO
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
 import os
+from datetime import datetime
 import smtplib
 import logging
 from . import routes_bp
@@ -258,3 +259,79 @@ def approve_user(id):
 
     flash('Użytkownik zatwierdzony', 'success')
     return redirect(url_for('routes.admin_dashboard'))
+
+
+@routes_bp.route('/edytuj_zajecie/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edytuj_zajecie(id):
+    if current_user.role != 'admin':
+        abort(403)
+
+    zaj = Zajecia.query.get(id)
+    if not zaj:
+        abort(404)
+
+    prow = zaj.prowadzacy
+    uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
+
+    if request.method == 'POST':
+        data_str = request.form.get('data')
+        czas = request.form.get('czas')
+        obecni_ids = request.form.getlist('obecny')
+
+        if not data_str or not czas:
+            flash('Brakuje wymaganych danych', 'danger')
+            return redirect(url_for('routes.edytuj_zajecie', id=id))
+
+        zaj.data = datetime.strptime(data_str, '%Y-%m-%d')
+        try:
+            zaj.czas_trwania = float(czas.replace(',', '.'))
+        except ValueError:
+            zaj.czas_trwania = 0
+        zaj.obecni = Uczestnik.query.filter(Uczestnik.id.in_(obecni_ids)).all()
+        db.session.commit()
+        flash('Zajęcia zaktualizowane', 'success')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    obecni_ids = [u.id for u in zaj.obecni]
+    czas = str(zaj.czas_trwania).replace('.', ',')
+    return render_template(
+        'edit_zajecie.html',
+        zajecie=zaj,
+        uczestnicy=uczestnicy,
+        obecni_ids=obecni_ids,
+        czas=czas,
+        back_url=url_for('routes.admin_dashboard'),
+    )
+
+
+@routes_bp.route('/pobierz_zajecie_admin/<int:id>')
+@login_required
+def pobierz_zajecie_admin(id):
+    if current_user.role != 'admin':
+        abort(403)
+
+    zaj = Zajecia.query.get(id)
+    if not zaj:
+        abort(404)
+
+    prow = zaj.prowadzacy
+    obecni = [u.imie_nazwisko for u in zaj.obecni]
+    doc = generuj_liste_obecnosci(
+        zaj.data.strftime('%Y-%m-%d'),
+        str(zaj.czas_trwania).replace('.', ','),
+        obecni,
+        f"{prow.imie} {prow.nazwisko}",
+        os.path.join('static', prow.podpis_filename),
+    )
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    data_str = zaj.data.strftime('%Y-%m-%d')
+    return send_file(
+        buf,
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        as_attachment=True,
+        download_name=f'lista_{data_str}.docx',
+    )
