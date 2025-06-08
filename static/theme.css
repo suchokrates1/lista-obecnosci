@@ -19,6 +19,7 @@ body.high-contrast .btn {
 .login-box {
   width: 100%;
   max-width: 420px;
+  margin: auto;
   padding: 2rem;
   border: 1px solid var(--bs-border-color-translucent);
   border-radius: 0.5rem;

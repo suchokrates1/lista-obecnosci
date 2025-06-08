@@ -4,8 +4,8 @@
 {% block head_extra %}
 {% endblock %}
 {% block content %}
-  <div class="d-flex justify-content-center align-items-center min-vh-100">
-    <div class="login-box">
+  <div class="container py-5 d-flex justify-content-center">
+    <div class="login-box mx-auto">
       <h2 class="mb-4 text-center">Logowanie</h2>
       <form method="POST" action="/login">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
