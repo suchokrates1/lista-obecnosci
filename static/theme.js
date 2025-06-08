@@ -31,4 +31,11 @@ function toggleContrast() {
 
   const contrast = localStorage.getItem('contrast') === '1';
   applyContrast(contrast);
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const darkBtn = document.getElementById('darkModeToggle');
+    if (darkBtn) darkBtn.addEventListener('click', toggleTheme);
+    const contrastBtn = document.getElementById('contrastToggle');
+    if (contrastBtn) contrastBtn.addEventListener('click', toggleContrast);
+  });
 })();
