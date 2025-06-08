@@ -6,6 +6,8 @@ from datetime import datetime
 import os
 import smtplib
 import logging
+import threading
+import queue
 from email.message import EmailMessage
 import re
 from werkzeug.utils import secure_filename
@@ -19,6 +21,56 @@ except Exception:  # rembg is optional
 logger = logging.getLogger(__name__)
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+# simple asynchronous e-mail dispatch
+_email_queue: "queue.Queue[EmailMessage | None]" = queue.Queue()
+_worker: threading.Thread | None = None
+
+
+def _email_worker() -> None:
+    """Background thread sending messages from ``_email_queue``."""
+    while True:
+        msg = _email_queue.get()
+        if msg is None:
+            break
+        try:
+            _send_message(msg)
+        finally:
+            _email_queue.task_done()
+
+
+def _ensure_worker() -> None:
+    global _worker
+    if _worker is None or not _worker.is_alive():
+        _worker = threading.Thread(target=_email_worker, daemon=True)
+        _worker.start()
+
+
+def _dispatch(msg: EmailMessage, use_queue: bool) -> None:
+    if use_queue:
+        _ensure_worker()
+        _email_queue.put(msg)
+    else:
+        _send_message(msg)
+
+
+def _send_message(msg: EmailMessage) -> None:
+    """Send ``msg`` immediately using SMTP settings from environment."""
+    host = os.getenv("SMTP_HOST")
+    port = int(os.getenv("SMTP_PORT"))
+    login = os.getenv("EMAIL_LOGIN")
+    password = os.getenv("EMAIL_PASSWORD")
+
+    if port == 465:
+        with smtplib.SMTP_SSL(host, port) as smtp:
+            smtp.login(login, password)
+            smtp.send_message(msg)
+    else:
+        with smtplib.SMTP(host, port) as smtp:
+            smtp.starttls()
+            smtp.login(login, password)
+            smtp.send_message(msg)
+    logger.info("Mail sent to %s", msg.get("To"))
 
 # Allowed signature upload formats
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
@@ -129,7 +181,7 @@ def przetworz_liste_obecnosci(form, wybrany):
 
     return ("success", buf, data_str)
 
-def email_do_koordynatora(buf, data, typ="lista"):
+def email_do_koordynatora(buf, data, typ="lista", queue: bool = False):
     odbiorca = os.getenv("EMAIL_RECIPIENT")
     if not odbiorca:
         logger.warning("EMAIL_RECIPIENT not configured, skipping mail send.")
@@ -167,20 +219,8 @@ def email_do_koordynatora(buf, data, typ="lista"):
         filename=filename
     )
 
-    host = os.getenv("SMTP_HOST")
-    port = int(os.getenv("SMTP_PORT"))
-
     try:
-        if port == 465:
-            with smtplib.SMTP_SSL(host, port) as smtp:
-                smtp.login(login, password)
-                smtp.send_message(msg)
-        else:
-            with smtplib.SMTP(host, port) as smtp:
-                smtp.starttls()
-                smtp.login(login, password)
-                smtp.send_message(msg)
-        logger.info("Mail sent to %s", odbiorca)
+        _dispatch(msg, queue)
     except smtplib.SMTPException as e:
         logger.exception("Failed to send email: %s", e)
         raise
@@ -192,6 +232,7 @@ def send_plain_email(
     body_key: str,
     default_subject: str,
     default_body: str,
+    queue: bool = False,
     **fmt,
 ) -> None:
     """Send a simple text e-mail using templates from environment variables."""
@@ -209,20 +250,8 @@ def send_plain_email(
     msg["From"] = f"{sender_name} <{login}>"
     msg["To"] = to_addr
 
-    host = os.getenv("SMTP_HOST")
-    port = int(os.getenv("SMTP_PORT"))
-
     try:
-        if port == 465:
-            with smtplib.SMTP_SSL(host, port) as smtp:
-                smtp.login(login, password)
-                smtp.send_message(msg)
-        else:
-            with smtplib.SMTP(host, port) as smtp:
-                smtp.starttls()
-                smtp.login(login, password)
-                smtp.send_message(msg)
-        logger.info("Mail sent to %s", to_addr)
+        _dispatch(msg, queue)
     except smtplib.SMTPException as e:
         logger.exception("Failed to send email: %s", e)
         raise

@@ -66,3 +66,22 @@ def test_validate_signature_exception():
     fs = FileStorage(FailingStream(b'x'), filename='sig.png', content_type='image/png')
     with pytest.raises(utils.SignatureValidationError):
         utils.validate_signature(fs)
+
+
+def test_send_plain_email_queue(monkeypatch):
+    called = {}
+
+    def fake_send(msg):
+        called['to'] = msg['To']
+
+    monkeypatch.setattr(utils, '_send_message', fake_send)
+    utils.send_plain_email(
+        'x@example.com',
+        'SUBJ',
+        'BODY',
+        's',
+        'b',
+        queue=True,
+    )
+    utils._email_queue.join()
+    assert called.get('to') == 'x@example.com'
