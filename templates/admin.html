@@ -46,6 +46,7 @@
   <table class="table table-striped table-bordered align-middle">
     <thead class="table-dark">
       <tr>
+        <th></th>
         <th>ID</th>
         <th>Imię i nazwisko</th>
         <th>Podpis</th>
@@ -56,6 +57,12 @@
     <tbody>
       {% for p in prowadzacy %}
       <tr>
+        <td class="text-center">
+          <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#row{{ p.id }}" aria-expanded="false" aria-controls="row{{ p.id }}">
+            <i class="bi bi-caret-right"></i>
+            <span class="visually-hidden">Pokaż listę</span>
+          </button>
+        </td>
         <td>{{ p.id }}</td>
         <td>{{ p.imie }} {{ p.nazwisko }}</td>
         <td>
@@ -65,19 +72,7 @@
             Brak
           {% endif %}
         </td>
-        <td>
-          <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#list{{ p.id }}" aria-expanded="false" aria-controls="list{{ p.id }}">
-            <i class="bi bi-caret-right"></i>
-            <span class="visually-hidden">Pokaż listę</span>
-          </button>
-          <div class="collapse" id="list{{ p.id }}">
-            <ul class="mb-0 mt-2">
-              {% for u in p.uczestnicy %}
-                <li>{{ u.imie_nazwisko }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-        </td>
+        <td>{{ p.uczestnicy|length }}</td>
         <td class="text-nowrap">
           <button class="btn btn-sm" onclick="edytujProwadzacego({{ p.id }}, '{{ p.imie }}', '{{ p.nazwisko }}', '{{ p.numer_umowy }}', [{% for u in p.uczestnicy %}'{{ u.imie_nazwisko }}'{% if not loop.last %}, {% endif %}{% endfor %}])" aria-label="Edytuj prowadzącego">
             <i class="bi bi-pencil"></i>
@@ -94,6 +89,15 @@
             <i class="bi bi-file-earmark-text"></i>
             <span class="visually-hidden">Raport miesięczny</span>
           </button>
+        </td>
+      </tr>
+      <tr class="collapse" id="row{{ p.id }}">
+        <td colspan="6">
+          <ul class="mb-0 mt-2">
+            {% for u in p.uczestnicy %}
+              <li>{{ u.imie_nazwisko }}</li>
+            {% endfor %}
+          </ul>
         </td>
       </tr>
 
