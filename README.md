@@ -42,6 +42,9 @@ Install the required packages first:
 ```bash
 pip install -r requirements.txt
 ```
+The list includes `Pillow` for image handling.  Installing `rembg` is optional
+but enables better signature background removal when `REMOVE_SIGNATURE_BG` is
+set.
 
 To create the database and initial admin user, run:
 
@@ -67,6 +70,9 @@ Only PNG and JPG files are accepted when uploading signature images in the admin
 or trainer panels. Files with other extensions or MIME types will be rejected.
 Uploads larger than the value of `MAX_SIGNATURE_SIZE` (default 1 MB) will also be refused.
 If `REMOVE_SIGNATURE_BG` is set, the application removes white background from uploaded signatures and stores them as PNG files.
+The processing is handled by `utils.process_signature()` using the `Pillow`
+library. Installing the optional `rembg` package allows for more advanced
+background removal when the option is enabled.
 
 ## Login format
 

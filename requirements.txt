@@ -6,3 +6,4 @@ python-dotenv
 python-docx
 Flask-WTF
 Pillow
+rembg
