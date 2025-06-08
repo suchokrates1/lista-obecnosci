@@ -2,15 +2,20 @@ from flask import render_template, redirect, url_for, flash, send_file, request,
 from flask_login import login_required, current_user
 from io import BytesIO
 from model import db, Uczestnik, Zajecia
-from doc_generator import generuj_liste_obecnosci
+from doc_generator import generuj_liste_obecnosci, generuj_raport_miesieczny
 from datetime import datetime
 from . import routes_bp
 import os
+import smtplib
+import logging
 from utils import (
     validate_signature,
     SignatureValidationError,
     process_signature,
+    email_do_koordynatora,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @routes_bp.route('/panel')
@@ -24,8 +29,23 @@ def panel():
         abort(404)
 
     uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
-    zajecia = Zajecia.query.filter_by(prowadzacy_id=prow.id).order_by(Zajecia.data.desc()).all()
-    return render_template('panel.html', prowadzacy=prow, uczestnicy=uczestnicy, zajecia=zajecia)
+    zajecia = (
+        Zajecia.query.filter_by(prowadzacy_id=prow.id)
+        .order_by(Zajecia.data.desc())
+        .all()
+    )
+    ostatnie = (
+        Zajecia.query.filter_by(prowadzacy_id=prow.id)
+        .order_by(Zajecia.data.desc())
+        .first()
+    )
+    return render_template(
+        'panel.html',
+        prowadzacy=prow,
+        uczestnicy=uczestnicy,
+        zajecia=zajecia,
+        ostatnie=ostatnie,
+    )
 
 
 @routes_bp.route('/panel/profil', methods=['POST'])
@@ -167,4 +187,51 @@ def panel_edytuj_zajecie(id):
         obecni_ids=obecni_ids,
         czas=czas,
         back_url=url_for('routes.panel'),
+    )
+
+
+@routes_bp.route('/panel/raport', methods=['GET'])
+@login_required
+def panel_raport():
+    """Generate or send a monthly report for the logged in trainer."""
+    if current_user.role != 'prowadzacy':
+        abort(403)
+
+    prow = current_user.prowadzacy
+    if not prow:
+        abort(404)
+
+    ostatnie = (
+        Zajecia.query.filter_by(prowadzacy_id=prow.id)
+        .order_by(Zajecia.data.desc())
+        .first()
+    )
+    if not ostatnie:
+        abort(404)
+
+    miesiac = int(request.args.get('miesiac', ostatnie.data.month))
+    rok = int(request.args.get('rok', ostatnie.data.year))
+    wyslij = request.args.get('wyslij') == '1'
+
+    wszystkie = Zajecia.query.filter_by(prowadzacy_id=prow.id).all()
+    doc = generuj_raport_miesieczny(prow, wszystkie, 'rejestr.docx', 'static', miesiac, rok)
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+
+    if wyslij:
+        try:
+            email_do_koordynatora(buf, f'{miesiac}_{rok}', typ='raport')
+            flash('Raport został wysłany e-mailem', 'success')
+        except smtplib.SMTPException:
+            logger.exception('Failed to send report email')
+            flash('Nie udało się wysłać e-maila', 'danger')
+        return redirect(url_for('routes.panel'))
+
+    return send_file(
+        buf,
+        mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        as_attachment=True,
+        download_name=f'raport_{miesiac}_{rok}.docx',
     )
