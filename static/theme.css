@@ -14,3 +14,14 @@ body.high-contrast .btn {
   color: #000 !important;
   border-color: #ff0 !important;
 }
+
+/* Centered login form container */
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  border: 1px solid var(--bs-border-color-translucent);
+  border-radius: 0.5rem;
+  background-color: var(--bs-body-bg);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
