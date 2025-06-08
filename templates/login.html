@@ -2,9 +2,18 @@
 {% set show_nav_buttons = False %}
 {% block title %}Logowanie{% endblock %}
 {% block head_extra %}
+  <style>
+    main.container {
+      margin-top: 0;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
 {% endblock %}
 {% block content %}
-  <div class="d-flex justify-content-center align-items-center min-vh-100">
+  <div class="d-flex justify-content-center align-items-center w-100">
     <div class="login-box">
       <h2 class="mb-4 text-center">Logowanie</h2>
       <form method="POST" action="/login">
