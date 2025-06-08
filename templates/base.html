@@ -16,12 +16,14 @@
         <img src="https://vestmedia.pl/wp-content/uploads/2024/12/Vest-Media-5.png" alt="Vest Media" height="40">
       </a>
       <div class="d-flex gap-2">
+        {% if show_nav_buttons|default(True) %}
         <a href="{{ url_for('routes.index') }}" class="btn btn-outline-light">Powrót</a>
         {% if is_admin %}
         <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-outline-light">Panel administratora</a>
         <a href="{{ url_for('routes.admin_settings') }}" class="btn btn-outline-light" aria-label="Ustawienia"><i class="bi bi-gear"></i></a>
         {% elif current_user.is_authenticated %}
         <a href="{{ url_for('routes.panel') }}" class="btn btn-outline-light">{% if current_user.role == 'prowadzacy' %}Panel prowadzącego{% else %}Panel{% endif %}</a>
+        {% endif %}
         {% endif %}
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('routes.logout') }}" class="btn btn-outline-danger">Wyloguj</a>
