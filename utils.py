@@ -8,6 +8,7 @@ import smtplib
 import logging
 from email.message import EmailMessage
 import re
+from werkzeug.utils import secure_filename
 from PIL import Image
 try:
     from rembg import remove as rembg_remove  # type: ignore
@@ -57,6 +58,41 @@ def is_valid_email(value: str) -> bool:
     if not isinstance(value, str):
         return False
     return bool(EMAIL_REGEX.match(value))
+
+
+class SignatureValidationError(Exception):
+    """Raised when validating an uploaded signature fails."""
+
+
+def validate_signature(file):
+    """Validate an uploaded signature file.
+
+    Returns ``(sanitized_filename, error_message)`` when validation succeeds or
+    fails with a user-facing error. Unexpected problems raise
+    :class:`SignatureValidationError`.
+    """
+
+    if not file or not getattr(file, "filename", None):
+        return None, None
+
+    try:
+        filename = secure_filename(file.filename)
+        if not filename:
+            return None, "Niepoprawna nazwa pliku"
+
+        ext = filename.rsplit(".", 1)[-1].lower()
+        if ext not in ALLOWED_EXTENSIONS or file.mimetype not in ALLOWED_MIME_TYPES:
+            return None, "Nieobsługiwany format pliku podpisu. Dozwolone są PNG i JPG."
+
+        file.stream.seek(0, os.SEEK_END)
+        if file.stream.tell() > SIGNATURE_MAX_SIZE:
+            return None, "Plik podpisu jest zbyt duży."
+        file.stream.seek(0)
+    except Exception as exc:
+        logger.exception("Failed to validate signature")
+        raise SignatureValidationError(str(exc)) from exc
+
+    return filename, None
 
 def przetworz_liste_obecnosci(form, wybrany):
     data_str = form.get("data")
