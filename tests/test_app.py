@@ -3,7 +3,8 @@ import io
 from PIL import Image
 import pytest
 from app import create_app
-from model import db, Uzytkownik
+from datetime import datetime
+from model import db, Uzytkownik, Prowadzacy, Zajecia
 import utils
 from werkzeug.security import generate_password_hash
 
@@ -145,3 +146,46 @@ def test_panel_raport_requires_login(client):
     resp = client.get('/panel/raport')
     assert resp.status_code == 302
     assert '/login' in resp.headers['Location']
+
+
+def test_admin_raport_bad_params(client, app):
+    """Invalid month/year should return 400 for the admin route."""
+    with app.app_context():
+        prow = Prowadzacy(imie='A', nazwisko='B')
+        db.session.add(prow)
+        user = Uzytkownik(login='adm@example.com',
+                           haslo_hash=generate_password_hash('secret'),
+                           role='admin', approved=True)
+        db.session.add(user)
+        db.session.commit()
+        prow_id = prow.id
+        zaj = Zajecia(prowadzacy_id=prow_id,
+                      data=datetime(2023, 1, 1),
+                      czas_trwania=1.0)
+        db.session.add(zaj)
+        db.session.commit()
+    client.post('/login', data={'login': 'adm@example.com', 'hasło': 'secret'})
+    resp = client.get(f'/raport/{prow_id}?miesiac=13&rok=2023')
+    assert resp.status_code == 400
+
+
+def test_panel_raport_bad_params(client, app):
+    """Invalid month/year should redirect with an error for the trainer route."""
+    with app.app_context():
+        prow = Prowadzacy(imie='T', nazwisko='X')
+        db.session.add(prow)
+        user = Uzytkownik(login='tr@example.com',
+                           haslo_hash=generate_password_hash('secret'),
+                           role='prowadzacy', approved=True,
+                           prowadzacy=prow)
+        db.session.add(user)
+        db.session.commit()
+        zaj = Zajecia(prowadzacy_id=prow.id,
+                      data=datetime(2023, 1, 1),
+                      czas_trwania=1.0)
+        db.session.add(zaj)
+        db.session.commit()
+    client.post('/login', data={'login': 'tr@example.com', 'hasło': 'secret'})
+    resp = client.get('/panel/raport?rok=1999')
+    assert resp.status_code == 302
+    assert resp.headers['Location'].endswith('/panel')
