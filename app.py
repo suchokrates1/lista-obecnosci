@@ -15,6 +15,13 @@ login_manager = LoginManager()
 login_manager.login_view = "routes.login"  # Redirect to login page when unauthorized
 csrf = CSRFProtect()
 
+
+def inject_is_admin():
+    """Expose an ``is_admin`` flag to all templates."""
+    return {
+        "is_admin": current_user.is_authenticated and current_user.role == "admin"
+    }
+
 def create_app():
     logging.basicConfig(level=logging.INFO)
     app = Flask(__name__)
@@ -40,11 +47,7 @@ def create_app():
     from routes import routes_bp
     app.register_blueprint(routes_bp)
 
-    @app.context_processor
-    def inject_is_admin():
-        return {
-            'is_admin': current_user.is_authenticated and current_user.role == 'admin'
-        }
+    app.context_processor(inject_is_admin)
 
     @app.errorhandler(403)
     def forbidden(_):
