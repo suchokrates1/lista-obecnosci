@@ -51,7 +51,6 @@
   <table class="table table-striped table-hover">
     <thead class="table-secondary">
       <tr>
-        <th></th>
         <th>Data</th>
         <th>Czas</th>
         <th>Obecni</th>
@@ -61,12 +60,6 @@
     <tbody>
       {% for z in zajecia %}
       <tr>
-        <td class="text-center">
-          <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#row{{ z.id }}" aria-expanded="false" aria-controls="row{{ z.id }}">
-            <i class="bi bi-caret-right"></i>
-            <span class="visually-hidden">Pokaż listę</span>
-          </button>
-        </td>
         <td>{{ z.data.date() }}</td>
         <td>{{ z.czas_trwania }}</td>
         <td>{{ z.obecni|length }}</td>
@@ -86,15 +79,6 @@
               <span class="visually-hidden">Usuń zajęcia</span>
             </button>
           </form>
-        </td>
-      </tr>
-      <tr class="collapse" id="row{{ z.id }}">
-        <td colspan="5">
-          <ul class="mb-0 mt-2">
-            {% for o in z.obecni %}
-              <li>{{ o.imie_nazwisko }}</li>
-            {% endfor %}
-          </ul>
         </td>
       </tr>
       {% endfor %}
