@@ -14,9 +14,8 @@
 {% endblock %}
 {% block content %}
   <div class="d-flex justify-content-center align-items-center min-vh-100">
-    <div class="login-box">
-    <h2 class="mb-4 text-center">Logowanie</h2>
-    <form method="POST" action="/login">
+    <form method="POST" action="/login" class="login-box">
+      <h2 class="mb-4 text-center">Logowanie</h2>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-floating mb-3">
         <input type="email" class="form-control" id="login" name="login" placeholder="Login" required autocomplete="username" tabindex="1">
@@ -39,9 +38,9 @@
         <button type="submit" class="btn btn-primary" tabindex="3">Zaloguj się</button>
       </div>
     </form>
-    <div class="text-center mt-3">
-      <a href="{{ url_for('routes.register') }}" tabindex="4">Zarejestruj się</a>
-    </div>
+  </div>
+  <div class="text-center mt-3">
+    <a href="{{ url_for('routes.register') }}" tabindex="4">Zarejestruj się</a>
   </div>
 </div>
 {% endblock %}
