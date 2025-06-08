@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from io import BytesIO
 from model import db, Uczestnik, Zajecia
 from doc_generator import generuj_liste_obecnosci
+from datetime import datetime
 from . import routes_bp
 import os
 from utils import ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, SIGNATURE_MAX_SIZE
@@ -123,3 +124,44 @@ def usun_moje_zajecie(id):
     db.session.commit()
     flash('Zaj\u0119cia usuni\u0119te', 'info')
     return redirect(url_for('routes.panel'))
+
+
+@routes_bp.route('/panel/edytuj_zajecie/<int:id>', methods=['GET', 'POST'])
+@login_required
+def panel_edytuj_zajecie(id):
+    zaj = Zajecia.query.get(id)
+    if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
+        abort(403)
+
+    prow = current_user.prowadzacy
+    uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
+
+    if request.method == 'POST':
+        data_str = request.form.get('data')
+        czas = request.form.get('czas')
+        obecni_ids = request.form.getlist('obecny')
+
+        if not data_str or not czas:
+            flash('Brakuje wymaganych danych', 'danger')
+            return redirect(url_for('routes.panel_edytuj_zajecie', id=id))
+
+        zaj.data = datetime.strptime(data_str, '%Y-%m-%d')
+        try:
+            zaj.czas_trwania = float(czas.replace(',', '.'))
+        except ValueError:
+            zaj.czas_trwania = 0
+        zaj.obecni = Uczestnik.query.filter(Uczestnik.id.in_(obecni_ids)).all()
+        db.session.commit()
+        flash('Zajęcia zaktualizowane', 'success')
+        return redirect(url_for('routes.panel'))
+
+    obecni_ids = [u.id for u in zaj.obecni]
+    czas = str(zaj.czas_trwania).replace('.', ',')
+    return render_template(
+        'edit_zajecie.html',
+        zajecie=zaj,
+        uczestnicy=uczestnicy,
+        obecni_ids=obecni_ids,
+        czas=czas,
+        back_url=url_for('routes.panel'),
+    )
