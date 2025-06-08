@@ -209,8 +209,15 @@ def panel_raport():
     if not ostatnie:
         abort(404)
 
-    miesiac = int(request.args.get('miesiac', ostatnie.data.month))
-    rok = int(request.args.get('rok', ostatnie.data.year))
+    try:
+        miesiac = int(request.args.get('miesiac', ostatnie.data.month))
+        rok = int(request.args.get('rok', ostatnie.data.year))
+    except (TypeError, ValueError):
+        flash('Niepoprawny miesiąc lub rok', 'danger')
+        return redirect(url_for('routes.panel'))
+    if not 1 <= miesiac <= 12 or rok < 2000:
+        flash('Niepoprawny miesiąc lub rok', 'danger')
+        return redirect(url_for('routes.panel'))
     wyslij = request.args.get('wyslij') == '1'
 
     wszystkie = Zajecia.query.filter_by(prowadzacy_id=prow.id).all()

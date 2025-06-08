@@ -133,8 +133,13 @@ def raport(prowadzacy_id):
     if not ostatnie:
         abort(404)
 
-    miesiac = int(request.args.get('miesiac', ostatnie.data.month))
-    rok = int(request.args.get('rok', ostatnie.data.year))
+    try:
+        miesiac = int(request.args.get('miesiac', ostatnie.data.month))
+        rok = int(request.args.get('rok', ostatnie.data.year))
+    except (TypeError, ValueError):
+        abort(400)
+    if not 1 <= miesiac <= 12 or rok < 2000:
+        abort(400)
     wyslij = request.args.get('wyslij') == '1'
 
     wszystkie = Zajecia.query.filter_by(prowadzacy_id=prowadzacy_id).all()
