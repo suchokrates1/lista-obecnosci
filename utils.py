@@ -8,6 +8,11 @@ import smtplib
 import logging
 from email.message import EmailMessage
 import re
+from PIL import Image
+try:
+    from rembg import remove as rembg_remove  # type: ignore
+except Exception:  # rembg is optional
+    rembg_remove = None
 
 logger = logging.getLogger(__name__)
 
@@ -184,3 +189,42 @@ def send_plain_email(
     except smtplib.SMTPException as e:
         logger.exception("Failed to send email: %s", e)
         raise
+
+
+def process_signature(file, dest_base, original_ext):
+    """Process an uploaded signature image and save it to ``static/``.
+
+    ``file`` should be a file-like object positioned at the start. ``dest_base``
+    is used as the filename without extension while ``original_ext`` is the
+    extension of the uploaded file. If ``REMOVE_SIGNATURE_BG`` is enabled the
+    output is always a PNG with white background removed using ``rembg`` when
+    available.
+
+    The function returns the final filename placed inside ``static/``.
+    """
+
+    ext = "png" if REMOVE_SIGNATURE_BG else original_ext.lower()
+    filename = f"{dest_base}.{ext}"
+    path = os.path.join("static", filename)
+    try:
+        file.seek(0)
+        img = Image.open(file)
+        if REMOVE_SIGNATURE_BG:
+            if rembg_remove:
+                img = rembg_remove(img)
+            img = img.convert("RGBA")
+            datas = img.getdata()
+            new_data = []
+            for item in datas:
+                if item[0] > 250 and item[1] > 250 and item[2] > 250:
+                    new_data.append((255, 255, 255, 0))
+                else:
+                    new_data.append(item)
+            img.putdata(new_data)
+            img.save(path, format="PNG")
+        else:
+            img.save(path)
+    except Exception:
+        logger.exception("Failed to process signature image")
+        raise
+    return filename
