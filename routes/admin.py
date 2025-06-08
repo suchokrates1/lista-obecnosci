@@ -7,6 +7,7 @@ from utils import (
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
     SIGNATURE_MAX_SIZE,
+    REMOVE_SIGNATURE_BG,
     load_db_settings,
 )
 from doc_generator import generuj_raport_miesieczny, generuj_liste_obecnosci
@@ -17,6 +18,11 @@ import os
 from datetime import datetime
 import smtplib
 import logging
+from PIL import Image
+try:
+    from rembg import remove as rembg_remove
+except Exception:  # rembg optional
+    rembg_remove = None
 from . import routes_bp
 
 logger = logging.getLogger(__name__)
@@ -59,6 +65,7 @@ def admin_settings():
 
     keys = [
         'smtp_host', 'smtp_port', 'email_recipient', 'max_signature_size',
+        'remove_signature_bg',
         'email_sender_name', 'email_login', 'email_password', 'email_footer',
         'email_list_subject', 'email_list_body',
         'email_report_subject', 'email_report_body',
@@ -69,7 +76,10 @@ def admin_settings():
 
     if request.method == 'POST':
         for key in keys:
-            val = request.form.get(key)
+            if key == 'remove_signature_bg':
+                val = '1' if request.form.get(key) else '0'
+            else:
+                val = request.form.get(key)
             if val is None:
                 continue
             setting = Setting.query.get(key)
@@ -200,9 +210,33 @@ def dodaj_prowadzacego():
         podpis.stream.seek(0)
 
     if podpis and sanitized:
-        filename = f"{prow.id}_{sanitized}"
+        base = os.path.splitext(sanitized)[0]
+        ext = sanitized.rsplit('.', 1)[-1].lower()
+        if REMOVE_SIGNATURE_BG:
+            ext = 'png'
+        filename = f"{prow.id}_{base}.{ext}"
         path = os.path.join('static', filename)
-        podpis.save(path)
+        try:
+            podpis.stream.seek(0)
+            img = Image.open(podpis.stream)
+            if REMOVE_SIGNATURE_BG:
+                if rembg_remove:
+                    img = rembg_remove(img)
+                img = img.convert('RGBA')
+                datas = img.getdata()
+                new_data = []
+                for item in datas:
+                    if item[0] > 250 and item[1] > 250 and item[2] > 250:
+                        new_data.append((255, 255, 255, 0))
+                    else:
+                        new_data.append(item)
+                img.putdata(new_data)
+                img.save(path, format='PNG')
+            else:
+                img.save(path)
+        except Exception:
+            flash('Nie udało się przetworzyć obrazu podpisu', 'danger')
+            return redirect(url_for('routes.admin_dashboard'))
         prow.podpis_filename = filename
 
     for nazw in uczestnicy.strip().splitlines():
