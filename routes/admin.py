@@ -201,10 +201,8 @@ def dodaj_prowadzacego():
             return redirect(url_for('routes.admin_dashboard'))
 
     if podpis and sanitized:
-        base = os.path.splitext(sanitized)[0]
-        orig_ext = sanitized.rsplit('.', 1)[-1].lower()
         try:
-            filename = process_signature(podpis.stream, f"{prow.id}_{base}", orig_ext)
+            filename = process_signature(podpis.stream)
         except Exception:
             flash('Nie udało się przetworzyć obrazu podpisu', 'danger')
             return redirect(url_for('routes.admin_dashboard'))

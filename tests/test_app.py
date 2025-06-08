@@ -1,8 +1,10 @@
 import os
 import io
+from PIL import Image
 import pytest
 from app import create_app
 from model import db, Uzytkownik
+import utils
 
 @pytest.fixture
 def app(tmp_path):
@@ -87,6 +89,10 @@ def test_register_too_large_signature(client, app):
 
 def test_successful_register(client, app, monkeypatch):
     monkeypatch.setattr('routes.auth.send_plain_email', lambda *a, **k: None)
+    monkeypatch.setattr(utils, 'SIGNATURE_MAX_SIZE', 1000)
+    buf = io.BytesIO()
+    Image.new('RGB', (1, 1), (255, 0, 0)).save(buf, format='PNG')
+    buf.seek(0)
     data = {
         'imie': 'A',
         'nazwisko': 'B',
@@ -94,7 +100,7 @@ def test_successful_register(client, app, monkeypatch):
         'lista_uczestnikow': 'X',
         'login': 'ok@example.com',
         'haslo': 'pass',
-        'podpis': (io.BytesIO(b'x'), 'sig.png', 'image/png')
+        'podpis': (buf, 'sig.png', 'image/png')
     }
     resp = client.post('/register', data=data, content_type='multipart/form-data', follow_redirects=False)
     assert resp.status_code == 302
