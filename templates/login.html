@@ -10,7 +10,6 @@
       height: 100vh;
     }
     .login-box {
-      width: 100%;
       max-width: 400px;
       background: white;
       padding: 2rem;
@@ -20,7 +19,7 @@
   </style>
 {% endblock %}
 {% block content %}
-  <div class="login-box">
+  <div class="login-box mx-auto">
     <h2 class="mb-4 text-center">Logowanie</h2>
     <form method="POST" action="/login">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
