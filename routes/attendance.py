@@ -54,7 +54,6 @@ def index():
                 uczestnicy=uczestnicy,
                 selected=selected_id,
                 status=status,
-                is_admin=is_admin,
                 domyslny_czas=domyslny_czas,
                 is_logged=True,
             )
@@ -89,6 +88,5 @@ def index():
                            uczestnicy=uczestnicy,
                            selected=selected_id,
                            status=status,
-                           is_admin=is_admin,
                            domyslny_czas=domyslny_czas,
                            is_logged=True)

@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 from flask_migrate import Migrate
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_wtf import CSRFProtect
 from dotenv import load_dotenv
 import logging
@@ -39,6 +39,12 @@ def create_app():
     # Rejestracja blueprintów
     from routes import routes_bp
     app.register_blueprint(routes_bp)
+
+    @app.context_processor
+    def inject_is_admin():
+        return {
+            'is_admin': current_user.is_authenticated and current_user.role == 'admin'
+        }
 
     @app.errorhandler(403)
     def forbidden(_):
