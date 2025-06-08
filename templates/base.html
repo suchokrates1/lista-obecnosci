@@ -11,7 +11,7 @@
 <body class="bg-light d-flex flex-column min-vh-100">
   <a href="#main" class="visually-hidden-focusable">Przejdź do głównej zawartości</a>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid justify-content-between align-items-center">
+    <div class="container w-75 mx-auto d-flex justify-content-between align-items-center">
       <a class="navbar-brand" href="https://vestmedia.pl" target="_blank">
         <img src="https://vestmedia.pl/wp-content/uploads/2024/12/Vest-Media-5.png" alt="Vest Media" height="40">
       </a>
@@ -19,15 +19,15 @@
         <a href="{{ url_for('routes.index') }}" class="btn btn-outline-light">Powrót</a>
         {% if is_admin %}
         <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-outline-light">Panel administratora</a>
-        <a href="{{ url_for('routes.admin_settings') }}" class="btn btn-outline-light">Ustawienia</a>
+        <a href="{{ url_for('routes.admin_settings') }}" class="btn btn-outline-light" aria-label="Ustawienia"><i class="bi bi-gear"></i></a>
         {% elif current_user.is_authenticated %}
-        <a href="{{ url_for('routes.panel') }}" class="btn btn-outline-light">Panel</a>
+        <a href="{{ url_for('routes.panel') }}" class="btn btn-outline-light">{% if current_user.role == 'prowadzacy' %}Panel prowadzącego{% else %}Panel{% endif %}</a>
         {% endif %}
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('routes.logout') }}" class="btn btn-outline-danger">Wyloguj</a>
         {% endif %}
-        <button class="btn btn-outline-light" id="themeToggle" onclick="toggleTheme()" aria-label="Przełącz motyw">🌓</button>
-        <button class="btn btn-outline-light" id="contrastToggle" onclick="toggleContrast()" aria-label="Wysoki kontrast">⚙️</button>
+        <button class="btn btn-outline-light" id="darkModeToggle" aria-label="Tryb ciemny"><i class="bi bi-moon"></i></button>
+        <button class="btn btn-outline-light" id="contrastToggle" aria-label="Wysoki kontrast"><i class="bi bi-circle-half"></i></button>
       </div>
     </div>
   </nav>
