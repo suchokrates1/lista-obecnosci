@@ -1,13 +1,13 @@
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.utils import secure_filename
 from model import db, Uzytkownik, Prowadzacy, Uczestnik, PasswordResetToken
 from utils import (
     send_plain_email,
     is_valid_email,
     validate_signature,
     SignatureValidationError,
+    process_signature,
 )
 import os
 import uuid
@@ -87,9 +87,11 @@ def register():
                 return redirect(url_for('routes.register'))
 
         if podpis and sanitized:
-            filename = f"{uuid.uuid4().hex}_{sanitized}"
-            path = os.path.join("static", filename)
-            podpis.save(path)
+            try:
+                filename = process_signature(podpis.stream)
+            except Exception:
+                flash('Nie udało się przetworzyć obrazu podpisu', 'danger')
+                return redirect(url_for('routes.register'))
 
         prow = Prowadzacy(imie=imie, nazwisko=nazwisko, numer_umowy=numer_umowy, podpis_filename=filename)
         db.session.add(prow)
