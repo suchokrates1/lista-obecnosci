@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Edytuj zajęcia{% endblock %}
+{% block content %}
+  <h2 class="mb-4">Edytuj zajęcia</h2>
+  <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label for="data" class="form-label">Data zajęć:</label>
+      <input type="date" class="form-control" id="data" name="data" value="{{ zajecie.data.strftime('%Y-%m-%d') }}" required>
+    </div>
+    <div class="mb-3">
+      <label for="czas" class="form-label">Czas trwania zajęć:</label>
+      <input type="text" class="form-control" id="czas" name="czas" value="{{ czas }}" required>
+    </div>
+    <fieldset class="mb-3">
+      <legend>Lista uczestników</legend>
+      {% for u in uczestnicy %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="obecny" id="u{{ u.id }}" value="{{ u.id }}" {% if u.id in obecni_ids %}checked{% endif %}>
+          <label class="form-check-label" for="u{{ u.id }}">{{ u.imie_nazwisko }}</label>
+        </div>
+      {% endfor %}
+    </fieldset>
+    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+    <a href="{{ back_url }}" class="btn btn-secondary ms-2">Anuluj</a>
+  </form>
+{% endblock %}
