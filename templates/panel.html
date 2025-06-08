@@ -63,11 +63,17 @@
         <td>{{ z.data.date() }}</td>
         <td>{{ z.czas_trwania }}</td>
         <td>
-          <ul class="mb-0">
-            {% for o in z.obecni %}
-              <li>{{ o.imie_nazwisko }}</li>
-            {% endfor %}
-          </ul>
+          <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#list{{ z.id }}" aria-expanded="false" aria-controls="list{{ z.id }}">
+            <i class="bi bi-caret-right"></i>
+            <span class="visually-hidden">Pokaż listę</span>
+          </button>
+          <div class="collapse" id="list{{ z.id }}">
+            <ul class="mb-0 mt-2">
+              {% for o in z.obecni %}
+                <li>{{ o.imie_nazwisko }}</li>
+              {% endfor %}
+            </ul>
+          </div>
         </td>
         <td class="text-nowrap">
           <a href="{{ url_for('routes.panel_edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia">
