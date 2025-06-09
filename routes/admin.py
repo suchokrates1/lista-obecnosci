@@ -35,7 +35,15 @@ def admin_dashboard():
     for p in prowadzacy:
         p.uczestnicy = sorted(p.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
 
-    zajecia = Zajecia.query.order_by(Zajecia.data.desc()).all()
+    p_id = request.args.get("p_id", type=int)
+    if p_id:
+        zajecia = (
+            Zajecia.query.filter_by(prowadzacy_id=p_id)
+            .order_by(Zajecia.data.desc())
+            .all()
+        )
+    else:
+        zajecia = Zajecia.query.order_by(Zajecia.data.desc()).all()
     ostatnie = {}
     for p in prowadzacy:
         ostatnie_zajecia = Zajecia.query.filter_by(prowadzacy_id=p.id).order_by(Zajecia.data.desc()).first()
@@ -47,6 +55,7 @@ def admin_dashboard():
         zajecia=zajecia,
         ostatnie=ostatnie,
         new_users=new_users,
+        selected_p_id=p_id,
     )
 
 
