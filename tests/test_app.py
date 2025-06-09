@@ -401,3 +401,18 @@ def test_admin_dashboard_filter(client, app):
     data = resp.data.decode()
     assert '2023-01-01' in data
     assert '2023-01-02' not in data
+
+
+def test_update_default_time(client, app):
+    login_val = _create_trainer(app)
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.post('/panel/profil', data={
+        'imie': 'T',
+        'nazwisko': 'T',
+        'numer_umowy': '1',
+        'domyslny_czas': '2,5',
+    }, follow_redirects=False)
+    assert resp.status_code == 302
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        assert prow.domyslny_czas == 2.5

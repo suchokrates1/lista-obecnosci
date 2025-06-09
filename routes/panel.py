@@ -39,12 +39,18 @@ def panel():
         .order_by(Zajecia.data.desc())
         .first()
     )
+    domyslny_czas = (
+        str(prow.domyslny_czas).replace('.', ',').rstrip('0').rstrip(',')
+        if prow.domyslny_czas is not None
+        else ''
+    )
     return render_template(
         'panel.html',
         prowadzacy=prow,
         uczestnicy=uczestnicy,
         zajecia=zajecia,
         ostatnie=ostatnie,
+        domyslny_czas=domyslny_czas,
     )
 
 
@@ -61,6 +67,14 @@ def panel_update_profile():
     prow.imie = request.form.get('imie')
     prow.nazwisko = request.form.get('nazwisko')
     prow.numer_umowy = request.form.get('numer_umowy')
+    czas_val = request.form.get('domyslny_czas', '').strip()
+    if czas_val:
+        try:
+            prow.domyslny_czas = float(czas_val.replace(',', '.'))
+        except ValueError:
+            prow.domyslny_czas = None
+    else:
+        prow.domyslny_czas = None
 
     podpis = request.files.get('podpis')
     sanitized = None
