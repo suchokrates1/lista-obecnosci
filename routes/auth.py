@@ -23,6 +23,7 @@ def login():
     if request.method == "POST":
         login_val = request.form.get("login")
         haslo = request.form.get("hasło")
+        remember = bool(request.form.get("remember"))
 
         if not is_valid_email(login_val):
             flash("Login musi być prawidłowym adresem e-mail", "danger")
@@ -34,7 +35,7 @@ def login():
                 flash("Konto prowadzącego nie zostało jeszcze zatwierdzone", "danger")
                 return redirect(url_for("routes.login"))
 
-            login_user(user)
+            login_user(user, remember=remember)
 
             if user.role == "admin":
                 return redirect(url_for("routes.admin_dashboard"))
