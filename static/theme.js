@@ -49,5 +49,24 @@ function togglePassword(id, btn) {
     if (darkBtn) darkBtn.addEventListener('click', toggleTheme);
     const contrastBtn = document.getElementById('contrastToggle');
     if (contrastBtn) contrastBtn.addEventListener('click', toggleContrast);
+
+    const sigInput = document.getElementById('podpis');
+    const sigPreview = document.getElementById('podpisPreview');
+    if (sigInput && sigPreview) {
+      sigInput.addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (file && file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            sigPreview.src = e.target.result;
+            sigPreview.classList.remove('d-none');
+          };
+          reader.readAsDataURL(file);
+        } else {
+          sigPreview.classList.add('d-none');
+          sigPreview.removeAttribute('src');
+        }
+      });
+    }
   });
 })();
