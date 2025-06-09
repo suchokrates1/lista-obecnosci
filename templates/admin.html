@@ -133,7 +133,7 @@
     <tbody>
       {% for z in zajecia %}
       <tr>
-        <td>{{ z.data }}</td>
+        <td>{{ z.data.date() }}</td>
         <td>{{ z.czas_trwania }}</td>
         <td>{{ z.prowadzacy.imie }} {{ z.prowadzacy.nazwisko }}</td>
         <td>{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
