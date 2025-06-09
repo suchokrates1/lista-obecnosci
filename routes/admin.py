@@ -343,3 +343,39 @@ def pobierz_zajecie_admin(id):
         as_attachment=True,
         download_name=f'lista_{data_str}.docx',
     )
+
+
+@routes_bp.route('/wyslij_zajecie_admin/<int:id>')
+@login_required
+def wyslij_zajecie_admin(id):
+    """Send the attendance list for the session via e-mail."""
+    if current_user.role != 'admin':
+        abort(403)
+
+    zaj = Zajecia.query.get(id)
+    if not zaj:
+        abort(404)
+
+    prow = zaj.prowadzacy
+    obecni = [u.imie_nazwisko for u in zaj.obecni]
+    doc = generuj_liste_obecnosci(
+        zaj.data.strftime('%Y-%m-%d'),
+        str(zaj.czas_trwania).replace('.', ','),
+        obecni,
+        f"{prow.imie} {prow.nazwisko}",
+        os.path.join('static', prow.podpis_filename),
+    )
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    data_str = zaj.data.strftime('%Y-%m-%d')
+
+    try:
+        email_do_koordynatora(buf, data_str, typ='lista')
+        flash('Lista została wysłana e-mailem', 'success')
+    except smtplib.SMTPException:
+        logger.exception('Failed to send attendance email')
+        flash('Nie udało się wysłać e-maila', 'danger')
+
+    return redirect(url_for('routes.admin_dashboard'))
