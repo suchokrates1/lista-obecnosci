@@ -309,3 +309,30 @@ def test_wyslij_zajecie_admin_success(client, app, monkeypatch):
     assert resp.status_code == 302
     assert resp.headers['Location'].endswith('/admin')
     assert called.get('sent')
+
+
+def test_admin_dashboard_filter(client, app):
+    with app.app_context():
+        p1 = Prowadzacy(imie='A', nazwisko='A')
+        p2 = Prowadzacy(imie='B', nazwisko='B')
+        db.session.add_all([p1, p2])
+        db.session.flush()
+        z1 = Zajecia(prowadzacy_id=p1.id, data=datetime(2023, 1, 1), czas_trwania=1.0)
+        z2 = Zajecia(prowadzacy_id=p2.id, data=datetime(2023, 1, 2), czas_trwania=2.0)
+        db.session.add_all([z1, z2])
+        admin = Uzytkownik(
+            login='adminf@example.com',
+            haslo_hash=generate_password_hash('adm'),
+            role='admin',
+            approved=True,
+        )
+        db.session.add(admin)
+        db.session.commit()
+        pid = p1.id
+
+    client.post('/login', data={'login': 'adminf@example.com', 'hasło': 'adm'}, follow_redirects=False)
+    resp = client.get(f'/admin?p_id={pid}')
+    assert resp.status_code == 200
+    data = resp.data.decode()
+    assert '2023-01-01' in data
+    assert '2023-01-02' not in data
