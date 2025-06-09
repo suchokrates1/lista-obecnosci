@@ -22,6 +22,18 @@ function toggleContrast() {
   localStorage.setItem('contrast', active ? '1' : '0');
 }
 
+function togglePassword(id, btn) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  const icon = btn && btn.querySelector('i');
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  if (icon) {
+    icon.classList.toggle('bi-eye', !show);
+    icon.classList.toggle('bi-eye-slash', show);
+  }
+}
+
 (function() {
   let theme = localStorage.getItem('theme');
   if (!theme) {

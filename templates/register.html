@@ -25,9 +25,12 @@
         <input type="email" class="form-control" id="login" name="login" placeholder="Login" required autocomplete="username" tabindex="5">
         <label for="login">Login (adres e-mail):</label>
       </div>
-      <div class="form-floating mb-3">
+      <div class="form-floating mb-3 position-relative">
         <input type="password" class="form-control" id="haslo" name="haslo" placeholder="Hasło" required autocomplete="new-password" tabindex="6">
         <label for="haslo">Hasło:</label>
+        <button type="button" class="btn btn-outline-secondary border-0 position-absolute top-50 end-0 translate-middle-y" onclick="togglePassword('haslo', this)" tabindex="-1" aria-label="Pokaż lub ukryj hasło">
+          <i class="bi bi-eye"></i>
+        </button>
       </div>
       <div class="form-floating mb-3">
         <input type="file" class="form-control" id="podpis" name="podpis" accept=".png,.jpg,.jpeg" tabindex="7">
