@@ -293,6 +293,38 @@ def test_panel_raport_email_sending(client, app, monkeypatch):
     assert sent.get('called')
 
 
+def test_wyslij_zajecie_requires_login(client):
+    resp = client.get('/wyslij_zajecie/1')
+    assert resp.status_code == 302
+    assert '/login' in resp.headers['Location']
+
+
+def test_wyslij_zajecie_success(client, app, monkeypatch):
+    login_val = _create_trainer(app)
+
+    with app.app_context():
+        zaj_id = Zajecia.query.first().id
+
+    def dummy_list(*_a, **_k):
+        doc = Document()
+        doc.add_paragraph('x')
+        return doc
+
+    called = {}
+
+    def fake_email(buf, data, typ=None):
+        called['sent'] = True
+
+    monkeypatch.setattr('routes.panel.generuj_liste_obecnosci', dummy_list)
+    monkeypatch.setattr('routes.panel.email_do_koordynatora', fake_email)
+
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.get(f'/wyslij_zajecie/{zaj_id}')
+    assert resp.status_code == 302
+    assert resp.headers['Location'].endswith('/panel')
+    assert called.get('sent')
+
+
 def test_wyslij_zajecie_admin_requires_login(client):
     resp = client.get('/wyslij_zajecie_admin/1')
     assert resp.status_code == 302

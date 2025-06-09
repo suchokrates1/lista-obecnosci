@@ -77,6 +77,10 @@
             <i class="bi bi-download"></i>
             <span class="visually-hidden">Pobierz dokument</span>
           </a>
+          <a href="{{ url_for('routes.wyslij_zajecie', id=z.id) }}" class="btn btn-sm text-secondary" aria-label="Wyślij dokument mailem">
+            <i class="bi bi-envelope"></i>
+            <span class="visually-hidden">Wyślij dokument mailem</span>
+          </a>
           <form action="{{ url_for('routes.usun_moje_zajecie', id=z.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Usunąć zajęcia?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia">
