@@ -123,6 +123,23 @@ def panel_update_participants():
     return redirect(url_for('routes.panel'))
 
 
+@routes_bp.route('/usun_uczestnika/<int:id>', methods=['POST'])
+@login_required
+def usun_uczestnika(id):
+    """Delete a participant belonging to the logged in trainer."""
+    if current_user.role != 'prowadzacy':
+        abort(403)
+
+    uczestnik = Uczestnik.query.get(id)
+    if not uczestnik or uczestnik.prowadzacy_id != current_user.prowadzacy_id:
+        abort(403)
+
+    db.session.delete(uczestnik)
+    db.session.commit()
+    flash('Uczestnik usunięty', 'info')
+    return redirect(url_for('routes.panel'))
+
+
 @routes_bp.route('/pobierz_zajecie/<int:id>')
 @login_required
 def pobierz_zajecie(id):
