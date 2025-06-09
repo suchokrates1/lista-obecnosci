@@ -125,6 +125,28 @@ def test_login_success(client, app):
     assert resp.headers['Location'].endswith('/admin')
 
 
+def test_login_remember_sets_cookie(client, app):
+    with app.app_context():
+        user = Uzytkownik(
+            login='perm@example.com',
+            haslo_hash=generate_password_hash('secret'),
+            role='admin',
+            approved=True,
+        )
+        db.session.add(user)
+        db.session.commit()
+
+    resp = client.post(
+        '/login',
+        data={'login': 'perm@example.com', 'hasło': 'secret', 'remember': '1'},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    cookie = client._cookies.get(('localhost', '/', 'remember_token'))
+    assert cookie is not None
+    assert cookie.expires is not None
+
+
 def test_login_failure(client, app):
     with app.app_context():
         user = Uzytkownik(login='adm2@example.com',
