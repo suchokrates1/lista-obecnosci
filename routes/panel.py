@@ -136,6 +136,39 @@ def pobierz_zajecie(id):
                      download_name=f'lista_{data_str}.docx')
 
 
+@routes_bp.route('/wyslij_zajecie/<int:id>')
+@login_required
+def wyslij_zajecie(id):
+    """Send the attendance list for the given session via e-mail."""
+    zaj = Zajecia.query.get(id)
+    if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
+        abort(403)
+
+    prow = current_user.prowadzacy
+    obecni = [u.imie_nazwisko for u in zaj.obecni]
+    doc = generuj_liste_obecnosci(
+        zaj.data.strftime('%Y-%m-%d'),
+        str(zaj.czas_trwania).replace('.', ','),
+        obecni,
+        f"{prow.imie} {prow.nazwisko}",
+        os.path.join('static', prow.podpis_filename),
+    )
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    data_str = zaj.data.strftime('%Y-%m-%d')
+
+    try:
+        email_do_koordynatora(buf, data_str, typ='lista')
+        flash('Lista została wysłana e-mailem', 'success')
+    except smtplib.SMTPException:
+        logger.exception('Failed to send attendance email')
+        flash('Nie udało się wysłać e-maila', 'danger')
+
+    return redirect(url_for('routes.panel'))
+
+
 @routes_bp.route('/usun_moje_zajecie/<int:id>', methods=['POST'])
 @login_required
 def usun_moje_zajecie(id):
