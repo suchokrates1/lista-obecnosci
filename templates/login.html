@@ -22,9 +22,12 @@
         <input type="email" class="form-control" id="login" name="login" placeholder="Login" required autocomplete="username" tabindex="1">
         <label for="login">Login:</label>
       </div>
-      <div class="form-floating mb-3">
+      <div class="form-floating mb-3 position-relative">
         <input type="password" class="form-control" id="hasło" name="hasło" placeholder="Hasło" required autocomplete="current-password" tabindex="2">
         <label for="hasło">Hasło:</label>
+        <button type="button" class="btn btn-outline-secondary border-0 position-absolute top-50 end-0 translate-middle-y" onclick="togglePassword('hasło', this)" tabindex="-1" aria-label="Pokaż lub ukryj hasło">
+          <i class="bi bi-eye"></i>
+        </button>
       </div>
       <div aria-live="polite" role="status">
         {% with messages = get_flashed_messages(with_categories=true) %}
