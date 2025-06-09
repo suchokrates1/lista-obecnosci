@@ -311,6 +311,17 @@ def test_wyslij_zajecie_admin_success(client, app, monkeypatch):
     assert called.get('sent')
 
 
+def test_wyslij_zajecie_admin_requires_admin(client, app):
+    login_val = _create_trainer(app)
+
+    with app.app_context():
+        zaj_id = Zajecia.query.first().id
+
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.get(f'/wyslij_zajecie_admin/{zaj_id}')
+    assert resp.status_code == 403
+
+
 def test_admin_dashboard_filter(client, app):
     with app.app_context():
         p1 = Prowadzacy(imie='A', nazwisko='A')
