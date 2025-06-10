@@ -1,5 +1,6 @@
 from flask import render_template, redirect, url_for, flash, send_file, request, abort
-from flask_login import login_required, current_user
+from flask_login import current_user
+from utils.auth import role_required
 from io import BytesIO
 from model import db, Uczestnik, Zajecia
 from collections import defaultdict
@@ -20,10 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 @routes_bp.route('/panel')
-@login_required
+@role_required('prowadzacy')
 def panel():
-    if current_user.role != 'prowadzacy':
-        abort(403)
 
     prow = current_user.prowadzacy
     if not prow:
@@ -61,10 +60,8 @@ def panel():
 
 
 @routes_bp.route('/panel/profil', methods=['POST'])
-@login_required
+@role_required('prowadzacy')
 def panel_update_profile():
-    if current_user.role != 'prowadzacy':
-        abort(403)
 
     prow = current_user.prowadzacy
     if not prow:
@@ -108,10 +105,8 @@ def panel_update_profile():
 
 
 @routes_bp.route('/panel/uczestnicy', methods=['POST'])
-@login_required
+@role_required('prowadzacy')
 def panel_update_participants():
-    if current_user.role != 'prowadzacy':
-        abort(403)
 
     prow = current_user.prowadzacy
     if not prow:
@@ -130,11 +125,9 @@ def panel_update_participants():
 
 
 @routes_bp.route('/usun_uczestnika/<int:id>', methods=['POST'])
-@login_required
+@role_required('prowadzacy')
 def usun_uczestnika(id):
     """Delete a participant belonging to the logged in trainer."""
-    if current_user.role != 'prowadzacy':
-        abort(403)
 
     uczestnik = db.session.get(Uczestnik, id)
     if not uczestnik or uczestnik.prowadzacy_id != current_user.prowadzacy_id:
@@ -147,7 +140,7 @@ def usun_uczestnika(id):
 
 
 @routes_bp.route('/pobierz_zajecie/<int:id>')
-@login_required
+@role_required('prowadzacy')
 def pobierz_zajecie(id):
     zaj = db.session.get(Zajecia, id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
@@ -174,7 +167,7 @@ def pobierz_zajecie(id):
 
 
 @routes_bp.route('/wyslij_zajecie/<int:id>')
-@login_required
+@role_required('prowadzacy')
 def wyslij_zajecie(id):
     """Send the attendance list for the given session via e-mail."""
     zaj = db.session.get(Zajecia, id)
@@ -209,7 +202,7 @@ def wyslij_zajecie(id):
 
 
 @routes_bp.route('/usun_moje_zajecie/<int:id>', methods=['POST'])
-@login_required
+@role_required('prowadzacy')
 def usun_moje_zajecie(id):
     zaj = db.session.get(Zajecia, id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
@@ -222,7 +215,7 @@ def usun_moje_zajecie(id):
 
 
 @routes_bp.route('/panel/edytuj_zajecie/<int:id>', methods=['GET', 'POST'])
-@login_required
+@role_required('prowadzacy')
 def panel_edytuj_zajecie(id):
     zaj = db.session.get(Zajecia, id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
@@ -263,11 +256,9 @@ def panel_edytuj_zajecie(id):
 
 
 @routes_bp.route('/panel/raport', methods=['GET'])
-@login_required
+@role_required('prowadzacy')
 def panel_raport():
     """Generate or send a monthly report for the logged in trainer."""
-    if current_user.role != 'prowadzacy':
-        abort(403)
 
     prow = current_user.prowadzacy
     if not prow:
@@ -317,11 +308,9 @@ def panel_raport():
 
 
 @routes_bp.route('/panel/statystyki')
-@login_required
+@role_required('prowadzacy')
 def panel_statystyki():
     """Show attendance statistics for the logged in trainer."""
-    if current_user.role != 'prowadzacy':
-        abort(403)
 
     prow = current_user.prowadzacy
     if not prow:
