@@ -159,6 +159,25 @@ def test_login_failure(client, app):
     assert b'Nieprawid' in resp.data
 
 
+def test_admin_index_page(client, app):
+    """Loading the attendance page as admin should work."""
+    with app.app_context():
+        prow = Prowadzacy(imie='A', nazwisko='B')
+        db.session.add(prow)
+        admin = Uzytkownik(
+            login='idx@example.com',
+            haslo_hash=generate_password_hash('pass'),
+            role='admin',
+            approved=True,
+        )
+        db.session.add(admin)
+        db.session.commit()
+
+    client.post('/login', data={'login': 'idx@example.com', 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.get('/')
+    assert resp.status_code == 200
+
+
 def test_panel_requires_login(client):
     resp = client.get('/panel')
     assert resp.status_code == 302
