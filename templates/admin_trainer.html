@@ -11,35 +11,60 @@
     {% endwith %}
   </div>
 
-  <h2 class="mb-4">Uczestnicy prowadzącego {{ prowadzacy.imie }} {{ prowadzacy.nazwisko }}</h2>
-  <form method="POST" action="{{ url_for('routes.admin_add_participant', id=prowadzacy.id) }}" class="mb-3 d-flex">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="text" class="form-control me-2" name="new_participant" placeholder="Imię i nazwisko">
-      <button type="submit" class="btn btn-primary">Dodaj</button>
-  </form>
+  {% if edit_mode %}
+    <h2 class="mb-4">Uczestnicy prowadzącego {{ prowadzacy.imie }} {{ prowadzacy.nazwisko }}</h2>
+    <form method="POST" action="{{ url_for('routes.admin_add_participant', id=prowadzacy.id) }}?edit=1" class="mb-3 d-flex">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" class="form-control me-2" name="new_participant" placeholder="Imię i nazwisko">
+        <button type="submit" class="btn btn-primary">Dodaj</button>
+    </form>
 
-  <ul class="list-group mb-3">
-    {% for u in uczestnicy %}
-    <li class="list-group-item">
-      <div class="d-flex align-items-center justify-content-between">
-        <form action="{{ url_for('routes.admin_rename_participant', id=u.id) }}" method="post" class="d-flex align-items-center flex-grow-1 me-2">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="text" name="new_name" value="{{ u.imie_nazwisko }}" class="form-control form-control-sm me-2">
-          <span class="me-2">{{ stats[u.id].present }}/{{ total_sessions }} ({{ '%.0f'|format(stats[u.id].percent) }}%)</span>
-          <button type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz">
-            <i class="bi bi-check"></i>
-          </button>
-        </form>
-        <form action="{{ url_for('routes.admin_delete_participant', id=u.id) }}" method="post" class="ms-2">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń">
-            <i class="bi bi-x"></i>
-          </button>
-        </form>
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
+    <ul class="list-group mb-3">
+      {% for u in uczestnicy %}
+      <li class="list-group-item">
+        <div class="d-flex align-items-center justify-content-between">
+          <form action="{{ url_for('routes.admin_rename_participant', id=u.id) }}?edit=1" method="post" class="d-flex align-items-center flex-grow-1 me-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="new_name" value="{{ u.imie_nazwisko }}" class="form-control form-control-sm me-2">
+            <button type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz">
+              <i class="bi bi-check"></i>
+            </button>
+          </form>
+          <form action="{{ url_for('routes.admin_delete_participant', id=u.id) }}?edit=1" method="post" class="ms-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń">
+              <i class="bi bi-x"></i>
+            </button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
 
-  <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-secondary">Powrót</a>
+    <a href="{{ url_for('routes.admin_trainer', id=prowadzacy.id) }}" class="btn btn-secondary">Zakończ edycję</a>
+
+  {% else %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Uczestnicy prowadzącego {{ prowadzacy.imie }} {{ prowadzacy.nazwisko }}</h2>
+      <a href="{{ url_for('routes.admin_trainer', id=prowadzacy.id, edit=1) }}" class="btn btn-outline-primary">Edytuj</a>
+    </div>
+
+    <ul class="list-group mb-3">
+      {% for u in uczestnicy %}
+      <li class="list-group-item">
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="flex-grow-1">{{ u.imie_nazwisko }}</span>
+          <div class="d-flex align-items-center ms-3" style="min-width: 180px;">
+            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+              <div class="progress-bar" role="progressbar" style="width: {{ stats[u.id].percent }}%" aria-valuenow="{{ stats[u.id].percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <small class="text-nowrap">{{ '%.0f'|format(stats[u.id].percent) }}% {{ stats[u.id].present }}/{{ total_sessions }}</small>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-secondary">Powrót</a>
+  {% endif %}
 {% endblock %}
