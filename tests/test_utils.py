@@ -3,11 +3,13 @@ from werkzeug.datastructures import FileStorage
 from PIL import Image
 from datetime import datetime, timedelta
 import os
+import smtplib
+from docx import Document
 
 import utils
 import pytest
 from utils import is_valid_email
-from model import db, Uzytkownik, PasswordResetToken
+from model import db, Uzytkownik, PasswordResetToken, Prowadzacy, Zajecia
 from werkzeug.security import generate_password_hash
 from app import create_app
 
@@ -137,3 +139,54 @@ def test_purge_expired_tokens(app):
 
         assert PasswordResetToken.query.filter_by(token='old').first() is None
         assert PasswordResetToken.query.filter_by(token='new').first() is not None
+
+
+def _create_simple_session():
+    prow = Prowadzacy(imie="T", nazwisko="T", numer_umowy="1", podpis_filename="sig.png")
+    db.session.add(prow)
+    db.session.flush()
+    zaj = Zajecia(prowadzacy_id=prow.id, data=datetime(2023, 5, 1), czas_trwania=1.0)
+    db.session.add(zaj)
+    db.session.commit()
+    return zaj
+
+
+def test_send_attendance_list_success(app, monkeypatch):
+    with app.app_context():
+        zaj = _create_simple_session()
+
+        def dummy_doc(*_a, **_k):
+            doc = Document()
+            doc.add_paragraph("x")
+            return doc
+
+        called = {}
+
+        def fake_email(buf, data, typ="lista", queue=False):
+            called["sent"] = True
+
+        monkeypatch.setattr(utils, "generuj_liste_obecnosci", dummy_doc)
+        monkeypatch.setattr(utils, "email_do_koordynatora", fake_email)
+
+        assert utils.send_attendance_list(zaj)
+        assert called.get("sent")
+        assert zaj.wyslano is True
+
+
+def test_send_attendance_list_failure(app, monkeypatch):
+    with app.app_context():
+        zaj = _create_simple_session()
+
+        def dummy_doc(*_a, **_k):
+            doc = Document()
+            doc.add_paragraph("x")
+            return doc
+
+        def fail_email(*_a, **_k):
+            raise smtplib.SMTPException("x")
+
+        monkeypatch.setattr(utils, "generuj_liste_obecnosci", dummy_doc)
+        monkeypatch.setattr(utils, "email_do_koordynatora", fail_email)
+
+        assert utils.send_attendance_list(zaj) is False
+        assert zaj.wyslano is False
