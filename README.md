@@ -48,6 +48,7 @@ Install the required packages first:
 ```bash
 pip install -r requirements.txt
 ```
+The file pins exact versions of the dependencies to avoid unexpected upgrades.
 The list includes `Pillow` for image handling.  Installing `rembg` is optional
 but enables better signature background removal when `REMOVE_SIGNATURE_BG` is
 set.
