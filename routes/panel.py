@@ -2,6 +2,7 @@ from flask import render_template, redirect, url_for, flash, send_file, request,
 from flask_login import login_required, current_user
 from io import BytesIO
 from model import db, Uczestnik, Zajecia
+from collections import defaultdict
 from doc_generator import generuj_liste_obecnosci, generuj_raport_miesieczny
 from datetime import datetime
 from . import routes_bp
@@ -44,6 +45,10 @@ def panel():
         if prow.domyslny_czas is not None
         else ''
     )
+    podsumowanie = defaultdict(float)
+    for z in zajecia:
+        key = (z.data.year, z.data.month)
+        podsumowanie[key] += z.czas_trwania
     return render_template(
         'panel.html',
         prowadzacy=prow,
@@ -51,6 +56,7 @@ def panel():
         zajecia=zajecia,
         ostatnie=ostatnie,
         domyslny_czas=domyslny_czas,
+        podsumowanie=podsumowanie,
     )
 
 
