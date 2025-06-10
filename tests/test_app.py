@@ -324,7 +324,7 @@ def test_wyslij_zajecie_success(client, app, monkeypatch):
     assert resp.headers['Location'].endswith('/panel')
     assert called.get('sent')
     with app.app_context():
-        assert Zajecia.query.get(zaj_id).wyslano is True
+        assert db.session.get(Zajecia, zaj_id).wyslano is True
 
 
 def test_wyslij_zajecie_admin_requires_login(client):
@@ -366,7 +366,7 @@ def test_wyslij_zajecie_admin_success(client, app, monkeypatch):
     assert resp.headers['Location'].endswith('/admin')
     assert called.get('sent')
     with app.app_context():
-        assert Zajecia.query.get(zaj_id).wyslano is True
+        assert db.session.get(Zajecia, zaj_id).wyslano is True
 
 
 def test_wyslij_zajecie_admin_requires_admin(client, app):
@@ -469,7 +469,7 @@ def test_trainer_delete_participant(client, app):
     assert resp.status_code == 302
     assert resp.headers['Location'].endswith('/panel')
     with app.app_context():
-        assert Uczestnik.query.get(uid) is None
+        assert db.session.get(Uczestnik, uid) is None
 
 
 def test_reset_request_purges_expired_token(client, app, monkeypatch):
