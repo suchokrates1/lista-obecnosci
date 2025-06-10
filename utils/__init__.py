@@ -317,14 +317,15 @@ def parse_registration_form(form, files):
     if Uzytkownik.query.filter_by(login=login_val).first():
         return None, "Login jest już zajęty"
 
-    sanitized = None
+    valid_signature = False
     if podpis and getattr(podpis, "filename", None):
         try:
-            sanitized, error = validate_signature(podpis)
+            _sanitized, error = validate_signature(podpis)
         except SignatureValidationError:
             return None, "Nie udało się przetworzyć obrazu podpisu"
         if error:
             return None, error
+        valid_signature = True
 
     uczestnicy = [l.strip() for l in lista_uczestnikow.splitlines() if l.strip()]
 
@@ -335,7 +336,7 @@ def parse_registration_form(form, files):
         "login": login_val,
         "haslo": haslo,
         "podpis": podpis,
-        "sanitized": sanitized,
+        "valid_signature": valid_signature,
         "uczestnicy": uczestnicy,
     }, None
 
@@ -344,7 +345,7 @@ def create_trainer(data):
     """Create trainer and user records from parsed ``data``."""
     filename = None
     podpis = data.get("podpis")
-    if podpis and data.get("sanitized"):
+    if podpis and data.get("valid_signature"):
         try:
             filename = process_signature(podpis.stream)
         except Exception:
