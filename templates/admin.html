@@ -67,26 +67,26 @@
         </td>
         <td>{{ p.uczestnicy|length }}</td>
         <td class="text-nowrap">
-          <button class="btn btn-sm" onclick="edytujProwadzacego({{ p.id }}, '{{ p.imie }}', '{{ p.nazwisko }}', '{{ p.numer_umowy }}')" aria-label="Edytuj prowadzącego">
+          <button class="btn btn-sm" onclick="edytujProwadzacego({{ p.id }}, '{{ p.imie }}', '{{ p.nazwisko }}', '{{ p.numer_umowy }}')" aria-label="Edytuj prowadzącego" title="Edytuj prowadzącego">
             <i class="bi bi-pencil"></i>
             <span class="visually-hidden">Edytuj prowadzącego</span>
           </button>
-          <a href="{{ url_for('routes.admin_trainer', id=p.id) }}" class="btn btn-sm text-secondary" aria-label="Uczestnicy">
+          <a href="{{ url_for('routes.admin_trainer', id=p.id) }}" class="btn btn-sm text-secondary" aria-label="Uczestnicy" title="Uczestnicy">
             <i class="bi bi-people"></i>
             <span class="visually-hidden">Uczestnicy</span>
           </a>
-          <a href="{{ url_for('routes.admin_statystyki', trainer_id=p.id) }}" class="btn btn-sm text-info" aria-label="Statystyki">
+          <a href="{{ url_for('routes.admin_statystyki', trainer_id=p.id) }}" class="btn btn-sm text-info" aria-label="Statystyki" title="Statystyki">
             <i class="bi bi-bar-chart"></i>
             <span class="visually-hidden">Statystyki</span>
           </a>
           <form action="{{ url_for('routes.usun_prowadzacego', id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń prowadzącego">
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń prowadzącego" title="Usuń prowadzącego">
               <i class="bi bi-trash"></i>
               <span class="visually-hidden">Usuń prowadzącego</span>
             </button>
           </form>
-          <button class="btn btn-sm text-primary" data-bs-toggle="modal" data-bs-target="#raportModal{{ p.id }}" aria-label="Raport miesięczny">
+          <button class="btn btn-sm text-primary" data-bs-toggle="modal" data-bs-target="#raportModal{{ p.id }}" aria-label="Raport miesięczny" title="Raport miesięczny">
             <i class="bi bi-file-earmark-text"></i>
             <span class="visually-hidden">Raport miesięczny</span>
           </button>
@@ -166,21 +166,21 @@
         <td>{{ z.prowadzacy.imie }} {{ z.prowadzacy.nazwisko }}</td>
         <td>{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
         <td class="text-nowrap">
-          <a href="{{ url_for('routes.edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia">
+          <a href="{{ url_for('routes.edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia" title="Edytuj zajęcia">
             <i class="bi bi-pencil"></i>
             <span class="visually-hidden">Edytuj zajęcia</span>
           </a>
-          <a href="{{ url_for('routes.pobierz_zajecie_admin', id=z.id) }}" class="btn btn-sm text-primary" aria-label="Pobierz dokument">
+          <a href="{{ url_for('routes.pobierz_zajecie_admin', id=z.id) }}" class="btn btn-sm text-primary" aria-label="Pobierz dokument" title="Pobierz dokument">
             <i class="bi bi-download"></i>
             <span class="visually-hidden">Pobierz dokument</span>
           </a>
-          <a href="{{ url_for('routes.wyslij_zajecie_admin', id=z.id) }}" class="btn btn-sm text-secondary" aria-label="Wyślij dokument mailem">
+          <a href="{{ url_for('routes.wyslij_zajecie_admin', id=z.id) }}" class="btn btn-sm text-secondary" aria-label="Wyślij dokument mailem" title="Wyślij dokument mailem">
             <i class="bi bi-envelope"></i>
             <span class="visually-hidden">Wyślij dokument mailem</span>
           </a>
           <form action="{{ url_for('routes.usun_zajecie', id=z.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć zajęcia?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia">
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia" title="Usuń zajęcia">
               <i class="bi bi-trash"></i>
               <span class="visually-hidden">Usuń zajęcia</span>
             </button>

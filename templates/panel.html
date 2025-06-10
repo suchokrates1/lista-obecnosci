@@ -63,13 +63,13 @@
           <form action="{{ url_for('routes.zmien_uczestnika', id=u.id) }}?edit=1" method="post" class="d-flex align-items-center flex-grow-1 me-2">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="new_name" value="{{ u.imie_nazwisko }}" class="form-control form-control-sm me-2">
-            <button type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz">
+            <button type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz" title="Zapisz">
               <i class="bi bi-check"></i>
             </button>
           </form>
           <form action="{{ url_for('routes.usun_uczestnika', id=u.id) }}?edit=1" method="post" class="ms-2">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń">
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń" title="Usuń">
               <i class="bi bi-x"></i>
             </button>
           </form>
@@ -156,21 +156,21 @@
         <td>{{ z.czas_trwania }}</td>
         <td>{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
         <td class="text-nowrap">
-          <a href="{{ url_for('routes.panel_edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia">
+          <a href="{{ url_for('routes.panel_edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia" title="Edytuj zajęcia">
             <i class="bi bi-pencil"></i>
             <span class="visually-hidden">Edytuj zajęcia</span>
           </a>
-          <a href="{{ url_for('routes.pobierz_zajecie', id=z.id) }}" class="btn btn-sm text-primary" aria-label="Pobierz dokument">
+          <a href="{{ url_for('routes.pobierz_zajecie', id=z.id) }}" class="btn btn-sm text-primary" aria-label="Pobierz dokument" title="Pobierz dokument">
             <i class="bi bi-download"></i>
             <span class="visually-hidden">Pobierz dokument</span>
           </a>
-          <a href="{{ url_for('routes.wyslij_zajecie', id=z.id) }}" class="btn btn-sm text-secondary" aria-label="Wyślij dokument mailem">
+          <a href="{{ url_for('routes.wyslij_zajecie', id=z.id) }}" class="btn btn-sm text-secondary" aria-label="Wyślij dokument mailem" title="Wyślij dokument mailem">
             <i class="bi bi-envelope"></i>
             <span class="visually-hidden">Wyślij dokument mailem</span>
           </a>
           <form action="{{ url_for('routes.usun_moje_zajecie', id=z.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Usunąć zajęcia?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia">
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń zajęcia" title="Usuń zajęcia">
               <i class="bi bi-trash"></i>
               <span class="visually-hidden">Usuń zajęcia</span>
             </button>
