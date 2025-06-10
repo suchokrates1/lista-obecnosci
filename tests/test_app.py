@@ -4,7 +4,7 @@ from PIL import Image
 import pytest
 from app import create_app
 from datetime import datetime
-from model import db, Uzytkownik, Prowadzacy, Zajecia
+from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik
 from docx import Document
 import utils
 from werkzeug.security import generate_password_hash
@@ -416,3 +416,53 @@ def test_update_default_time(client, app):
     with app.app_context():
         prow = Prowadzacy.query.first()
         assert prow.domyslny_czas == 2.5
+
+
+def test_usun_uczestnika_requires_login(client, app):
+    with app.app_context():
+        prow = Prowadzacy(imie='A')
+        db.session.add(prow)
+        db.session.flush()
+        u = Uczestnik(imie_nazwisko='X', prowadzacy_id=prow.id)
+        db.session.add(u)
+        db.session.commit()
+        uid = u.id
+
+    resp = client.post(f'/usun_uczestnika/{uid}')
+    assert resp.status_code == 302
+    assert '/login' in resp.headers['Location']
+
+
+def test_usun_uczestnika_forbidden(client, app):
+    login_val = _create_trainer(app)
+    with app.app_context():
+        prow2 = Prowadzacy(imie='B')
+        db.session.add(prow2)
+        db.session.flush()
+        user2 = Uzytkownik(login='t2@example.com', haslo_hash=generate_password_hash('x'), role='prowadzacy', approved=True, prowadzacy_id=prow2.id)
+        db.session.add(user2)
+        u = Uczestnik(imie_nazwisko='Z', prowadzacy_id=prow2.id)
+        db.session.add(u)
+        db.session.commit()
+        uid = u.id
+
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.post(f'/usun_uczestnika/{uid}')
+    assert resp.status_code == 403
+
+
+def test_trainer_delete_participant(client, app):
+    login_val = _create_trainer(app)
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        u = Uczestnik(imie_nazwisko='P', prowadzacy_id=prow.id)
+        db.session.add(u)
+        db.session.commit()
+        uid = u.id
+
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.post(f'/usun_uczestnika/{uid}', follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers['Location'].endswith('/panel')
+    with app.app_context():
+        assert Uczestnik.query.get(uid) is None
