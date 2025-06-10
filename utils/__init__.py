@@ -209,7 +209,6 @@ def email_do_koordynatora(buf, data, typ="lista", queue: bool = False):
 
     sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
     login = os.getenv("EMAIL_LOGIN")
-    password = os.getenv("EMAIL_PASSWORD")
     msg["From"] = f"{sender_name} <{login}>"
     msg["To"] = odbiorca
 
@@ -248,7 +247,6 @@ def send_plain_email(
     msg.set_content(body)
     sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
     login = os.getenv("EMAIL_LOGIN")
-    password = os.getenv("EMAIL_PASSWORD")
     msg["From"] = f"{sender_name} <{login}>"
     msg["To"] = to_addr
 
