@@ -416,6 +416,12 @@ def test_wyslij_zajecie_success(client, app, monkeypatch):
     with app.app_context():
         assert db.session.get(Zajecia, zaj_id).wyslano is True
 
+    # Check that the session row shows the sent indicator
+    resp = client.get("/panel")
+    assert resp.status_code == 200
+    data = resp.data.decode()
+    assert "bi bi-check-lg text-success" in data
+
 
 def test_wyslij_zajecie_admin_requires_login(client):
     resp = client.get("/wyslij_zajecie_admin/1")
@@ -461,6 +467,11 @@ def test_wyslij_zajecie_admin_success(client, app, monkeypatch):
     assert called.get("sent")
     with app.app_context():
         assert db.session.get(Zajecia, zaj_id).wyslano is True
+
+    resp = client.get("/admin")
+    assert resp.status_code == 200
+    data = resp.data.decode()
+    assert "bi bi-check-lg text-success" in data
 
 
 def test_wyslij_zajecie_admin_requires_admin(client, app):
