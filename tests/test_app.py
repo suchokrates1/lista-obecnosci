@@ -409,18 +409,15 @@ def test_wyslij_zajecie_success(client, app, monkeypatch):
     with app.app_context():
         zaj_id = Zajecia.query.first().id
 
-    def dummy_list(*_a, **_k):
-        doc = Document()
-        doc.add_paragraph("x")
-        return doc
-
     called = {}
 
-    def fake_email(buf, data, typ=None):
+    def fake_send(z):
         called["sent"] = True
+        z.wyslano = True
+        db.session.commit()
+        return True
 
-    monkeypatch.setattr("routes.panel.generuj_liste_obecnosci", dummy_list)
-    monkeypatch.setattr("routes.panel.email_do_koordynatora", fake_email)
+    monkeypatch.setattr("routes.panel.send_attendance_list", fake_send)
 
     client.post(
         "/login", data={"login": login_val, "hasło": "pass"}, follow_redirects=False
@@ -459,18 +456,15 @@ def test_wyslij_zajecie_admin_success(client, app, monkeypatch):
         db.session.commit()
         zaj_id = Zajecia.query.first().id
 
-    def dummy_list(*_a, **_k):
-        doc = Document()
-        doc.add_paragraph("x")
-        return doc
-
     called = {}
 
-    def fake_email(buf, data, typ=None):
+    def fake_send(z):
         called["sent"] = True
+        z.wyslano = True
+        db.session.commit()
+        return True
 
-    monkeypatch.setattr("routes.admin.generuj_liste_obecnosci", dummy_list)
-    monkeypatch.setattr("routes.admin.email_do_koordynatora", fake_email)
+    monkeypatch.setattr("routes.admin.send_attendance_list", fake_send)
 
     client.post(
         "/login",
