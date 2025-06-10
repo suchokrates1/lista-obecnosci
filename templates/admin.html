@@ -9,7 +9,7 @@
         <th>ID</th>
         <th>Login</th>
         <th>Imię i nazwisko</th>
-        <th>Akcja</th>
+        <th class="action-col text-nowrap">Akcja</th>
       </tr>
     </thead>
     <tbody>
@@ -18,7 +18,7 @@
         <td>{{ u.id }}</td>
         <td>{{ u.login }}</td>
         <td>{{ u.prowadzacy.imie }} {{ u.prowadzacy.nazwisko }}</td>
-        <td>
+        <td class="action-col text-nowrap">
           <form action="{{ url_for('routes.approve_user', id=u.id) }}" method="POST" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-sm btn-success" aria-label="Akceptuj" title="Akceptuj">
@@ -163,7 +163,7 @@
         <th>Czas trwania</th>
         <th>Prowadzący</th>
         <th>Obecni</th>
-        <th>Akcja</th>
+        <th class="action-col text-nowrap">Akcja</th>
         <th>Wysłano</th>
       </tr>
     </thead>
@@ -174,7 +174,7 @@
         <td>{{ z.czas_trwania }}</td>
         <td>{{ z.prowadzacy.imie }} {{ z.prowadzacy.nazwisko }}</td>
         <td>{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
-        <td class="text-nowrap">
+        <td class="action-col text-nowrap">
           <a href="{{ url_for('routes.edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia" title="Edytuj zajęcia">
             <i class="bi bi-pencil"></i>
             <span class="visually-hidden">Edytuj zajęcia</span>
