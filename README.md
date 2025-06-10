@@ -2,6 +2,24 @@
 
 This is a small Flask application for managing attendance.
 
+## Quick start
+
+Copy `.env.example` to `.env` and adjust the variables. The table below shows the defaults from this file.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| SECRET_KEY | your-secret-key | Flask session secret |
+| ADMIN_LOGIN | admin | Administrator login |
+| ADMIN_PASSWORD | changeme | Administrator password |
+| DATABASE_URL | sqlite:///obecnosc.db | Database URI |
+| EMAIL_RECIPIENT | coord@example.com | Address for sending lists and reports |
+| SMTP_HOST | smtp.example.com | SMTP server host |
+| SMTP_PORT | 465 | SMTP port |
+| EMAIL_LOGIN | user@example.com | SMTP login |
+| EMAIL_PASSWORD | pass | SMTP password |
+| EMAIL_SENDER_NAME | Vest Media | Name used in the From header |
+| EMAIL_FOOTER | Pozdrawiamy | Footer appended to every email |
+
 ## Environment variables
 
 The application expects several settings to be provided through environment variables.
@@ -102,11 +120,11 @@ Values entered here are stored in the database and override environment
 variables on the next start.  The same form allows changing the admin login and
 password.
 
-## Password reset tokens cleanup
+## Command-line usage
 
-Expired password reset tokens are deleted automatically whenever the
-`/reset-request` or `/reset/<token>` routes are accessed. For scheduled
-maintenance you can also run:
+### purge-tokens
+
+Expired password reset tokens are deleted automatically whenever the `/reset-request` or `/reset/<token>` routes are accessed. For scheduled maintenance run:
 
 ```bash
 flask purge-tokens
@@ -114,18 +132,15 @@ flask purge-tokens
 
 This command removes old entries and can be triggered from cron.
 
-### Generating monthly reports
+### generate-reports
 
-Use the ``generate-reports`` command to create reports for all trainers with
-sessions in a given month:
+Use the `generate-reports` command to create reports for all trainers with sessions in a given month:
 
 ```bash
 flask generate-reports --month 5 --year 2025 --email
 ```
 
-Reports are saved under ``reports/`` using names like
-``raport_<id>_5_2025.docx``.  When ``--email`` is supplied each generated file
-is also sent to the coordinator.
+Reports are saved under `reports/` using names like `raport_<id>_5_2025.docx`. When `--email` is supplied each generated file is also sent to the coordinator.
 
 ## Running tests
 
