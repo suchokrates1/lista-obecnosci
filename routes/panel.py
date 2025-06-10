@@ -314,3 +314,31 @@ def panel_raport():
         as_attachment=True,
         download_name=f'raport_{miesiac}_{rok}.docx',
     )
+
+
+@routes_bp.route('/panel/statystyki')
+@login_required
+def panel_statystyki():
+    """Show attendance statistics for the logged in trainer."""
+    if current_user.role != 'prowadzacy':
+        abort(403)
+
+    prow = current_user.prowadzacy
+    if not prow:
+        abort(404)
+
+    total = Zajecia.query.filter_by(prowadzacy_id=prow.id).count()
+    uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
+
+    stats = []
+    for u in uczestnicy:
+        present = sum(1 for z in u.zajecia if z.prowadzacy_id == prow.id)
+        percent = (present / total * 100) if total else 0
+        stats.append({'uczestnik': u, 'present': present, 'percent': percent})
+
+    return render_template(
+        'statystyki.html',
+        prowadzacy=prow,
+        stats=stats,
+        total_sessions=total,
+    )
