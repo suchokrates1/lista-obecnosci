@@ -130,8 +130,14 @@
         <td>{{ '%02d'|format(miesiac) }}</td>
         <td>{{ godziny }}</td>
         <td class="text-nowrap">
-          <a href="{{ url_for('routes.panel_raport') }}?rok={{ rok }}&miesiac={{ miesiac }}" class="btn btn-sm text-primary">Pobierz</a>
-          <a href="{{ url_for('routes.panel_raport') }}?rok={{ rok }}&miesiac={{ miesiac }}&wyslij=1" class="btn btn-sm text-secondary">Wyślij</a>
+          <a href="{{ url_for('routes.panel_raport') }}?rok={{ rok }}&miesiac={{ miesiac }}" class="btn btn-sm text-primary" aria-label="Pobierz" title="Pobierz">
+            <i class="bi bi-download"></i>
+            <span class="visually-hidden">Pobierz</span>
+          </a>
+          <a href="{{ url_for('routes.panel_raport') }}?rok={{ rok }}&miesiac={{ miesiac }}&wyslij=1" class="btn btn-sm text-secondary" aria-label="Wyślij" title="Wyślij">
+            <i class="bi bi-envelope"></i>
+            <span class="visually-hidden">Wyślij</span>
+          </a>
         </td>
       </tr>
       {% endfor %}
