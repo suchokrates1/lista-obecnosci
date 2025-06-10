@@ -9,6 +9,8 @@ from model import db, Uzytkownik
 from utils import load_db_settings, purge_expired_tokens
 import click
 
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 
 migrate = Migrate()
@@ -41,6 +43,28 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     load_db_settings(app)
+
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = os.getenv("SMTP_PORT")
+    email_login = os.getenv("EMAIL_LOGIN")
+    email_password = os.getenv("EMAIL_PASSWORD")
+
+    try:
+        int(smtp_port or "")
+    except ValueError:
+        logger.error("Invalid SMTP_PORT: %s", smtp_port)
+        raise RuntimeError("Invalid SMTP_PORT")
+
+    missing = [v for v, val in {
+        "SMTP_HOST": smtp_host,
+        "SMTP_PORT": smtp_port,
+        "EMAIL_LOGIN": email_login,
+        "EMAIL_PASSWORD": email_password,
+    }.items() if not val]
+    if missing:
+        logger.error("Missing mail configuration: %s", ", ".join(missing))
+        raise RuntimeError("Incomplete mail configuration")
+
     login_manager.init_app(app)
     csrf.init_app(app)
 
