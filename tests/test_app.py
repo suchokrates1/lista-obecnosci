@@ -315,6 +315,22 @@ def _create_trainer(app):
         return user.login
 
 
+@pytest.fixture
+def trainer(client, app):
+    """Create a trainer with one participant and log in."""
+    login_val = _create_trainer(app)
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        prow.uczestnicy.append(Uczestnik(imie_nazwisko="Osoba"))
+        db.session.commit()
+    client.post(
+        "/login",
+        data={"login": login_val, "hasło": "pass"},
+        follow_redirects=False,
+    )
+    return login_val
+
+
 def test_panel_raport_access_control(client, app):
     with app.app_context():
         user = Uzytkownik(
@@ -909,3 +925,16 @@ def test_admin_pagination(client, app):
     html2 = resp2.data.decode()
     assert "2023-01-02" in html2
     assert "2023-01-12" not in html2
+
+
+def test_panel_progress_and_edit_forms(client, trainer):
+    resp = client.get("/panel")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert "progress-bar" in html
+
+    resp2 = client.get("/panel?edit=1")
+    assert resp2.status_code == 200
+    html2 = resp2.data.decode()
+    assert "name=\"new_participant\"" in html2
+    assert "name=\"new_name\"" in html2
