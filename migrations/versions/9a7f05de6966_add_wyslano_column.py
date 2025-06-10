@@ -14,11 +14,16 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('zajecia', sa.Column('wyslano', sa.Boolean(), nullable=True, server_default=sa.text('0')))
+    with op.batch_alter_table('zajecia') as batch_op:
+        batch_op.add_column(
+            sa.Column('wyslano', sa.Boolean(), nullable=True, server_default=sa.text('0'))
+        )
     conn = op.get_bind()
     conn.execute(sa.text('UPDATE zajecia SET wyslano=1'))
-    op.alter_column('zajecia', 'wyslano', server_default=None, nullable=False)
+    with op.batch_alter_table('zajecia') as batch_op:
+        batch_op.alter_column('wyslano', server_default=None, nullable=False)
 
 
 def downgrade():
-    op.drop_column('zajecia', 'wyslano')
+    with op.batch_alter_table('zajecia') as batch_op:
+        batch_op.drop_column('wyslano')
