@@ -1,8 +1,9 @@
-from model import db, Zajecia, Uczestnik, PasswordResetToken
+from model import db, Zajecia, Uczestnik, PasswordResetToken, Uzytkownik, Prowadzacy
 from sqlalchemy.exc import OperationalError
 from doc_generator import generuj_liste_obecnosci
 from io import BytesIO
 from datetime import datetime
+from collections import defaultdict
 import os
 import smtplib
 import logging
@@ -11,6 +12,7 @@ import queue
 from email.message import EmailMessage
 import re
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash
 import uuid
 from PIL import Image
 try:
@@ -296,3 +298,106 @@ def purge_expired_tokens() -> None:
         PasswordResetToken.expires_at < cutoff
     ).delete()
     db.session.commit()
+
+
+def parse_registration_form(form, files):
+    """Validate registration form data and return a dictionary on success."""
+    imie = form.get("imie")
+    nazwisko = form.get("nazwisko")
+    numer_umowy = form.get("numer_umowy")
+    lista_uczestnikow = form.get("lista_uczestnikow")
+    login_val = form.get("login")
+    haslo = form.get("haslo")
+    podpis = files.get("podpis")
+
+    if not all([imie, nazwisko, numer_umowy, lista_uczestnikow, login_val, haslo]):
+        return None, "Wszystkie pola oprócz podpisu są wymagane"
+
+    if not is_valid_email(login_val):
+        return None, "Login musi być prawidłowym adresem e-mail"
+
+    if Uzytkownik.query.filter_by(login=login_val).first():
+        return None, "Login jest już zajęty"
+
+    sanitized = None
+    if podpis and getattr(podpis, "filename", None):
+        try:
+            sanitized, error = validate_signature(podpis)
+        except SignatureValidationError:
+            return None, "Nie udało się przetworzyć obrazu podpisu"
+        if error:
+            return None, error
+
+    uczestnicy = [l.strip() for l in lista_uczestnikow.splitlines() if l.strip()]
+
+    return {
+        "imie": imie,
+        "nazwisko": nazwisko,
+        "numer_umowy": numer_umowy,
+        "login": login_val,
+        "haslo": haslo,
+        "podpis": podpis,
+        "sanitized": sanitized,
+        "uczestnicy": uczestnicy,
+    }, None
+
+
+def create_trainer(data):
+    """Create trainer and user records from parsed ``data``."""
+    filename = None
+    podpis = data.get("podpis")
+    if podpis and data.get("sanitized"):
+        try:
+            filename = process_signature(podpis.stream)
+        except Exception:
+            logger.exception("Failed to process signature image")
+            return None, "Nie udało się przetworzyć obrazu podpisu"
+
+    prow = Prowadzacy(
+        imie=data["imie"],
+        nazwisko=data["nazwisko"],
+        numer_umowy=data["numer_umowy"],
+        podpis_filename=filename,
+    )
+    db.session.add(prow)
+    db.session.flush()
+
+    for nazwa in data.get("uczestnicy", []):
+        db.session.add(Uczestnik(imie_nazwisko=nazwa, prowadzacy_id=prow.id))
+
+    user = Uzytkownik(
+        login=data["login"],
+        haslo_hash=generate_password_hash(data["haslo"]),
+        role="prowadzacy",
+        approved=False,
+        prowadzacy_id=prow.id,
+    )
+    db.session.add(user)
+    db.session.commit()
+    return user, None
+
+
+def get_participant_stats(prow):
+    """Return sorted participants, sessions, stats map and total session count."""
+    uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
+    zajecia = (
+        Zajecia.query.filter_by(prowadzacy_id=prow.id)
+        .order_by(Zajecia.data.desc())
+        .all()
+    )
+    total_sessions = len(zajecia)
+    stats = {}
+    for u in uczestnicy:
+        present = sum(1 for z in u.zajecia if z.prowadzacy_id == prow.id)
+        percent = (present / total_sessions * 100) if total_sessions else 0
+        stats[u.id] = {"uczestnik": u, "present": present, "percent": percent}
+    return uczestnicy, zajecia, stats, total_sessions
+
+
+def get_monthly_summary(zajecia):
+    """Return a dictionary summarizing hours for each (year, month)."""
+    summary = defaultdict(float)
+    for z in zajecia:
+        key = (z.data.year, z.data.month)
+        summary[key] += z.czas_trwania
+    return summary
