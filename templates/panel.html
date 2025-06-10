@@ -113,6 +113,9 @@
               <span class="visually-hidden">Usuń zajęcia</span>
             </button>
           </form>
+          {% if z.wyslano %}
+          <i class="bi bi-check-lg text-success"></i>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}

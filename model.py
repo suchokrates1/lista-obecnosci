@@ -44,6 +44,7 @@ class Zajecia(db.Model):
     prowadzacy_id = db.Column(db.Integer, db.ForeignKey("prowadzacy.id"))
     data = db.Column(db.DateTime)
     czas_trwania = db.Column(db.Float)
+    wyslano = db.Column(db.Boolean, default=False)
 
     prowadzacy = db.relationship("Prowadzacy", back_populates="zajecia")
     obecni = db.relationship("Uczestnik", secondary=obecnosci, back_populates="zajecia")
