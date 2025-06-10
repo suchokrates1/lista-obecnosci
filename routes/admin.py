@@ -433,3 +433,29 @@ def wyslij_zajecie_admin(id):
         flash('Nie udało się wysłać e-maila', 'danger')
 
     return redirect(url_for('routes.admin_dashboard'))
+
+
+@routes_bp.route('/admin/statystyki/<int:trainer_id>')
+@role_required('admin')
+def admin_statystyki(trainer_id):
+    """Show attendance statistics for the selected trainer."""
+
+    prow = db.session.get(Prowadzacy, trainer_id)
+    if not prow:
+        abort(404)
+
+    total = Zajecia.query.filter_by(prowadzacy_id=trainer_id).count()
+    uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
+
+    stats = []
+    for u in uczestnicy:
+        present = sum(1 for z in u.zajecia if z.prowadzacy_id == trainer_id)
+        percent = (present / total * 100) if total else 0
+        stats.append({'uczestnik': u, 'present': present, 'percent': percent})
+
+    return render_template(
+        'admin_statystyki.html',
+        prowadzacy=prow,
+        stats=stats,
+        total_sessions=total,
+    )
