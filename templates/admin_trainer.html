@@ -56,7 +56,15 @@
           <span class="flex-grow-1">{{ u.imie_nazwisko }}</span>
           <div class="d-flex align-items-center ms-3" style="min-width: 180px;">
             <div class="progress flex-grow-1 me-2" style="height: 6px;">
-              <div class="progress-bar" role="progressbar" style="width: {{ stats[u.id].percent }}%" aria-valuenow="{{ stats[u.id].percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+              {# <50% red, 50-79% yellow, >=80% green #}
+              <div
+                class="progress-bar {% if stats[u.id].percent >= 80 %}bg-success{% elif stats[u.id].percent >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                role="progressbar"
+                style="width: {{ stats[u.id].percent }}%"
+                aria-valuenow="{{ stats[u.id].percent }}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
             </div>
             <small class="text-nowrap">{{ '%.0f'|format(stats[u.id].percent) }}% {{ stats[u.id].present }}/{{ total_sessions }}</small>
           </div>
