@@ -25,3 +25,9 @@ body.high-contrast .btn {
   background-color: var(--bs-body-bg);
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }
+
+/* Narrow column for action buttons */
+.action-col {
+  width: 1%;
+  white-space: nowrap;
+}
