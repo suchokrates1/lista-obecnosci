@@ -73,9 +73,30 @@
     {% endfor %}
   </ul>
 
-  <div class="mb-5">
-    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#raportModal">Raport miesięczny</button>
-  </div>
+  <h2 class="mb-4">Raporty miesięczne</h2>
+  <table class="table table-striped table-hover mb-5">
+    <thead class="table-secondary">
+      <tr>
+        <th>Rok</th>
+        <th>Miesiąc</th>
+        <th>Godzin</th>
+        <th>Akcja</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for (rok, miesiac), godziny in podsumowanie|dictsort(reverse=True) %}
+      <tr>
+        <td>{{ rok }}</td>
+        <td>{{ '%02d'|format(miesiac) }}</td>
+        <td>{{ godziny }}</td>
+        <td class="text-nowrap">
+          <a href="{{ url_for('routes.panel_raport') }}?rok={{ rok }}&miesiac={{ miesiac }}" class="btn btn-sm text-primary">Pobierz</a>
+          <a href="{{ url_for('routes.panel_raport') }}?rok={{ rok }}&miesiac={{ miesiac }}&wyslij=1" class="btn btn-sm text-secondary">Wyślij</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
   <h2 class="mb-4">Historia zajęć</h2>
   <table class="table table-striped table-hover">
@@ -122,31 +143,4 @@
     </tbody>
   </table>
 
-  <div class="modal fade" id="raportModal" tabindex="-1" aria-labelledby="raportModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form method="GET" action="{{ url_for('routes.panel_raport') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div class="modal-header">
-            <h5 class="modal-title" id="raportModalLabel">Raport miesięczny</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
-          </div>
-          <div class="modal-body">
-            <div class="form-floating mb-3">
-              <input type="number" class="form-control" id="miesiac" name="miesiac" placeholder="Miesiąc" value="{{ ostatnie.data.month if ostatnie }}" required tabindex="1">
-              <label for="miesiac">Miesiąc:</label>
-            </div>
-            <div class="form-floating mb-3">
-              <input type="number" class="form-control" id="rok" name="rok" placeholder="Rok" value="{{ ostatnie.data.year if ostatnie }}" required tabindex="2">
-              <label for="rok">Rok:</label>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-primary" tabindex="3">Pobierz</button>
-            <button type="submit" name="wyslij" value="1" class="btn btn-outline-secondary" tabindex="4">Wyślij mailem</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
 {% endblock %}
