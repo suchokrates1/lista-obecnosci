@@ -155,6 +155,7 @@
         <th>Prowadzący</th>
         <th>Obecni</th>
         <th>Akcja</th>
+        <th>Wysłano</th>
       </tr>
     </thead>
     <tbody>
@@ -184,6 +185,8 @@
               <span class="visually-hidden">Usuń zajęcia</span>
             </button>
           </form>
+        </td>
+        <td>
           {% if z.wyslano %}
           <i class="bi bi-check-lg text-success"></i>
           {% endif %}
