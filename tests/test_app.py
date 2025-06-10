@@ -529,3 +529,14 @@ def test_reset_with_token_purges_expired(client, app):
     with app.app_context():
         assert PasswordResetToken.query.filter_by(token='old').first() is None
         assert PasswordResetToken.query.filter_by(token=token_value).first() is not None
+
+
+def test_panel_summary_table_links(client, app):
+    login_val = _create_trainer(app)
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+    resp = client.get('/panel')
+    assert resp.status_code == 200
+    data = resp.data.decode()
+    assert 'Raporty miesięczne' in data
+    assert '/panel/raport?rok=2023&miesiac=5' in data
+    assert '/panel/raport?rok=2023&miesiac=5&wyslij=1' in data
