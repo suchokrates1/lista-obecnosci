@@ -30,6 +30,7 @@ def panel():
         abort(404)
 
     uczestnicy, all_zajecia, stats, total_sessions = get_participant_stats(prow)
+    edit_mode = request.args.get("edit") == "1"
     page = request.args.get("page", 1, type=int)
     pagination = (
         Zajecia.query.filter_by(prowadzacy_id=prow.id)
@@ -55,6 +56,7 @@ def panel():
         podsumowanie=podsumowanie,
         stats=stats,
         total_sessions=total_sessions,
+        edit_mode=edit_mode,
     )
 
 
@@ -120,7 +122,8 @@ def dodaj_uczestnika():
     else:
         flash("Brak nazwy uczestnika", "danger")
 
-    return redirect(url_for("routes.panel"))
+    edit = request.args.get("edit") == "1"
+    return redirect(url_for("routes.panel", edit="1" if edit else None))
 
 
 @routes_bp.route("/panel/zmien_uczestnika/<int:id>", methods=["POST"])
@@ -140,7 +143,8 @@ def zmien_uczestnika(id):
     else:
         flash("Brak nazwy uczestnika", "danger")
 
-    return redirect(url_for("routes.panel"))
+    edit = request.args.get("edit") == "1"
+    return redirect(url_for("routes.panel", edit="1" if edit else None))
 
 
 @routes_bp.route("/usun_uczestnika/<int:id>", methods=["POST"])
@@ -155,7 +159,8 @@ def usun_uczestnika(id):
     db.session.delete(uczestnik)
     db.session.commit()
     flash("Uczestnik usunięty", "info")
-    return redirect(url_for("routes.panel"))
+    edit = request.args.get("edit") == "1"
+    return redirect(url_for("routes.panel", edit="1" if edit else None))
 
 
 @routes_bp.route("/pobierz_zajecie/<int:id>")
