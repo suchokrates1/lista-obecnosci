@@ -3,8 +3,8 @@ import io
 from PIL import Image
 import pytest
 from app import create_app
-from datetime import datetime
-from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik
+from datetime import datetime, timedelta
+from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik, PasswordResetToken
 from docx import Document
 import utils
 from werkzeug.security import generate_password_hash
@@ -466,3 +466,62 @@ def test_trainer_delete_participant(client, app):
     assert resp.headers['Location'].endswith('/panel')
     with app.app_context():
         assert Uczestnik.query.get(uid) is None
+
+
+def test_reset_request_purges_expired_token(client, app, monkeypatch):
+    with app.app_context():
+        user = Uzytkownik(
+            login='purge@example.com',
+            haslo_hash=generate_password_hash('x'),
+            role='admin',
+            approved=True,
+        )
+        db.session.add(user)
+        db.session.flush()
+        uid = user.id
+        t = PasswordResetToken(
+            user_id=user.id,
+            token='old',
+            expires_at=datetime.utcnow() - timedelta(hours=2),
+        )
+        db.session.add(t)
+        db.session.commit()
+
+    monkeypatch.setattr('routes.auth.send_plain_email', lambda *a, **k: None)
+    resp = client.post('/reset-request', data={'login': 'purge@example.com'})
+    assert resp.status_code == 302
+    with app.app_context():
+        tokens = PasswordResetToken.query.filter_by(user_id=uid).all()
+        assert len(tokens) == 1
+        assert tokens[0].token != 'old'
+
+
+def test_reset_with_token_purges_expired(client, app):
+    with app.app_context():
+        user = Uzytkownik(
+            login='tok@example.com',
+            haslo_hash=generate_password_hash('x'),
+            role='admin',
+            approved=True,
+        )
+        db.session.add(user)
+        db.session.flush()
+        expired = PasswordResetToken(
+            user_id=user.id,
+            token='old',
+            expires_at=datetime.utcnow() - timedelta(hours=1),
+        )
+        valid = PasswordResetToken(
+            user_id=user.id,
+            token='good',
+            expires_at=datetime.utcnow() + timedelta(hours=1),
+        )
+        db.session.add_all([expired, valid])
+        db.session.commit()
+        token_value = valid.token
+
+    resp = client.get(f'/reset/{token_value}')
+    assert resp.status_code == 200
+    with app.app_context():
+        assert PasswordResetToken.query.filter_by(token='old').first() is None
+        assert PasswordResetToken.query.filter_by(token=token_value).first() is not None

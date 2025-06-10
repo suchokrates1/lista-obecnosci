@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 import logging
 import os
 from model import db, Uzytkownik
-from utils import load_db_settings
+from utils import load_db_settings, purge_expired_tokens
+import click
 
 load_dotenv()
 
@@ -48,6 +49,12 @@ def create_app():
     app.register_blueprint(routes_bp)
 
     app.context_processor(inject_is_admin)
+
+    @app.cli.command("purge-tokens")
+    def purge_tokens_command() -> None:
+        """Remove expired password reset tokens."""
+        purge_expired_tokens()
+        click.echo("Expired tokens removed")
 
     @app.errorhandler(403)
     def forbidden(_):
