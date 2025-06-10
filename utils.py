@@ -1,4 +1,4 @@
-from model import db, Zajecia, Uczestnik
+from model import db, Zajecia, Uczestnik, PasswordResetToken
 from sqlalchemy.exc import OperationalError
 from doc_generator import generuj_liste_obecnosci
 from io import BytesIO
@@ -287,3 +287,12 @@ def process_signature(file):
         logger.exception("Failed to process signature image")
         raise
     return filename
+
+
+def purge_expired_tokens() -> None:
+    """Delete expired password reset tokens from the database."""
+    cutoff = datetime.utcnow()
+    PasswordResetToken.query.filter(
+        PasswordResetToken.expires_at < cutoff
+    ).delete()
+    db.session.commit()
