@@ -27,6 +27,8 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `REG_EMAIL_SUBJECT` / `REG_EMAIL_BODY` – templates for the account activation e-mail.
   - `RESET_EMAIL_SUBJECT` / `RESET_EMAIL_BODY` – templates for password reset messages (`{link}`).
 
+All of the above mail variables (except `EMAIL_RECIPIENT`) must be provided. `SMTP_PORT` has to be an integer and the application will refuse to start when any of these settings are missing or invalid.
+
 The placeholders shown above are substituted automatically when the e-mails are
 sent. For example, `{date}` is replaced with the list or report date and `{link}`
 with the appropriate URL.

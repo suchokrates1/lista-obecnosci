@@ -14,6 +14,10 @@ def app(tmp_path):
     os.environ['SECRET_KEY'] = 'testsecret'
     os.environ['DATABASE_URL'] = 'sqlite:///' + str(tmp_path / 'test.db')
     os.environ['MAX_SIGNATURE_SIZE'] = '10'
+    os.environ['SMTP_HOST'] = 'smtp'
+    os.environ['SMTP_PORT'] = '25'
+    os.environ['EMAIL_LOGIN'] = 'user'
+    os.environ['EMAIL_PASSWORD'] = 'pass'
     app = create_app()
     app.config['WTF_CSRF_ENABLED'] = False
     with app.app_context():
@@ -25,6 +29,18 @@ def app(tmp_path):
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+def test_start_fails_without_mail_vars(tmp_path, monkeypatch):
+    monkeypatch.delenv('SMTP_HOST', raising=False)
+    monkeypatch.delenv('SMTP_PORT', raising=False)
+    monkeypatch.delenv('EMAIL_LOGIN', raising=False)
+    monkeypatch.delenv('EMAIL_PASSWORD', raising=False)
+    os.environ['SECRET_KEY'] = 'x'
+    os.environ['DATABASE_URL'] = 'sqlite:///' + str(tmp_path / 'db.db')
+    os.environ['MAX_SIGNATURE_SIZE'] = '10'
+    with pytest.raises(RuntimeError):
+        create_app()
 
 
 def test_routes_accessible(client):
