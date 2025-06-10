@@ -84,7 +84,7 @@ def admin_settings():
                 val = request.form.get(key)
             if val is None:
                 continue
-            setting = Setting.query.get(key)
+            setting = db.session.get(Setting, key)
             if setting:
                 setting.value = val
             else:
@@ -106,7 +106,7 @@ def admin_settings():
 
     values = {}
     for key in keys:
-        setting = Setting.query.get(key)
+        setting = db.session.get(Setting, key)
         values[key] = os.getenv(key.upper(), setting.value if setting else '')
 
     admin_user = Uzytkownik.query.filter_by(role='admin').first()
@@ -119,7 +119,7 @@ def usun_zajecie(id):
     if current_user.role != 'admin':
         abort(403)
 
-    zaj = Zajecia.query.get(id)
+    zaj = db.session.get(Zajecia, id)
     if not zaj:
         abort(404)
 
@@ -134,7 +134,7 @@ def raport(prowadzacy_id):
     if current_user.role != 'admin':
         abort(403)
 
-    prow = Prowadzacy.query.get(prowadzacy_id)
+    prow = db.session.get(Prowadzacy, prowadzacy_id)
     if not prow:
         abort(404)
 
@@ -190,7 +190,7 @@ def dodaj_prowadzacego():
         return redirect(url_for('routes.admin_dashboard'))
 
     if id_edit:
-        prow = Prowadzacy.query.get(id_edit)
+        prow = db.session.get(Prowadzacy, id_edit)
         if not prow:
             flash('Nie znaleziono prowadącego', 'danger')
             return redirect(url_for('routes.admin_dashboard'))
@@ -236,7 +236,7 @@ def usun_prowadzacego(id):
     if current_user.role != 'admin':
         abort(403)
 
-    prow = Prowadzacy.query.get(id)
+    prow = db.session.get(Prowadzacy, id)
     if not prow:
         abort(404)
 
@@ -254,7 +254,7 @@ def approve_user(id):
     if current_user.role != 'admin':
         abort(403)
 
-    user = Uzytkownik.query.get(id)
+    user = db.session.get(Uzytkownik, id)
     if not user:
         flash('Nie znaleziono użytkownika', 'danger')
         return redirect(url_for('routes.admin_dashboard'))
@@ -284,7 +284,7 @@ def edytuj_zajecie(id):
     if current_user.role != 'admin':
         abort(403)
 
-    zaj = Zajecia.query.get(id)
+    zaj = db.session.get(Zajecia, id)
     if not zaj:
         abort(404)
 
@@ -328,7 +328,7 @@ def pobierz_zajecie_admin(id):
     if current_user.role != 'admin':
         abort(403)
 
-    zaj = Zajecia.query.get(id)
+    zaj = db.session.get(Zajecia, id)
     if not zaj:
         abort(404)
 
@@ -361,7 +361,7 @@ def wyslij_zajecie_admin(id):
     if current_user.role != 'admin':
         abort(403)
 
-    zaj = Zajecia.query.get(id)
+    zaj = db.session.get(Zajecia, id)
     if not zaj:
         abort(404)
 

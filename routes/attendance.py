@@ -23,7 +23,7 @@ def index():
             selected_id = int(request.form.get('prowadzący'))
         except (TypeError, ValueError):
             selected_id = prowadzacy[0].id if prowadzacy else None
-        wybrany = Prowadzacy.query.get(selected_id)
+        wybrany = db.session.get(Prowadzacy, selected_id)
     else:
         wybrany = current_user.prowadzacy
         prowadzacy = [wybrany] if wybrany else []
