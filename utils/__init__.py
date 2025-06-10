@@ -238,6 +238,37 @@ def email_do_koordynatora(buf, data, typ="lista", queue: bool = False):
         raise
 
 
+def send_attendance_list(zajecie, queue: bool = False) -> bool:
+    """Generate and e-mail the attendance list for ``zajecie``.
+
+    Returns ``True`` on success, ``False`` when sending fails."""
+
+    prow = zajecie.prowadzacy
+    obecni = [u.imie_nazwisko for u in zajecie.obecni]
+    doc = generuj_liste_obecnosci(
+        zajecie.data.strftime("%Y-%m-%d"),
+        str(zajecie.czas_trwania).replace(".", ","),
+        obecni,
+        f"{prow.imie} {prow.nazwisko}",
+        os.path.join("static", prow.podpis_filename),
+    )
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    data_str = zajecie.data.strftime("%Y-%m-%d")
+
+    try:
+        email_do_koordynatora(buf, data_str, typ="lista", queue=queue)
+    except smtplib.SMTPException:
+        logger.exception("Failed to send attendance email")
+        return False
+
+    zajecie.wyslano = True
+    db.session.commit()
+    return True
+
+
 def send_plain_email(
     to_addr: str,
     subject_key: str,
