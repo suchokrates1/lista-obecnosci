@@ -34,6 +34,12 @@ def panel():
         .order_by(Zajecia.data.desc())
         .all()
     )
+    total_sessions = len(zajecia)
+    stats = {}
+    for u in uczestnicy:
+        present = sum(1 for z in u.zajecia if z.prowadzacy_id == prow.id)
+        percent = (present / total_sessions * 100) if total_sessions else 0
+        stats[u.id] = {'present': present, 'percent': percent}
     ostatnie = (
         Zajecia.query.filter_by(prowadzacy_id=prow.id)
         .order_by(Zajecia.data.desc())
@@ -56,6 +62,8 @@ def panel():
         ostatnie=ostatnie,
         domyslny_czas=domyslny_czas,
         podsumowanie=podsumowanie,
+        stats=stats,
+        total_sessions=total_sessions,
     )
 
 
@@ -104,23 +112,43 @@ def panel_update_profile():
     return redirect(url_for('routes.panel'))
 
 
-@routes_bp.route('/panel/uczestnicy', methods=['POST'])
+@routes_bp.route('/panel/dodaj_uczestnika', methods=['POST'])
 @role_required('prowadzacy')
-def panel_update_participants():
+def dodaj_uczestnika():
+    """Add a participant for the logged in trainer."""
 
     prow = current_user.prowadzacy
     if not prow:
         abort(404)
 
-    lista = request.form.get('uczestnicy')
-    prow.uczestnicy.clear()
-    if lista:
-        for linia in lista.strip().splitlines():
-            nazwa = linia.strip()
-            if nazwa:
-                prow.uczestnicy.append(Uczestnik(imie_nazwisko=nazwa))
-    db.session.commit()
-    flash('Lista uczestnik\u00f3w zaktualizowana', 'success')
+    name = request.form.get('new_participant', '').strip()
+    if name:
+        prow.uczestnicy.append(Uczestnik(imie_nazwisko=name))
+        db.session.commit()
+        flash('Uczestnik dodany', 'success')
+    else:
+        flash('Brak nazwy uczestnika', 'danger')
+
+    return redirect(url_for('routes.panel'))
+
+
+@routes_bp.route('/panel/zmien_uczestnika/<int:id>', methods=['POST'])
+@role_required('prowadzacy')
+def zmien_uczestnika(id):
+    """Rename a participant belonging to the logged in trainer."""
+
+    uczestnik = db.session.get(Uczestnik, id)
+    if not uczestnik or uczestnik.prowadzacy_id != current_user.prowadzacy_id:
+        abort(403)
+
+    new_name = request.form.get('new_name', '').strip()
+    if new_name:
+        uczestnik.imie_nazwisko = new_name
+        db.session.commit()
+        flash('Uczestnik zaktualizowany', 'success')
+    else:
+        flash('Brak nazwy uczestnika', 'danger')
+
     return redirect(url_for('routes.panel'))
 
 

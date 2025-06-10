@@ -507,6 +507,26 @@ def test_trainer_delete_participant(client, app):
         assert db.session.get(Uczestnik, uid) is None
 
 
+def test_add_and_rename_participant(client, app):
+    """Trainer can add and rename a participant using panel routes."""
+
+    login_val = _create_trainer(app)
+    client.post('/login', data={'login': login_val, 'hasło': 'pass'}, follow_redirects=False)
+
+    resp = client.post('/panel/dodaj_uczestnika', data={'new_participant': 'Nowy'}, follow_redirects=False)
+    assert resp.status_code == 302
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        u = Uczestnik.query.filter_by(prowadzacy_id=prow.id, imie_nazwisko='Nowy').first()
+        assert u is not None
+        uid = u.id
+
+    resp = client.post(f'/panel/zmien_uczestnika/{uid}', data={'new_name': 'Zmieniony'}, follow_redirects=False)
+    assert resp.status_code == 302
+    with app.app_context():
+        assert db.session.get(Uczestnik, uid).imie_nazwisko == 'Zmieniony'
+
+
 def test_reset_request_purges_expired_token(client, app, monkeypatch):
     with app.app_context():
         user = Uzytkownik(
