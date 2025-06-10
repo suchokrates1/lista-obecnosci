@@ -3,7 +3,6 @@ from flask_login import current_user
 from utils.auth import role_required
 from io import BytesIO
 from model import db, Uczestnik, Zajecia
-from collections import defaultdict
 from doc_generator import generuj_liste_obecnosci, generuj_raport_miesieczny
 from datetime import datetime
 from . import routes_bp
@@ -15,6 +14,8 @@ from utils import (
     SignatureValidationError,
     process_signature,
     email_do_koordynatora,
+    get_participant_stats,
+    get_monthly_summary,
 )
 
 logger = logging.getLogger(__name__)
@@ -28,32 +29,14 @@ def panel():
     if not prow:
         abort(404)
 
-    uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
-    zajecia = (
-        Zajecia.query.filter_by(prowadzacy_id=prow.id)
-        .order_by(Zajecia.data.desc())
-        .all()
-    )
-    total_sessions = len(zajecia)
-    stats = {}
-    for u in uczestnicy:
-        present = sum(1 for z in u.zajecia if z.prowadzacy_id == prow.id)
-        percent = (present / total_sessions * 100) if total_sessions else 0
-        stats[u.id] = {'present': present, 'percent': percent}
-    ostatnie = (
-        Zajecia.query.filter_by(prowadzacy_id=prow.id)
-        .order_by(Zajecia.data.desc())
-        .first()
-    )
+    uczestnicy, zajecia, stats, total_sessions = get_participant_stats(prow)
+    ostatnie = zajecia[0] if zajecia else None
     domyslny_czas = (
         str(prow.domyslny_czas).replace('.', ',').rstrip('0').rstrip(',')
         if prow.domyslny_czas is not None
         else ''
     )
-    podsumowanie = defaultdict(float)
-    for z in zajecia:
-        key = (z.data.year, z.data.month)
-        podsumowanie[key] += z.czas_trwania
+    podsumowanie = get_monthly_summary(zajecia)
     return render_template(
         'panel.html',
         prowadzacy=prow,
@@ -344,14 +327,15 @@ def panel_statystyki():
     if not prow:
         abort(404)
 
-    total = Zajecia.query.filter_by(prowadzacy_id=prow.id).count()
-    uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
-
-    stats = []
-    for u in uczestnicy:
-        present = sum(1 for z in u.zajecia if z.prowadzacy_id == prow.id)
-        percent = (present / total * 100) if total else 0
-        stats.append({'uczestnik': u, 'present': present, 'percent': percent})
+    uczestnicy, _zajecia, stats_map, total = get_participant_stats(prow)
+    stats = [
+        {
+            'uczestnik': val['uczestnik'],
+            'present': val['present'],
+            'percent': val['percent'],
+        }
+        for val in stats_map.values()
+    ]
 
     return render_template(
         'statystyki.html',
