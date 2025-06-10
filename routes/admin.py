@@ -14,6 +14,7 @@ from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik, Setting
 from utils import (
     email_do_koordynatora,
     send_plain_email,
+    send_attendance_list,
     validate_signature,
     SignatureValidationError,
     load_db_settings,
@@ -450,28 +451,9 @@ def wyslij_zajecie_admin(id):
     if not zaj:
         abort(404)
 
-    prow = zaj.prowadzacy
-    obecni = [u.imie_nazwisko for u in zaj.obecni]
-    doc = generuj_liste_obecnosci(
-        zaj.data.strftime("%Y-%m-%d"),
-        str(zaj.czas_trwania).replace(".", ","),
-        obecni,
-        f"{prow.imie} {prow.nazwisko}",
-        os.path.join("static", prow.podpis_filename),
-    )
-
-    buf = BytesIO()
-    doc.save(buf)
-    buf.seek(0)
-    data_str = zaj.data.strftime("%Y-%m-%d")
-
-    try:
-        email_do_koordynatora(buf, data_str, typ="lista")
-        zaj.wyslano = True
-        db.session.commit()
+    if send_attendance_list(zaj):
         flash("Lista została wysłana e-mailem", "success")
-    except smtplib.SMTPException:
-        logger.exception("Failed to send attendance email")
+    else:
         flash("Nie udało się wysłać e-maila", "danger")
 
     return redirect(url_for("routes.admin_dashboard"))
