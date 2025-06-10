@@ -49,26 +49,31 @@
   </form>
 
   <h2 class="mb-4">Uczestnicy</h2>
-  <form method="POST" action="{{ url_for('routes.panel_update_participants') }}" class="mb-3">
+  <form method="POST" action="{{ url_for('routes.dodaj_uczestnika') }}" class="mb-3 d-flex">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div class="mb-3">
-      <textarea class="form-control" name="uczestnicy" rows="5">{% for u in uczestnicy %}{{ u.imie_nazwisko }}{% if not loop.last %}
-{% endif %}{% endfor %}</textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Zapisz listę</button>
+      <input type="text" class="form-control me-2" name="new_participant" placeholder="Imię i nazwisko">
+      <button type="submit" class="btn btn-primary">Dodaj</button>
   </form>
 
   <ul class="list-group mb-3">
     {% for u in uczestnicy %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-      {{ u.imie_nazwisko }}
-      <form action="{{ url_for('routes.usun_uczestnika', id=u.id) }}"
-            method="post" class="ms-2">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń">
-          <i class="bi bi-x"></i>
-        </button>
-      </form>
+    <li class="list-group-item">
+      <div class="d-flex align-items-center justify-content-between">
+        <form action="{{ url_for('routes.zmien_uczestnika', id=u.id) }}" method="post" class="d-flex align-items-center flex-grow-1 me-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="text" name="new_name" value="{{ u.imie_nazwisko }}" class="form-control form-control-sm me-2">
+          <span class="me-2">{{ stats[u.id].present }}/{{ total_sessions }} ({{ '%.0f'|format(stats[u.id].percent) }}%)</span>
+          <button type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz">
+            <i class="bi bi-check"></i>
+          </button>
+        </form>
+        <form action="{{ url_for('routes.usun_uczestnika', id=u.id) }}" method="post" class="ms-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń">
+            <i class="bi bi-x"></i>
+          </button>
+        </form>
+      </div>
     </li>
     {% endfor %}
   </ul>
