@@ -136,7 +136,7 @@ def usun_uczestnika(id):
     if current_user.role != 'prowadzacy':
         abort(403)
 
-    uczestnik = Uczestnik.query.get(id)
+    uczestnik = db.session.get(Uczestnik, id)
     if not uczestnik or uczestnik.prowadzacy_id != current_user.prowadzacy_id:
         abort(403)
 
@@ -149,7 +149,7 @@ def usun_uczestnika(id):
 @routes_bp.route('/pobierz_zajecie/<int:id>')
 @login_required
 def pobierz_zajecie(id):
-    zaj = Zajecia.query.get(id)
+    zaj = db.session.get(Zajecia, id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
         abort(403)
 
@@ -177,7 +177,7 @@ def pobierz_zajecie(id):
 @login_required
 def wyslij_zajecie(id):
     """Send the attendance list for the given session via e-mail."""
-    zaj = Zajecia.query.get(id)
+    zaj = db.session.get(Zajecia, id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
         abort(403)
 
@@ -211,7 +211,7 @@ def wyslij_zajecie(id):
 @routes_bp.route('/usun_moje_zajecie/<int:id>', methods=['POST'])
 @login_required
 def usun_moje_zajecie(id):
-    zaj = Zajecia.query.get(id)
+    zaj = db.session.get(Zajecia, id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
         abort(403)
 
@@ -224,7 +224,7 @@ def usun_moje_zajecie(id):
 @routes_bp.route('/panel/edytuj_zajecie/<int:id>', methods=['GET', 'POST'])
 @login_required
 def panel_edytuj_zajecie(id):
-    zaj = Zajecia.query.get(id)
+    zaj = db.session.get(Zajecia, id)
     if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
         abort(403)
 
