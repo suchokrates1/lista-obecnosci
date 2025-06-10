@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, send_file
-from flask_login import current_user, login_required
+from flask_login import current_user
+from utils.auth import role_required
 from model import db, Prowadzacy
 
 from utils import przetworz_liste_obecnosci, email_do_koordynatora
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @routes_bp.route('/', methods=['GET', 'POST'])
-@login_required
+@role_required('admin', 'prowadzacy')
 def index():
     status = None
     akcja = None

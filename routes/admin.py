@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, send_file, abort, current_app
-from flask_login import login_required, current_user
+from flask_login import current_user
+from utils.auth import role_required
 from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik, Setting
 from utils import (
     email_do_koordynatora,
@@ -21,10 +22,8 @@ from . import routes_bp
 logger = logging.getLogger(__name__)
 
 @routes_bp.route('/admin')
-@login_required
+@role_required('admin')
 def admin_dashboard():
-    if current_user.role != 'admin':
-        abort(403)
 
     prowadzacy = Prowadzacy.query.all()
     new_users = (
@@ -60,10 +59,8 @@ def admin_dashboard():
 
 
 @routes_bp.route('/admin/settings', methods=['GET', 'POST'])
-@login_required
+@role_required('admin')
 def admin_settings():
-    if current_user.role != 'admin':
-        abort(403)
 
     keys = [
         'smtp_host', 'smtp_port', 'email_recipient', 'max_signature_size',
@@ -114,10 +111,8 @@ def admin_settings():
     return render_template('settings.html', values=values, admin_login=admin_login)
 
 @routes_bp.route('/usun_zajecie/<int:id>', methods=['POST'])
-@login_required
+@role_required('admin')
 def usun_zajecie(id):
-    if current_user.role != 'admin':
-        abort(403)
 
     zaj = db.session.get(Zajecia, id)
     if not zaj:
@@ -129,10 +124,8 @@ def usun_zajecie(id):
     return redirect(url_for('routes.admin_dashboard'))
 
 @routes_bp.route('/raport/<int:prowadzacy_id>', methods=['GET'])
-@login_required
+@role_required('admin')
 def raport(prowadzacy_id):
-    if current_user.role != 'admin':
-        abort(403)
 
     prow = db.session.get(Prowadzacy, prowadzacy_id)
     if not prow:
@@ -173,10 +166,8 @@ def raport(prowadzacy_id):
                      download_name=f'raport_{miesiac}_{rok}.docx')
 
 @routes_bp.route('/dodaj', methods=['POST'])
-@login_required
+@role_required('admin')
 def dodaj_prowadzacego():
-    if current_user.role != 'admin':
-        abort(403)
 
     id_edit = request.form.get('edit_id')
     imie = request.form.get('nowy_imie')
@@ -231,10 +222,8 @@ def dodaj_prowadzacego():
     return redirect(url_for('routes.admin_dashboard'))
 
 @routes_bp.route('/usun/<int:id>', methods=['POST'])
-@login_required
+@role_required('admin')
 def usun_prowadzacego(id):
-    if current_user.role != 'admin':
-        abort(403)
 
     prow = db.session.get(Prowadzacy, id)
     if not prow:
@@ -249,10 +238,8 @@ def usun_prowadzacego(id):
 
 
 @routes_bp.route('/approve_user/<int:id>', methods=['POST', 'GET'])
-@login_required
+@role_required('admin')
 def approve_user(id):
-    if current_user.role != 'admin':
-        abort(403)
 
     user = db.session.get(Uzytkownik, id)
     if not user:
@@ -279,10 +266,8 @@ def approve_user(id):
 
 
 @routes_bp.route('/edytuj_zajecie/<int:id>', methods=['GET', 'POST'])
-@login_required
+@role_required('admin')
 def edytuj_zajecie(id):
-    if current_user.role != 'admin':
-        abort(403)
 
     zaj = db.session.get(Zajecia, id)
     if not zaj:
@@ -323,10 +308,8 @@ def edytuj_zajecie(id):
 
 
 @routes_bp.route('/pobierz_zajecie_admin/<int:id>')
-@login_required
+@role_required('admin')
 def pobierz_zajecie_admin(id):
-    if current_user.role != 'admin':
-        abort(403)
 
     zaj = db.session.get(Zajecia, id)
     if not zaj:
@@ -355,11 +338,9 @@ def pobierz_zajecie_admin(id):
 
 
 @routes_bp.route('/wyslij_zajecie_admin/<int:id>')
-@login_required
+@role_required('admin')
 def wyslij_zajecie_admin(id):
     """Send the attendance list for the session via e-mail."""
-    if current_user.role != 'admin':
-        abort(403)
 
     zaj = db.session.get(Zajecia, id)
     if not zaj:
