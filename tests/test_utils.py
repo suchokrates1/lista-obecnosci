@@ -17,6 +17,10 @@ def app(tmp_path):
     os.environ['SECRET_KEY'] = 'testsecret'
     os.environ['DATABASE_URL'] = 'sqlite:///' + str(tmp_path / 'test.db')
     os.environ['MAX_SIGNATURE_SIZE'] = '10'
+    os.environ['SMTP_HOST'] = 'smtp'
+    os.environ['SMTP_PORT'] = '25'
+    os.environ['EMAIL_LOGIN'] = 'user'
+    os.environ['EMAIL_PASSWORD'] = 'pass'
     application = create_app()
     application.config['WTF_CSRF_ENABLED'] = False
     with application.app_context():
