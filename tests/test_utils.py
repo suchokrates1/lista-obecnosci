@@ -111,8 +111,9 @@ def test_send_plain_email_queue(monkeypatch):
         'b',
         queue=True,
     )
-    utils._email_queue.join()
+    utils.shutdown_email_worker()
     assert called.get('to') == 'x@example.com'
+    assert utils._worker is None or not utils._worker.is_alive()
 
 
 def test_purge_expired_tokens(app):
