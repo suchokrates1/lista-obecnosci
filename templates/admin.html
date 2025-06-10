@@ -67,10 +67,14 @@
         </td>
         <td>{{ p.uczestnicy|length }}</td>
         <td class="text-nowrap">
-          <button class="btn btn-sm" onclick="edytujProwadzacego({{ p.id }}, '{{ p.imie }}', '{{ p.nazwisko }}', '{{ p.numer_umowy }}', [{% for u in p.uczestnicy %}'{{ u.imie_nazwisko }}'{% if not loop.last %}, {% endif %}{% endfor %}])" aria-label="Edytuj prowadzącego">
+          <button class="btn btn-sm" onclick="edytujProwadzacego({{ p.id }}, '{{ p.imie }}', '{{ p.nazwisko }}', '{{ p.numer_umowy }}')" aria-label="Edytuj prowadzącego">
             <i class="bi bi-pencil"></i>
             <span class="visually-hidden">Edytuj prowadzącego</span>
           </button>
+          <a href="{{ url_for('routes.admin_trainer', id=p.id) }}" class="btn btn-sm text-secondary" aria-label="Uczestnicy">
+            <i class="bi bi-people"></i>
+            <span class="visually-hidden">Uczestnicy</span>
+          </a>
           <form action="{{ url_for('routes.usun_prowadzacego', id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń prowadzącego">
