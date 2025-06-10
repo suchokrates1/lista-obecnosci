@@ -196,6 +196,26 @@
     </tbody>
   </table>
 
+  <nav aria-label="Paginacja" class="mt-3">
+    <ul class="pagination">
+      {% if pagination.has_prev %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('routes.admin_dashboard', p_id=selected_p_id, page=pagination.prev_num) }}">Poprzednia</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Poprzednia</span></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">{{ pagination.page }}/{{ pagination.pages }}</span></li>
+      {% if pagination.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('routes.admin_dashboard', p_id=selected_p_id, page=pagination.next_num) }}">Następna</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Następna</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+
   {% include '_trainer_modal.html' %}
 {% endblock %}
 {% block scripts %}

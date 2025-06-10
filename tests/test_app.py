@@ -805,7 +805,9 @@ def test_admin_statystyki_requires_admin(client, app):
         db.session.commit()
         tid = trainer.id
 
-    client.post("/login", data={"login": "t2@example.com", "hasło": "x"}, follow_redirects=False)
+    client.post(
+        "/login", data={"login": "t2@example.com", "hasło": "x"}, follow_redirects=False
+    )
     resp = client.get(f"/admin/statystyki/{tid}")
     assert resp.status_code == 403
 
@@ -828,9 +830,82 @@ def test_admin_statystyki_data(client, app):
         db.session.commit()
         tid = trainer.id
 
-    client.post("/login", data={"login": "admstat@example.com", "hasło": "a"}, follow_redirects=False)
+    client.post(
+        "/login",
+        data={"login": "admstat@example.com", "hasło": "a"},
+        follow_redirects=False,
+    )
     resp = client.get(f"/admin/statystyki/{tid}")
     assert resp.status_code == 200
     data = resp.data.decode()
     assert "A" in data and "1/1" in data
     assert "B" in data and "0/1" in data
+
+
+def _create_many_sessions(app, user_login: str, count: int) -> None:
+    """Add ``count`` dummy sessions for the trainer with ``user_login``."""
+    with app.app_context():
+        user = Uzytkownik.query.filter_by(login=user_login).first()
+        assert user is not None
+        for i in range(count):
+            db.session.add(
+                Zajecia(
+                    prowadzacy_id=user.prowadzacy_id,
+                    data=datetime(2023, 1, i + 1),
+                    czas_trwania=1.0,
+                )
+            )
+        db.session.commit()
+
+
+def test_panel_pagination(client, app):
+    login_val = _create_trainer(app)
+    _create_many_sessions(app, login_val, 12)
+
+    client.post(
+        "/login", data={"login": login_val, "hasło": "pass"}, follow_redirects=False
+    )
+
+    resp = client.get("/panel")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert "2023-01-12" in html
+    assert "2023-01-02" not in html
+
+    resp2 = client.get("/panel?page=2")
+    assert resp2.status_code == 200
+    html2 = resp2.data.decode()
+    assert "2023-01-02" in html2
+    assert "2023-01-12" not in html2
+
+
+def test_admin_pagination(client, app):
+    login_val = _create_trainer(app)
+    _create_many_sessions(app, login_val, 12)
+    with app.app_context():
+        admin = Uzytkownik(
+            login="pageadm@example.com",
+            haslo_hash=generate_password_hash("a"),
+            role="admin",
+            approved=True,
+        )
+        db.session.add(admin)
+        db.session.commit()
+
+    client.post(
+        "/login",
+        data={"login": "pageadm@example.com", "hasło": "a"},
+        follow_redirects=False,
+    )
+
+    resp = client.get("/admin")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert "2023-01-12" in html
+    assert "2023-01-02" not in html
+
+    resp2 = client.get("/admin?page=2")
+    assert resp2.status_code == 200
+    html2 = resp2.data.decode()
+    assert "2023-01-02" in html2
+    assert "2023-01-12" not in html2
