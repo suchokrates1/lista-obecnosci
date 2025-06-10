@@ -21,7 +21,10 @@
         <td>
           <form action="{{ url_for('routes.approve_user', id=u.id) }}" method="POST" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm btn-success">Akceptuj</button>
+            <button type="submit" class="btn btn-sm btn-success" aria-label="Akceptuj" title="Akceptuj">
+              <i class="bi bi-check"></i>
+              <span class="visually-hidden">Akceptuj</span>
+            </button>
           </form>
         </td>
       </tr>
@@ -113,8 +116,14 @@
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" tabindex="3">Pobierz</button>
-                <button type="submit" name="wyslij" value="1" class="btn btn-outline-secondary" tabindex="4">Wyślij mailem</button>
+                <button type="submit" class="btn btn-primary" tabindex="3" aria-label="Pobierz" title="Pobierz">
+                  <i class="bi bi-download"></i>
+                  <span class="visually-hidden">Pobierz</span>
+                </button>
+                <button type="submit" name="wyslij" value="1" class="btn btn-outline-secondary" tabindex="4" aria-label="Wyślij mailem" title="Wyślij mailem">
+                  <i class="bi bi-envelope"></i>
+                  <span class="visually-hidden">Wyślij mailem</span>
+                </button>
               </div>
             </form>
           </div>
