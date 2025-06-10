@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, send_file
 from flask_login import current_user, login_required
-from model import Prowadzacy
+from model import db, Prowadzacy
 
 from utils import przetworz_liste_obecnosci, email_do_koordynatora
 from . import routes_bp
