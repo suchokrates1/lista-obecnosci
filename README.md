@@ -120,6 +120,15 @@ Values entered here are stored in the database and override environment
 variables on the next start.  The same form allows changing the admin login and
 password.
 
+## Participant lists
+
+Participant lists in the trainer and admin panels have an **Edytuj** button.
+Clicking it switches the list into edit mode so you can rename or remove
+existing entries and add new participants.  Press **Zakończ edycję** to return to
+the normal view.  When not editing, each participant row shows a progress bar
+with their attendance percentage and a counter of attended versus total
+sessions.
+
 ## Command-line usage
 
 ### purge-tokens
