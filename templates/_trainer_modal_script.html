@@ -1,10 +1,9 @@
 <script>
-  function edytujProwadzacego(id, imie, nazwisko, umowa, uczestnicy) {
+  function edytujProwadzacego(id, imie, nazwisko, umowa) {
     document.getElementById('edit_id').value = id;
     document.getElementById('nowy_imie').value = imie;
     document.getElementById('nowy_nazwisko').value = nazwisko;
     document.getElementById('nowy_umowa').value = umowa;
-    document.getElementById('nowi_uczestnicy').value = uczestnicy.join('\n');
     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('dodajModal'));
     modal.show();
   }

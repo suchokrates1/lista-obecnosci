@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Uczestnicy{% endblock %}
+{% block content %}
+  <div aria-live="polite" role="status">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <h2 class="mb-4">Uczestnicy prowadzącego {{ prowadzacy.imie }} {{ prowadzacy.nazwisko }}</h2>
+  <form method="POST" action="{{ url_for('routes.admin_add_participant', id=prowadzacy.id) }}" class="mb-3 d-flex">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" class="form-control me-2" name="new_participant" placeholder="Imię i nazwisko">
+      <button type="submit" class="btn btn-primary">Dodaj</button>
+  </form>
+
+  <ul class="list-group mb-3">
+    {% for u in uczestnicy %}
+    <li class="list-group-item">
+      <div class="d-flex align-items-center justify-content-between">
+        <form action="{{ url_for('routes.admin_rename_participant', id=u.id) }}" method="post" class="d-flex align-items-center flex-grow-1 me-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="text" name="new_name" value="{{ u.imie_nazwisko }}" class="form-control form-control-sm me-2">
+          <span class="me-2">{{ stats[u.id].present }}/{{ total_sessions }} ({{ '%.0f'|format(stats[u.id].percent) }}%)</span>
+          <button type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz">
+            <i class="bi bi-check"></i>
+          </button>
+        </form>
+        <form action="{{ url_for('routes.admin_delete_participant', id=u.id) }}" method="post" class="ms-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń">
+            <i class="bi bi-x"></i>
+          </button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-secondary">Powrót</a>
+{% endblock %}

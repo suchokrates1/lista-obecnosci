@@ -173,10 +173,9 @@ def dodaj_prowadzacego():
     imie = request.form.get('nowy_imie')
     nazwisko = request.form.get('nowy_nazwisko')
     numer_umowy = request.form.get('nowy_umowa')
-    uczestnicy = request.form.get('nowi_uczestnicy')
     podpis = request.files.get('nowy_podpis')
 
-    if not imie or not nazwisko or not uczestnicy:
+    if not imie or not nazwisko:
         flash('Wszystkie pola są wymagane', 'danger')
         return redirect(url_for('routes.admin_dashboard'))
 
@@ -188,7 +187,6 @@ def dodaj_prowadzacego():
         prow.imie = imie
         prow.nazwisko = nazwisko
         prow.numer_umowy = numer_umowy
-        prow.uczestnicy.clear()
     else:
         prow = Prowadzacy(imie=imie, nazwisko=nazwisko, numer_umowy=numer_umowy)
         db.session.add(prow)
@@ -213,13 +211,9 @@ def dodaj_prowadzacego():
             return redirect(url_for('routes.admin_dashboard'))
         prow.podpis_filename = filename
 
-    for nazw in uczestnicy.strip().splitlines():
-        uczestnik = Uczestnik(prowadzacy_id=prow.id, imie_nazwisko=nazw)
-        db.session.add(uczestnik)
-
     db.session.commit()
     flash('Prowadzący zapisany', 'success')
-    return redirect(url_for('routes.admin_dashboard'))
+    return redirect(url_for('routes.admin_trainer', id=prow.id))
 
 @routes_bp.route('/usun/<int:id>', methods=['POST'])
 @role_required('admin')
@@ -235,6 +229,74 @@ def usun_prowadzacego(id):
 
     flash('Prowadzący usunięty', 'info')
     return redirect(url_for('routes.admin_dashboard'))
+
+
+@routes_bp.route('/admin/trainer/<int:id>')
+@role_required('admin')
+def admin_trainer(id):
+    prow = db.session.get(Prowadzacy, id)
+    if not prow:
+        abort(404)
+
+    uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
+    zajecia = Zajecia.query.filter_by(prowadzacy_id=prow.id).all()
+    total_sessions = len(zajecia)
+    stats = {}
+    for u in uczestnicy:
+        present = sum(1 for z in u.zajecia if z.prowadzacy_id == prow.id)
+        percent = (present / total_sessions * 100) if total_sessions else 0
+        stats[u.id] = {'present': present, 'percent': percent}
+
+    return render_template('admin_trainer.html', prowadzacy=prow,
+                           uczestnicy=uczestnicy, stats=stats,
+                           total_sessions=total_sessions)
+
+
+@routes_bp.route('/admin/trainer/<int:id>/add_participant', methods=['POST'])
+@role_required('admin')
+def admin_add_participant(id):
+    prow = db.session.get(Prowadzacy, id)
+    if not prow:
+        abort(404)
+
+    name = request.form.get('new_participant', '').strip()
+    if name:
+        prow.uczestnicy.append(Uczestnik(imie_nazwisko=name))
+        db.session.commit()
+        flash('Uczestnik dodany', 'success')
+    else:
+        flash('Brak nazwy uczestnika', 'danger')
+    return redirect(url_for('routes.admin_trainer', id=id))
+
+
+@routes_bp.route('/admin/participant/<int:id>/rename', methods=['POST'])
+@role_required('admin')
+def admin_rename_participant(id):
+    uczestnik = db.session.get(Uczestnik, id)
+    if not uczestnik:
+        abort(404)
+
+    new_name = request.form.get('new_name', '').strip()
+    if new_name:
+        uczestnik.imie_nazwisko = new_name
+        db.session.commit()
+        flash('Uczestnik zaktualizowany', 'success')
+    else:
+        flash('Brak nazwy uczestnika', 'danger')
+    return redirect(url_for('routes.admin_trainer', id=uczestnik.prowadzacy_id))
+
+
+@routes_bp.route('/admin/participant/<int:id>/delete', methods=['POST'])
+@role_required('admin')
+def admin_delete_participant(id):
+    uczestnik = db.session.get(Uczestnik, id)
+    if not uczestnik:
+        abort(404)
+    pid = uczestnik.prowadzacy_id
+    db.session.delete(uczestnik)
+    db.session.commit()
+    flash('Uczestnik usunięty', 'info')
+    return redirect(url_for('routes.admin_trainer', id=pid))
 
 
 @routes_bp.route('/approve_user/<int:id>', methods=['POST', 'GET'])
