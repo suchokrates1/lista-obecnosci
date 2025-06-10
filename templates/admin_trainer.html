@@ -26,13 +26,13 @@
           <form action="{{ url_for('routes.admin_rename_participant', id=u.id) }}?edit=1" method="post" class="d-flex align-items-center flex-grow-1 me-2">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="new_name" value="{{ u.imie_nazwisko }}" class="form-control form-control-sm me-2">
-            <button type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz">
+            <button type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz" title="Zapisz">
               <i class="bi bi-check"></i>
             </button>
           </form>
           <form action="{{ url_for('routes.admin_delete_participant', id=u.id) }}?edit=1" method="post" class="ms-2">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń">
+            <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń" title="Usuń">
               <i class="bi bi-x"></i>
             </button>
           </form>
