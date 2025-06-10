@@ -9,6 +9,7 @@ import smtplib
 import logging
 import threading
 import queue
+import atexit
 from email.message import EmailMessage
 import re
 from werkzeug.utils import secure_filename
@@ -54,6 +55,16 @@ def _dispatch(msg: EmailMessage, use_queue: bool) -> None:
         _email_queue.put(msg)
     else:
         _send_message(msg)
+
+
+def shutdown_email_worker() -> None:
+    """Stop the background email worker after processing remaining messages."""
+    global _worker
+    if _worker and _worker.is_alive():
+        _email_queue.join()
+        _email_queue.put(None)
+        _worker.join()
+        _worker = None
 
 
 def _send_message(msg: EmailMessage) -> None:
@@ -400,3 +411,6 @@ def get_monthly_summary(zajecia):
         key = (z.data.year, z.data.month)
         summary[key] += z.czas_trwania
     return summary
+
+
+atexit.register(shutdown_email_worker)
