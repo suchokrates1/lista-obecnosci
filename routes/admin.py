@@ -279,6 +279,7 @@ def admin_trainer(id):
         present = sum(1 for z in u.zajecia if z.prowadzacy_id == prow.id)
         percent = (present / total_sessions * 100) if total_sessions else 0
         stats[u.id] = {"present": present, "percent": percent}
+    edit_mode = request.args.get("edit") == "1"
 
     return render_template(
         "admin_trainer.html",
@@ -286,6 +287,7 @@ def admin_trainer(id):
         uczestnicy=uczestnicy,
         stats=stats,
         total_sessions=total_sessions,
+        edit_mode=edit_mode,
     )
 
 
@@ -303,7 +305,8 @@ def admin_add_participant(id):
         flash("Uczestnik dodany", "success")
     else:
         flash("Brak nazwy uczestnika", "danger")
-    return redirect(url_for("routes.admin_trainer", id=id))
+    edit = request.args.get("edit") == "1"
+    return redirect(url_for("routes.admin_trainer", id=id, edit="1" if edit else None))
 
 
 @routes_bp.route("/admin/participant/<int:id>/rename", methods=["POST"])
@@ -320,7 +323,8 @@ def admin_rename_participant(id):
         flash("Uczestnik zaktualizowany", "success")
     else:
         flash("Brak nazwy uczestnika", "danger")
-    return redirect(url_for("routes.admin_trainer", id=uczestnik.prowadzacy_id))
+    edit = request.args.get("edit") == "1"
+    return redirect(url_for("routes.admin_trainer", id=uczestnik.prowadzacy_id, edit="1" if edit else None))
 
 
 @routes_bp.route("/admin/participant/<int:id>/delete", methods=["POST"])
@@ -333,7 +337,8 @@ def admin_delete_participant(id):
     db.session.delete(uczestnik)
     db.session.commit()
     flash("Uczestnik usunięty", "info")
-    return redirect(url_for("routes.admin_trainer", id=pid))
+    edit = request.args.get("edit") == "1"
+    return redirect(url_for("routes.admin_trainer", id=pid, edit="1" if edit else None))
 
 
 @routes_bp.route("/approve_user/<int:id>", methods=["POST", "GET"])
