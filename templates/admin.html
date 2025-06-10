@@ -75,6 +75,10 @@
             <i class="bi bi-people"></i>
             <span class="visually-hidden">Uczestnicy</span>
           </a>
+          <a href="{{ url_for('routes.admin_statystyki', trainer_id=p.id) }}" class="btn btn-sm text-info" aria-label="Statystyki">
+            <i class="bi bi-bar-chart"></i>
+            <span class="visually-hidden">Statystyki</span>
+          </a>
           <form action="{{ url_for('routes.usun_prowadzacego', id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Na pewno usunąć?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-sm text-danger" aria-label="Usuń prowadzącego">

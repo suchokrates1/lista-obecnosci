@@ -777,3 +777,49 @@ def test_panel_statystyki_data(client, app):
     data = resp.data.decode()
     assert "A" in data and "1/1" in data and "100%" in data
     assert "B" in data and "0/1" in data and "0%" in data
+
+
+def test_admin_statystyki_requires_admin(client, app):
+    login_val = _create_trainer(app)
+    with app.app_context():
+        trainer = Prowadzacy.query.first()
+        user = Uzytkownik(
+            login="t2@example.com",
+            haslo_hash=generate_password_hash("x"),
+            role="prowadzacy",
+            approved=True,
+            prowadzacy_id=trainer.id,
+        )
+        db.session.add(user)
+        db.session.commit()
+        tid = trainer.id
+
+    client.post("/login", data={"login": "t2@example.com", "hasło": "x"}, follow_redirects=False)
+    resp = client.get(f"/admin/statystyki/{tid}")
+    assert resp.status_code == 403
+
+
+def test_admin_statystyki_data(client, app):
+    _ = _create_trainer(app)
+    with app.app_context():
+        trainer = Prowadzacy.query.first()
+        u1 = Uczestnik(imie_nazwisko="A", prowadzacy_id=trainer.id)
+        u2 = Uczestnik(imie_nazwisko="B", prowadzacy_id=trainer.id)
+        admin = Uzytkownik(
+            login="admstat@example.com",
+            haslo_hash=generate_password_hash("a"),
+            role="admin",
+            approved=True,
+        )
+        db.session.add_all([u1, u2, admin])
+        zaj = Zajecia.query.first()
+        zaj.obecni.append(u1)
+        db.session.commit()
+        tid = trainer.id
+
+    client.post("/login", data={"login": "admstat@example.com", "hasło": "a"}, follow_redirects=False)
+    resp = client.get(f"/admin/statystyki/{tid}")
+    assert resp.status_code == 200
+    data = resp.data.decode()
+    assert "A" in data and "1/1" in data
+    assert "B" in data and "0/1" in data
