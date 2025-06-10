@@ -323,6 +323,8 @@ def test_wyslij_zajecie_success(client, app, monkeypatch):
     assert resp.status_code == 302
     assert resp.headers['Location'].endswith('/panel')
     assert called.get('sent')
+    with app.app_context():
+        assert Zajecia.query.get(zaj_id).wyslano is True
 
 
 def test_wyslij_zajecie_admin_requires_login(client):
@@ -363,6 +365,8 @@ def test_wyslij_zajecie_admin_success(client, app, monkeypatch):
     assert resp.status_code == 302
     assert resp.headers['Location'].endswith('/admin')
     assert called.get('sent')
+    with app.app_context():
+        assert Zajecia.query.get(zaj_id).wyslano is True
 
 
 def test_wyslij_zajecie_admin_requires_admin(client, app):

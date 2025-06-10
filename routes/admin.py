@@ -382,6 +382,8 @@ def wyslij_zajecie_admin(id):
 
     try:
         email_do_koordynatora(buf, data_str, typ='lista')
+        zaj.wyslano = True
+        db.session.commit()
         flash('Lista została wysłana e-mailem', 'success')
     except smtplib.SMTPException:
         logger.exception('Failed to send attendance email')
