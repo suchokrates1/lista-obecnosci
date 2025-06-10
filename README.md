@@ -114,6 +114,19 @@ flask purge-tokens
 
 This command removes old entries and can be triggered from cron.
 
+### Generating monthly reports
+
+Use the ``generate-reports`` command to create reports for all trainers with
+sessions in a given month:
+
+```bash
+flask generate-reports --month 5 --year 2025 --email
+```
+
+Reports are saved under ``reports/`` using names like
+``raport_<id>_5_2025.docx``.  When ``--email`` is supplied each generated file
+is also sent to the coordinator.
+
 ## Running tests
 
 Install pytest and run the test suite with:
