@@ -4,7 +4,7 @@ from PIL import Image
 import pytest
 from app import create_app
 from datetime import datetime
-from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik
+from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik, Setting
 from docx import Document
 import utils
 from werkzeug.security import generate_password_hash
@@ -25,6 +25,21 @@ def app(tmp_path):
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture
+def logged_admin(client, app):
+    with app.app_context():
+        admin = Uzytkownik(
+            login='admin@example.com',
+            haslo_hash=generate_password_hash('adm'),
+            role='admin',
+            approved=True,
+        )
+        db.session.add(admin)
+        db.session.commit()
+    client.post('/login', data={'login': 'admin@example.com', 'hasło': 'adm'}, follow_redirects=False)
+    return admin
 
 
 def test_routes_accessible(client):
@@ -466,3 +481,29 @@ def test_trainer_delete_participant(client, app):
     assert resp.headers['Location'].endswith('/panel')
     with app.app_context():
         assert Uczestnik.query.get(uid) is None
+
+
+def test_admin_settings_update(client, app, logged_admin):
+    data = {
+        'smtp_host': 'smtp.test',
+        'smtp_port': '25',
+        'max_signature_size': '20',
+        'remove_signature_bg': '1',
+    }
+    resp = client.post('/admin/settings', data=data, follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers['Location'].endswith('/admin/settings')
+
+    resp2 = client.get('/admin/settings')
+    assert 'Ustawienia zostały zapisane' in resp2.get_data(as_text=True)
+
+    with app.app_context():
+        assert Setting.query.get('smtp_host').value == 'smtp.test'
+        assert Setting.query.get('max_signature_size').value == '20'
+        assert Setting.query.get('remove_signature_bg').value == '1'
+
+    assert os.environ['SMTP_HOST'] == 'smtp.test'
+    assert os.environ['MAX_SIGNATURE_SIZE'] == '20'
+    assert os.environ['REMOVE_SIGNATURE_BG'] == '1'
+    assert utils.SIGNATURE_MAX_SIZE == 20
+    assert utils.REMOVE_SIGNATURE_BG is True
