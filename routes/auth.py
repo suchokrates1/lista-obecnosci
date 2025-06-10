@@ -8,6 +8,7 @@ from utils import (
     validate_signature,
     SignatureValidationError,
     process_signature,
+    purge_expired_tokens,
 )
 import os
 import uuid
@@ -137,6 +138,7 @@ def register():
 
 @routes_bp.route("/reset-request", methods=["GET", "POST"])
 def reset_request():
+    purge_expired_tokens()
     if request.method == "POST":
         email = request.form.get("login")
         if email and is_valid_email(email):
@@ -167,6 +169,7 @@ def reset_request():
 
 @routes_bp.route("/reset/<token>", methods=["GET", "POST"])
 def reset_with_token(token):
+    purge_expired_tokens()
     prt = PasswordResetToken.query.filter_by(token=token).first()
     if not prt or prt.expires_at < datetime.utcnow():
         if prt:

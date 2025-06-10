@@ -100,6 +100,18 @@ Values entered here are stored in the database and override environment
 variables on the next start.  The same form allows changing the admin login and
 password.
 
+## Password reset tokens cleanup
+
+Expired password reset tokens are deleted automatically whenever the
+`/reset-request` or `/reset/<token>` routes are accessed. For scheduled
+maintenance you can also run:
+
+```bash
+flask purge-tokens
+```
+
+This command removes old entries and can be triggered from cron.
+
 ## Running tests
 
 Install pytest and run the test suite with:
