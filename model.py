@@ -29,6 +29,9 @@ class Prowadzacy(db.Model):
     zajecia = db.relationship("Zajecia", back_populates="prowadzacy", cascade="all, delete-orphan")
     user = db.relationship("Uzytkownik", back_populates="prowadzacy", uselist=False)
 
+    def __repr__(self) -> str:  # pragma: no cover - trivial
+        return f"<Prowadzacy id={self.id} imie='{self.imie}'>"
+
 class Uczestnik(db.Model):
     __tablename__ = "uczestnik"
     id = db.Column(db.Integer, primary_key=True)
@@ -37,6 +40,9 @@ class Uczestnik(db.Model):
 
     prowadzacy = db.relationship("Prowadzacy", back_populates="uczestnicy")
     zajecia = db.relationship("Zajecia", secondary=obecnosci, back_populates="obecni")
+
+    def __repr__(self) -> str:  # pragma: no cover - trivial
+        return f"<Uczestnik id={self.id} imie_nazwisko='{self.imie_nazwisko}'>"
 
 class Zajecia(db.Model):
     __tablename__ = "zajecia"
@@ -49,6 +55,10 @@ class Zajecia(db.Model):
     prowadzacy = db.relationship("Prowadzacy", back_populates="zajecia")
     obecni = db.relationship("Uczestnik", secondary=obecnosci, back_populates="zajecia")
 
+    def __repr__(self) -> str:  # pragma: no cover - trivial
+        dt = self.data.strftime('%Y-%m-%d') if isinstance(self.data, datetime) else self.data
+        return f"<Zajecia id={self.id} data={dt}>"
+
 class Uzytkownik(UserMixin, db.Model):
     __tablename__ = "uzytkownik"
     id = db.Column(db.Integer, primary_key=True)
@@ -59,6 +69,9 @@ class Uzytkownik(UserMixin, db.Model):
     prowadzacy_id = db.Column(db.Integer, db.ForeignKey("prowadzacy.id"))
 
     prowadzacy = db.relationship("Prowadzacy", back_populates="user")
+
+    def __repr__(self) -> str:  # pragma: no cover - trivial
+        return f"<Uzytkownik id={self.id} login='{self.login}'>"
 
 
 class Setting(db.Model):
