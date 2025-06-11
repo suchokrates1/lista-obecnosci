@@ -126,29 +126,39 @@
       <a href="{{ url_for('routes.panel', edit=1) }}" class="btn btn-outline-primary">Edytuj</a>
     </div>
 
-    <ul class="list-group mb-3">
-      {% for u in uczestnicy %}
-      <li class="list-group-item">
-        <div class="d-flex align-items-center justify-content-between">
-          <span class="flex-grow-1">{{ u.imie_nazwisko }}</span>
-          <div class="d-flex align-items-center ms-3" style="min-width: 180px;">
-            <div class="progress flex-grow-1 me-2" style="height: 6px;">
-              {# <50% red, 50-79% yellow, >=80% green #}
-              <div
-                class="progress-bar {% if stats[u.id].percent >= 80 %}bg-success{% elif stats[u.id].percent >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
-                role="progressbar"
-                style="width: {{ stats[u.id].percent }}%"
-                aria-valuenow="{{ stats[u.id].percent }}"
-                aria-valuemin="0"
-                aria-valuemax="100"
-              ></div>
+    <table class="table table-striped table-hover mb-3">
+      <thead class="table-secondary">
+        <tr>
+          <th>Uczestnik</th>
+          <th>Frekwencja %</th>
+          <th>Obecności</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in uczestnicy %}
+        <tr>
+          <td>{{ u.imie_nazwisko }}</td>
+          <td>
+            <div class="d-flex align-items-center" style="min-width: 180px;">
+              <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                {# <50% red, 50-79% yellow, >=80% green #}
+                <div
+                  class="progress-bar {% if stats[u.id].percent >= 80 %}bg-success{% elif stats[u.id].percent >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                  role="progressbar"
+                  style="width: {{ stats[u.id].percent }}%"
+                  aria-valuenow="{{ stats[u.id].percent }}"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+              <small class="text-nowrap">{{ '%.0f'|format(stats[u.id].percent) }}%</small>
             </div>
-            <small class="text-nowrap">{{ '%.0f'|format(stats[u.id].percent) }}% {{ stats[u.id].present }}/{{ total_sessions }}</small>
-          </div>
-        </div>
-      </li>
-      {% endfor %}
-    </ul>
+          </td>
+          <td>{{ stats[u.id].present }}/{{ total_sessions }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   {% endif %}
 
 
