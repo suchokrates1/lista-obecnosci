@@ -58,35 +58,39 @@
     </form>
   {% else %}
     <div class="mb-5">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">Imię:</label>
-          <p class="form-control-plaintext mb-0">{{ prowadzacy.imie }}</p>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Nazwisko:</label>
-          <p class="form-control-plaintext mb-0">{{ prowadzacy.nazwisko }}</p>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Numer umowy:</label>
-          <p class="form-control-plaintext mb-0">{{ prowadzacy.numer_umowy }}</p>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Domyślny czas zajęć:</label>
-          <p class="form-control-plaintext mb-0">{{ domyslny_czas }}</p>
-        </div>
-        <div class="col-md-6 d-flex align-items-center">
-          <label class="form-label me-2 mb-0">Podpis:</label>
-          {% if prowadzacy.podpis_filename %}
-            <img src="{{ url_for('static', filename=prowadzacy.podpis_filename) }}"
-                 alt="Podpis"
-                 class="img-thumbnail"
-                 style="height: 60px;">
-          {% else %}
-            <span class="text-muted">Brak</span>
-          {% endif %}
-        </div>
-      </div>
+      <table class="table table-bordered w-auto">
+        <tbody>
+          <tr>
+            <th>Imię</th>
+            <td>{{ prowadzacy.imie }}</td>
+          </tr>
+          <tr>
+            <th>Nazwisko</th>
+            <td>{{ prowadzacy.nazwisko }}</td>
+          </tr>
+          <tr>
+            <th>Numer umowy</th>
+            <td>{{ prowadzacy.numer_umowy }}</td>
+          </tr>
+          <tr>
+            <th>Domyślny czas zajęć</th>
+            <td>{{ domyslny_czas }}</td>
+          </tr>
+          <tr>
+            <th>Podpis</th>
+            <td>
+              {% if prowadzacy.podpis_filename %}
+                <img src="{{ url_for('static', filename=prowadzacy.podpis_filename) }}"
+                     alt="Podpis"
+                     class="img-thumbnail"
+                     style="height: 60px;">
+              {% else %}
+                <span class="text-muted">Brak</span>
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   {% endif %}
 
