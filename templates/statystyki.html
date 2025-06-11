@@ -5,16 +5,16 @@
   <table class="table table-striped table-hover mb-4">
     <thead class="table-secondary">
       <tr>
-        <th>Uczestnik</th>
-        <th>Obecności</th>
+        <th class="name-col">Uczestnik</th>
+        <th class="participants-col">Obecności</th>
         <th>Frekwencja</th>
       </tr>
     </thead>
     <tbody>
       {% for row in stats %}
       <tr>
-        <td>{{ row.uczestnik.imie_nazwisko }}</td>
-        <td>{{ row.present }}/{{ total_sessions }}</td>
+        <td class="name-col">{{ row.uczestnik.imie_nazwisko }}</td>
+        <td class="participants-col">{{ row.present }}/{{ total_sessions }}</td>
         <td>{{ '%.0f'|format(row.percent) }}%</td>
       </tr>
       {% endfor %}
