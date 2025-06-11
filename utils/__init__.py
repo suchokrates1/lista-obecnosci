@@ -25,6 +25,30 @@ logger = logging.getLogger(__name__)
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
+# Polish month names indexed by number
+MONTH_NAMES_PL = {
+    1: "styczeń",
+    2: "luty",
+    3: "marzec",
+    4: "kwiecień",
+    5: "maj",
+    6: "czerwiec",
+    7: "lipiec",
+    8: "sierpień",
+    9: "wrzesień",
+    10: "październik",
+    11: "listopad",
+    12: "grudzień",
+}
+
+
+def month_name(value):
+    """Return the Polish name of the month ``value``."""
+    try:
+        return MONTH_NAMES_PL[int(value)]
+    except (KeyError, ValueError, TypeError):
+        return ""
+
 # simple asynchronous e-mail dispatch
 _email_queue: "queue.Queue[EmailMessage | None]" = queue.Queue()
 _worker: threading.Thread | None = None

@@ -6,7 +6,12 @@ from dotenv import load_dotenv
 import logging
 import os
 from model import db, Uzytkownik, Prowadzacy, Zajecia
-from utils import load_db_settings, purge_expired_tokens, email_do_koordynatora
+from utils import (
+    load_db_settings,
+    purge_expired_tokens,
+    email_do_koordynatora,
+    month_name,
+)
 from doc_generator import generuj_raport_miesieczny
 from io import BytesIO
 import smtplib
@@ -80,6 +85,7 @@ def create_app():
     app.register_blueprint(routes_bp)
 
     app.context_processor(inject_is_admin)
+    app.add_template_filter(month_name, "month_name")
 
     @app.cli.command("purge-tokens")
     def purge_tokens_command() -> None:
