@@ -206,3 +206,11 @@ def test_send_attendance_list_failure(app, monkeypatch):
 
         assert utils.send_attendance_list(zaj) is False
         assert zaj.wyslano is False
+
+
+def test_month_name_filter_registered(app):
+    """The month_name Jinja filter should return Polish month names."""
+    filt = app.jinja_env.filters.get("month_name")
+    assert filt is not None
+    assert filt(1) == "styczeń"
+    assert filt("12") == "grudzień"
