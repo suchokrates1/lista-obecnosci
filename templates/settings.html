@@ -122,7 +122,7 @@
     </div>
 
     <hr class="my-4">
-    <h5>Szerokości kolumn</h5>
+    <h5 class="mb-4">Szerokości kolumn</h5>
     {% set tables = {
       'admin_new_users': {
         'class': 'table table-bordered align-middle',
@@ -178,9 +178,17 @@
         ]
       }
     } %}
+    {% set table_titles = {
+      'admin_new_users': 'Konta oczekujące na zatwierdzenie',
+      'admin_trainers': 'Lista prowadzących',
+      'admin_sessions': 'Historia zajęć',
+      'admin_stats': 'Statystyki obecności',
+      'panel_history': 'Historia zajęć'
+    } %}
     {% for table, info in tables.items() %}
+    <h6 class="mb-1">{{ table_titles[table] }}</h6>
     <div class="table-responsive mb-4">
-      <table class="{{ info.class }}">
+      <table class="{{ info.class }}" id="{{ table.replace('_','-') }}">
         <thead class="{{ info.thead }}">
           <tr>
             {% for col, header, cls in info.columns %}
@@ -200,7 +208,7 @@
     {% endfor %}
 
     <hr class="my-4">
-    <h5>Dane administratora</h5>
+    <h5 class="mb-4">Dane administratora</h5>
     <div class="row g-3">
       <div class="col-md-6 form-floating">
         <input type="email" class="form-control" id="admin_login" name="admin_login" placeholder="Login" value="{{ admin_login }}" autocomplete="username" tabindex="20">
