@@ -951,3 +951,28 @@ def test_panel_profile_edit_mode(client, trainer):
     assert "name=\"domyslny_czas\"" in html2
     assert "name=\"podpis\"" in html2
 
+
+def test_panel_edit_profile_shows_form_fields(client, trainer):
+    resp = client.get("/panel?edit_profile=1")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert "name=\"imie\"" in html
+    assert "name=\"nazwisko\"" in html
+    assert "name=\"domyslny_czas\"" in html
+
+
+def test_panel_profile_post_updates_trainer(client, app, trainer):
+    data = {
+        "imie": "Nowe",
+        "nazwisko": "Nazwisko",
+        "numer_umowy": "99",
+        "domyslny_czas": "3",
+    }
+    resp = client.post("/panel/profil", data=data, follow_redirects=False)
+    assert resp.status_code == 302
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        assert prow.imie == "Nowe"
+        assert prow.nazwisko == "Nazwisko"
+        assert prow.numer_umowy == "99"
+        assert prow.domyslny_czas == 3.0
