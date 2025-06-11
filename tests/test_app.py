@@ -926,6 +926,8 @@ def test_panel_progress_and_edit_forms(client, trainer):
     assert resp.status_code == 200
     html = resp.data.decode()
     assert "progress-bar" in html
+    assert "Frekwencja %" in html
+    assert "<table" in html
 
     resp2 = client.get("/panel?edit=1")
     assert resp2.status_code == 200
