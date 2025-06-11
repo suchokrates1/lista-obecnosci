@@ -45,3 +45,8 @@ body.high-contrast .btn {
   width: 12ch;
   text-align: center;
 }
+
+/* Minimum width for attendance progress column */
+.attendance-col {
+  min-width: 120px;
+}
