@@ -67,12 +67,19 @@ def shutdown_email_worker() -> None:
         _worker = None
 
 
-def _send_message(msg: EmailMessage) -> None:
-    """Send ``msg`` immediately using SMTP settings from environment."""
+def get_smtp_settings() -> tuple[str | None, int | None, str | None, str | None]:
+    """Return SMTP host, port, login and password from environment."""
     host = os.getenv("SMTP_HOST")
-    port = int(os.getenv("SMTP_PORT"))
+    port_str = os.getenv("SMTP_PORT")
+    port = int(port_str) if port_str is not None else None
     login = os.getenv("EMAIL_LOGIN")
     password = os.getenv("EMAIL_PASSWORD")
+    return host, port, login, password
+
+
+def _send_message(msg: EmailMessage) -> None:
+    """Send ``msg`` immediately using SMTP settings from environment."""
+    host, port, login, password = get_smtp_settings()
 
     if port == 465:
         with smtplib.SMTP_SSL(host, port) as smtp:
