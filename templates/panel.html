@@ -220,12 +220,13 @@
   <h2 class="mb-4">Historia zajęć</h2>
   <div class="table-responsive">
   <table class="table table-striped table-hover" id="panel-history">
+    {% set w = table_widths.get('panel-history', []) %}
     <colgroup>
-      <col>
-      <col>
-      <col>
-      <col class="participants-col">
-      <col class="action-col">
+      <col{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>
+      <col{% if w|length > 1 %} style="width: {{ w[1] }}%"{% endif %}>
+      <col{% if w|length > 2 %} style="width: {{ w[2] }}%"{% endif %}>
+      <col class="participants-col"{% if w|length > 3 %} style="width: {{ w[3] }}%"{% endif %}>
+      <col class="action-col"{% if w|length > 4 %} style="width: {{ w[4] }}%"{% endif %}>
     </colgroup>
     <thead class="table-secondary">
       <tr>

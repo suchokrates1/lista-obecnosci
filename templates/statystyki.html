@@ -3,11 +3,12 @@
 {% block content %}
   <h2 class="mb-4">Statystyki obecności</h2>
   <table class="table table-striped table-hover mb-4" id="stats">
+    {% set w = table_widths.get('stats', []) %}
     <thead class="table-secondary">
       <tr>
-        <th class="name-col">Uczestnik</th>
-        <th class="participants-col">Obecności</th>
-        <th>Frekwencja</th>
+        <th class="name-col"{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>Uczestnik</th>
+        <th class="participants-col"{% if w|length > 1 %} style="width: {{ w[1] }}%"{% endif %}>Obecności</th>
+        <th{% if w|length > 2 %} style="width: {{ w[2] }}%"{% endif %}>Frekwencja</th>
       </tr>
     </thead>
     <tbody>
