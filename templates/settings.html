@@ -123,19 +123,80 @@
 
     <hr class="my-4">
     <h5>Szerokości kolumn</h5>
-    {% set cols = {
-      'admin_new_users': [('id','Konta oczekujące – ID'), ('login','Konta oczekujące – Login'), ('name','Konta oczekujące – Imię i nazwisko'), ('action','Konta oczekujące – Akcja')],
-      'admin_trainers': [('id','Lista prowadzących – ID'), ('name','Lista prowadzących – Imię i nazwisko'), ('signature','Lista prowadzących – Podpis'), ('participants','Lista prowadzących – Uczestnicy'), ('action','Lista prowadzących – Akcje')],
-      'admin_sessions': [('sent','Historia zajęć – Wysłano'), ('date','Historia zajęć – Data'), ('duration','Historia zajęć – Czas trwania'), ('trainer','Historia zajęć – Prowadzący'), ('participants','Historia zajęć – Obecni'), ('action','Historia zajęć – Akcja')],
-      'admin_stats': [('name','Statystyki – Uczestnik'), ('present','Statystyki – Obecności'), ('percent','Statystyki – Frekwencja')]
+    {% set tables = {
+      'admin_new_users': {
+        'class': 'table table-bordered align-middle',
+        'thead': 'table-warning',
+        'columns': [
+          ('id', 'ID', 'id-col col-admin-new_users-id'),
+          ('login', 'Login', 'col-admin-new_users-login'),
+          ('name', 'Imię i nazwisko', 'name-col col-admin-new_users-name'),
+          ('action', 'Akcja', 'action-col text-nowrap col-admin-new_users-action'),
+        ]
+      },
+      'admin_trainers': {
+        'class': 'table table-striped table-bordered align-middle',
+        'thead': 'table-dark',
+        'columns': [
+          ('id', 'ID', 'id-col col-admin-trainers-id'),
+          ('name', 'Imię i nazwisko', 'name-col col-admin-trainers-name'),
+          ('signature', 'Podpis', 'col-admin-trainers-signature'),
+          ('participants', 'Uczestnicy', 'participants-col col-admin-trainers-participants'),
+          ('action', 'Akcje', 'action-col col-admin-trainers-action'),
+        ]
+      },
+      'admin_sessions': {
+        'class': 'table table-striped table-hover',
+        'thead': 'table-secondary',
+        'columns': [
+          ('sent', 'Wysłano', 'col-admin-sessions-sent'),
+          ('date', 'Data', 'col-admin-sessions-date'),
+          ('duration', 'Czas trwania', 'col-admin-sessions-duration'),
+          ('trainer', 'Prowadzący', 'col-admin-sessions-trainer'),
+          ('participants', 'Obecni', 'participants-col col-admin-sessions-participants'),
+          ('action', 'Akcja', 'action-col text-nowrap col-admin-sessions-action'),
+        ]
+      },
+      'admin_stats': {
+        'class': 'table table-striped table-hover mb-4',
+        'thead': 'table-secondary',
+        'columns': [
+          ('name', 'Uczestnik', 'name-col col-admin-stats-name'),
+          ('present', 'Obecności', 'participants-col col-admin-stats-present'),
+          ('percent', 'Frekwencja', 'col-admin-stats-percent'),
+        ]
+      },
+      'panel_history': {
+        'class': 'table table-striped table-hover',
+        'thead': 'table-secondary',
+        'columns': [
+          ('sent', 'Wysłano', 'col-panel-history-sent'),
+          ('date', 'Data', 'col-panel-history-date'),
+          ('duration', 'Czas', 'col-panel-history-duration'),
+          ('participants', 'Obecni', 'participants-col col-panel-history-participants'),
+          ('action', 'Akcja', 'action-col text-nowrap col-panel-history-action'),
+        ]
+      }
     } %}
-    {% for table, pairs in cols.items() %}
-      {% for col, label in pairs %}
-      <div class="mb-2">
-        <label class="form-label" for="width_{{ table }}_{{ col }}">{{ label }} (%):</label>
-        <input type="number" class="form-control" id="width_{{ table }}_{{ col }}" name="width_{{ table }}_{{ col }}" min="0" max="100" value="{{ widths.get(table, {}).get(col, '') }}" data-table="{{ table }}" data-column="{{ col }}">
-      </div>
-      {% endfor %}
+    {% for table, info in tables.items() %}
+    <div class="table-responsive mb-4">
+      <table class="{{ info.class }}">
+        <thead class="{{ info.thead }}">
+          <tr>
+            {% for col, header, cls in info.columns %}
+            <th class="{{ cls }}">{{ header }}</th>
+            {% endfor %}
+          </tr>
+          <tr>
+            {% for col, header, cls in info.columns %}
+            <th class="{{ cls }}">
+              <input type="number" class="form-control form-control-sm" id="width_{{ table }}_{{ col }}" name="width_{{ table }}_{{ col }}" min="0" max="100" value="{{ widths.get(table, {}).get(col, '') }}" data-table="{{ table }}" data-column="{{ col }}">
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+      </table>
+    </div>
     {% endfor %}
 
     <hr class="my-4">
@@ -155,27 +216,4 @@
     </div>
   </form>
 
-  <h5 class="mt-5">Podgląd</h5>
-  <div class="table-responsive">
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th class="col-admin-trainers-id">ID</th>
-          <th class="col-admin-trainers-name">Imię i nazwisko</th>
-          <th class="col-admin-trainers-signature">Podpis</th>
-          <th class="col-admin-trainers-participants">Uczestnicy</th>
-          <th class="col-admin-trainers-action">Akcje</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="col-admin-trainers-id">1</td>
-          <td class="col-admin-trainers-name">Przykład</td>
-          <td class="col-admin-trainers-signature">Tak</td>
-          <td class="col-admin-trainers-participants">5</td>
-          <td class="col-admin-trainers-action">...</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 {% endblock %}
