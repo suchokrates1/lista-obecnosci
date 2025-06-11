@@ -27,6 +27,7 @@ import os
 from datetime import datetime
 import smtplib
 import logging
+import json
 from . import routes_bp
 
 logger = logging.getLogger(__name__)
@@ -93,6 +94,7 @@ def admin_settings():
         "reg_email_body",
         "reset_email_subject",
         "reset_email_body",
+        "table_column_widths",
     ]
 
     if request.method == "POST":
@@ -109,6 +111,26 @@ def admin_settings():
             else:
                 db.session.add(Setting(key=key, value=val))
             os.environ[key.upper()] = val
+
+        widths: dict[str, dict[str, float]] = {}
+        for form_key, form_val in request.form.items():
+            if not form_key.startswith("width_"):
+                continue
+            rest = form_key[len("width_") :]
+            table, column = rest.rsplit("_", 1)
+            try:
+                num = float(form_val)
+            except (TypeError, ValueError):
+                continue
+            widths.setdefault(table, {})[column] = num
+        if widths:
+            val = json.dumps(widths)
+            setting = db.session.get(Setting, "table_column_widths")
+            if setting:
+                setting.value = val
+            else:
+                db.session.add(Setting(key="table_column_widths", value=val))
+            os.environ["TABLE_COLUMN_WIDTHS"] = val
 
         admin_login = request.form.get("admin_login")
         admin_password = request.form.get("admin_password")
@@ -128,9 +150,18 @@ def admin_settings():
         setting = db.session.get(Setting, key)
         values[key] = os.getenv(key.upper(), setting.value if setting else "")
 
+    widths = {}
+    val = values.get("table_column_widths") or "{}"
+    try:
+        widths = json.loads(val)
+    except json.JSONDecodeError:
+        widths = {}
+
     admin_user = Uzytkownik.query.filter_by(role="admin").first()
     admin_login = admin_user.login if admin_user else ""
-    return render_template("settings.html", values=values, admin_login=admin_login)
+    return render_template(
+        "settings.html", values=values, widths=widths, admin_login=admin_login
+    )
 
 
 @routes_bp.route("/usun_zajecie/<int:id>", methods=["POST"])
