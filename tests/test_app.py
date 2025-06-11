@@ -989,6 +989,7 @@ def _login_admin(client, app):
         )
         db.session.add(user)
         db.session.commit()
+        utils.load_db_settings(app)
     client.post("/login", data={"login": "admw@example.com", "hasło": "pass"})
 
 
@@ -996,19 +997,34 @@ def test_save_column_widths(client, app):
     _login_admin(client, app)
     resp = client.post(
         "/admin/settings",
-        data={"width_admin_trainers_name": "30"},
+        data={
+            "width_admin_trainers_id": "10",
+            "width_admin_trainers_name": "30",
+            "width_panel_history_date": "40",
+        },
         follow_redirects=False,
     )
     assert resp.status_code == 302
     with app.app_context():
         setting = Setting.query.get("table_admin_trainers_widths")
         assert setting is not None
-        assert setting.value == "name=30.0"
+        assert "id=10.0" in setting.value
+        assert "name=30.0" in setting.value
+        hist = Setting.query.get("table_panel_history_widths")
+        assert hist is not None
+        assert hist.value == "date=40.0"
 
 
-def test_admin_page_contains_width_class(client, app):
+def test_admin_page_applies_column_widths(client, app):
     _login_admin(client, app)
+    resp = client.post(
+        "/admin/settings",
+        data={"width_admin_trainers_id": "25"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    utils.load_db_settings(app)
     resp = client.get("/admin")
     assert resp.status_code == 200
     html = resp.data.decode()
-    assert "col-admin-trainers-name" in html
+    assert 'col-admin-trainers-id" style="width: 25.0%' in html
