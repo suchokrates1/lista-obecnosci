@@ -59,25 +59,21 @@
   {% else %}
     <div class="mb-5">
       <table class="table table-bordered w-auto">
-        <tbody>
+        <thead>
           <tr>
             <th>Imię</th>
-            <td>{{ prowadzacy.imie }}</td>
-          </tr>
-          <tr>
             <th>Nazwisko</th>
-            <td>{{ prowadzacy.nazwisko }}</td>
-          </tr>
-          <tr>
             <th>Numer umowy</th>
-            <td>{{ prowadzacy.numer_umowy }}</td>
-          </tr>
-          <tr>
             <th>Domyślny czas zajęć</th>
-            <td>{{ domyslny_czas }}</td>
-          </tr>
-          <tr>
             <th>Podpis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ prowadzacy.imie }}</td>
+            <td>{{ prowadzacy.nazwisko }}</td>
+            <td>{{ prowadzacy.numer_umowy }}</td>
+            <td>{{ domyslny_czas }}</td>
             <td>
               {% if prowadzacy.podpis_filename %}
                 <img src="{{ url_for('static', filename=prowadzacy.podpis_filename) }}"
