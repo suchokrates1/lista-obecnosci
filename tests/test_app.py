@@ -1001,10 +1001,9 @@ def test_save_column_widths(client, app):
     )
     assert resp.status_code == 302
     with app.app_context():
-        setting = Setting.query.get("table_column_widths")
+        setting = Setting.query.get("table_admin_trainers_widths")
         assert setting is not None
-        data = json.loads(setting.value)
-        assert data["admin_trainers"]["name"] == 30
+        assert setting.value == "name=30.0"
 
 
 def test_admin_page_contains_width_class(client, app):
