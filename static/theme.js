@@ -102,9 +102,13 @@ function togglePassword(id, btn) {
 
       const table = document.getElementById(tableId);
       if (table) {
+        table.style.width = '100%';
         const inputs = Array.from(document.querySelectorAll('[data-table="' + tableKey + '"]'));
         const index = inputs.indexOf(inp) + 1;
-        let targets = table.querySelectorAll('col.col-' + classPrefix + '-' + colKey + ', th.col-' + classPrefix + '-' + colKey);
+        let targets = [];
+        const colById = document.getElementById(tableId + '-' + colKey);
+        if (colById) targets.push(colById);
+        targets = targets.concat(Array.from(table.querySelectorAll('col.col-' + classPrefix + '-' + colKey + ', th.col-' + classPrefix + '-' + colKey)));
         if (!targets.length && index > 0) {
           const col = table.querySelector('col:nth-child(' + index + ')');
           const th = table.querySelector('th:nth-child(' + index + ')');
@@ -125,7 +129,10 @@ function togglePassword(id, btn) {
         inp.value = newVal;
         if (table) {
           const index = others.indexOf(inp) + 1;
-          let targets = table.querySelectorAll('col.col-' + classPrefix + '-' + colKey + ', th.col-' + classPrefix + '-' + colKey);
+          let targets = [];
+          const colById = document.getElementById(tableId + '-' + colKey);
+          if (colById) targets.push(colById);
+          targets = targets.concat(Array.from(table.querySelectorAll('col.col-' + classPrefix + '-' + colKey + ', th.col-' + classPrefix + '-' + colKey)));
           if (!targets.length && index > 0) {
             const col = table.querySelector('col:nth-child(' + index + ')');
             const th = table.querySelector('th:nth-child(' + index + ')');

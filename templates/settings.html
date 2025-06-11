@@ -188,7 +188,12 @@
     {% for table, info in tables.items() %}
     <h6 class="mb-1">{{ table_titles[table] }}</h6>
     <div class="table-responsive mb-4">
-      <table class="{{ info.class }}" id="{{ table.replace('_','-') }}">
+      <table class="{{ info.class }}" id="{{ table.replace('_','-') }}" style="table-layout: fixed; width: 100%;">
+        <colgroup>
+          {% for col, header, cls in info.columns %}
+          <col id="{{ table.replace('_','-') }}-{{ col }}" class="{{ cls }}">
+          {% endfor %}
+        </colgroup>
         <thead class="{{ info.thead }}">
           <tr>
             {% for col, header, cls in info.columns %}
