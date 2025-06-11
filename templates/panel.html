@@ -129,15 +129,15 @@
     <table class="table table-striped table-hover mb-3">
       <thead class="table-secondary">
         <tr>
-          <th>Uczestnik</th>
+          <th class="name-col">Uczestnik</th>
           <th>Frekwencja %</th>
-          <th>Obecności</th>
+          <th class="participants-col">Obecności</th>
         </tr>
       </thead>
       <tbody>
         {% for u in uczestnicy %}
         <tr>
-          <td>{{ u.imie_nazwisko }}</td>
+          <td class="name-col">{{ u.imie_nazwisko }}</td>
           <td>
             <div class="d-flex align-items-center" style="min-width: 180px;">
               <div class="progress flex-grow-1 me-2" style="height: 6px;">
@@ -154,7 +154,7 @@
               <small class="text-nowrap">{{ '%.0f'|format(stats[u.id].percent) }}%</small>
             </div>
           </td>
-          <td>{{ stats[u.id].present }}/{{ total_sessions }}</td>
+          <td class="participants-col">{{ stats[u.id].present }}/{{ total_sessions }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -200,7 +200,7 @@
         <th>Wysłano</th>
         <th>Data</th>
         <th>Czas</th>
-        <th>Obecni</th>
+        <th class="participants-col">Obecni</th>
         <th class="action-col text-nowrap">Akcja</th>
       </tr>
     </thead>
@@ -214,7 +214,7 @@
         </td>
         <td>{{ z.data.date() }}</td>
         <td>{{ z.czas_trwania }}</td>
-        <td>{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
+        <td class="participants-col">{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
         <td class="action-col text-nowrap">
           <a href="{{ url_for('routes.panel_edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia" title="Edytuj zajęcia">
             <i class="bi bi-pencil"></i>
