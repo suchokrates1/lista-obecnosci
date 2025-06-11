@@ -31,3 +31,17 @@ body.high-contrast .btn {
   width: 1%;
   white-space: nowrap;
 }
+
+/* Consistent column widths across tables */
+.id-col {
+  width: 6ch;
+}
+
+.name-col {
+  width: 20ch;
+}
+
+.participants-col {
+  width: 12ch;
+  text-align: center;
+}
