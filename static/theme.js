@@ -181,5 +181,19 @@ function togglePassword(id, btn) {
         });
       });
     }
+
+    const resetButtons = document.querySelectorAll('.reset-widths');
+    resetButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const key = btn.getAttribute('data-table');
+        const inputs = document.querySelectorAll('input[data-table="' + key + '"]');
+        if (!inputs.length) return;
+        const val = 100 / inputs.length;
+        inputs.forEach(function(inp) {
+          inp.value = val;
+          applyWidth(inp);
+        });
+      });
+    });
   });
 })();
