@@ -70,6 +70,24 @@ function togglePassword(id, btn) {
     }
 
     const widthInputs = document.querySelectorAll('[data-column]');
+
+    function updateTotals(tableKey) {
+      const inputs = Array.from(document.querySelectorAll('[data-table="' + tableKey + '"]'));
+      let total = inputs.reduce(function(s, o){ return s + parseFloat(o.value || 0); }, 0);
+      const diff = 100 - total;
+      const warn = document.querySelector('.total-warning[data-table="' + tableKey + '"]');
+      if (warn) {
+        if (diff !== 0) {
+          warn.textContent = diff.toFixed(1);
+          warn.classList.add('text-danger');
+        } else {
+          warn.textContent = '';
+          warn.classList.remove('text-danger');
+        }
+      }
+      return diff;
+    }
+
     function applyWidth(inp) {
       const tableKey = inp.dataset.table;
       const colKey = inp.dataset.column;
@@ -118,10 +136,43 @@ function togglePassword(id, btn) {
           targets.forEach(function(el) { el.style.width = newVal + '%'; });
         }
       }
+
+      updateTotals(tableKey);
     }
+
+    function adjustLastColumn(tableKey) {
+      const inputs = Array.from(document.querySelectorAll('[data-table="' + tableKey + '"]'));
+      if (!inputs.length) return;
+      const last = inputs[inputs.length - 1];
+      const othersSum = inputs.slice(0, -1).reduce(function(s, o){ return s + parseFloat(o.value || 0); }, 0);
+      let newVal = 100 - othersSum;
+      if (newVal < 0) newVal = 0;
+      if (newVal > 100) newVal = 100;
+      last.value = newVal;
+      applyWidth(last);
+    }
+    const tableKeys = new Set();
     widthInputs.forEach(function(inp){
-      inp.addEventListener('input', function(){ applyWidth(inp); });
+      tableKeys.add(inp.dataset.table);
+      inp.addEventListener('input', function(){
+        const key = inp.dataset.table;
+        const inputs = Array.from(document.querySelectorAll('[data-table="' + key + '"]'));
+        if (inp === inputs[inputs.length - 1]) {
+          adjustLastColumn(key);
+        } else {
+          applyWidth(inp);
+        }
+      });
       applyWidth(inp);
     });
+
+    const form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function(){
+        tableKeys.forEach(function(key){
+          adjustLastColumn(key);
+        });
+      });
+    }
   });
 })();
