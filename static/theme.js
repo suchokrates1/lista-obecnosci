@@ -71,25 +71,52 @@ function togglePassword(id, btn) {
 
     const widthInputs = document.querySelectorAll('[data-column]');
     function applyWidth(inp) {
-      const table = inp.dataset.table;
-      const col = inp.dataset.column;
+      const tableKey = inp.dataset.table;
+      const colKey = inp.dataset.column;
+      const tableId = tableKey.replace(/_/g, '-');
+      const classPrefix = tableKey.replace('_', '-', 1);
+
       let val = parseFloat(inp.value);
       if (isNaN(val)) val = 0;
       if (val < 0) val = 0;
       if (val > 100) val = 100;
       inp.value = val;
-      document.querySelectorAll('.col-' + table + '-' + col).forEach(function(el) {
-        el.style.width = val + '%';
-      });
+
+      const table = document.getElementById(tableId);
+      if (table) {
+        const inputs = Array.from(document.querySelectorAll('[data-table="' + tableKey + '"]'));
+        const index = inputs.indexOf(inp) + 1;
+        let targets = table.querySelectorAll('col.col-' + classPrefix + '-' + colKey + ', th.col-' + classPrefix + '-' + colKey);
+        if (!targets.length && index > 0) {
+          const col = table.querySelector('col:nth-child(' + index + ')');
+          const th = table.querySelector('th:nth-child(' + index + ')');
+          targets = [];
+          if (col) targets.push(col);
+          if (th) targets.push(th);
+        }
+        targets.forEach(function(el) { el.style.width = val + '%'; });
+      }
+
       // ensure total per table <= 100
-      const others = Array.from(document.querySelectorAll('[data-table="' + table + '"]'));
+      const others = Array.from(document.querySelectorAll('[data-table="' + tableKey + '"]'));
       let total = others.reduce(function(s, o){ return s + parseFloat(o.value || 0); },0);
       if (total > 100) {
         const over = total - 100;
-        inp.value = val - over;
-        document.querySelectorAll('.col-' + table + '-' + col).forEach(function(el){
-          el.style.width = (val - over) + '%';
-        });
+        let newVal = val - over;
+        if (newVal < 0) newVal = 0;
+        inp.value = newVal;
+        if (table) {
+          const index = others.indexOf(inp) + 1;
+          let targets = table.querySelectorAll('col.col-' + classPrefix + '-' + colKey + ', th.col-' + classPrefix + '-' + colKey);
+          if (!targets.length && index > 0) {
+            const col = table.querySelector('col:nth-child(' + index + ')');
+            const th = table.querySelector('th:nth-child(' + index + ')');
+            targets = [];
+            if (col) targets.push(col);
+            if (th) targets.push(th);
+          }
+          targets.forEach(function(el) { el.style.width = newVal + '%'; });
+        }
       }
     }
     widthInputs.forEach(function(inp){
