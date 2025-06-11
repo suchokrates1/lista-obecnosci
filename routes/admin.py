@@ -94,7 +94,11 @@ def admin_settings():
         "reg_email_body",
         "reset_email_subject",
         "reset_email_body",
-        "table_column_widths",
+        "table_admin_new_users_widths",
+        "table_admin_trainers_widths",
+        "table_admin_sessions_widths",
+        "table_admin_stats_widths",
+        "table_panel_history_widths",
     ]
 
     if request.method == "POST":
@@ -112,7 +116,7 @@ def admin_settings():
                 db.session.add(Setting(key=key, value=val))
             os.environ[key.upper()] = val
 
-        widths: dict[str, dict[str, float]] = {}
+        widths: dict[str, list[str]] = {}
         for form_key, form_val in request.form.items():
             if not form_key.startswith("width_"):
                 continue
@@ -122,15 +126,16 @@ def admin_settings():
                 num = float(form_val)
             except (TypeError, ValueError):
                 continue
-            widths.setdefault(table, {})[column] = num
-        if widths:
-            val = json.dumps(widths)
-            setting = db.session.get(Setting, "table_column_widths")
+            widths.setdefault(table, []).append(f"{column}={num}")
+        for table, parts in widths.items():
+            val = ",".join(parts)
+            key = f"table_{table}_widths"
+            setting = db.session.get(Setting, key)
             if setting:
                 setting.value = val
             else:
-                db.session.add(Setting(key="table_column_widths", value=val))
-            os.environ["TABLE_COLUMN_WIDTHS"] = val
+                db.session.add(Setting(key=key, value=val))
+            os.environ[key.upper()] = val
 
         admin_login = request.form.get("admin_login")
         admin_password = request.form.get("admin_password")
@@ -150,12 +155,23 @@ def admin_settings():
         setting = db.session.get(Setting, key)
         values[key] = os.getenv(key.upper(), setting.value if setting else "")
 
-    widths = {}
-    val = values.get("table_column_widths") or "{}"
-    try:
-        widths = json.loads(val)
-    except json.JSONDecodeError:
-        widths = {}
+    widths: dict[str, dict[str, float]] = {}
+    for key, val in values.items():
+        if not key.startswith("table_") or not key.endswith("_widths"):
+            continue
+        table = key[len("table_") : -len("_widths")]
+        cols: dict[str, float] = {}
+        for item in (val or "").split(","):
+            if not item:
+                continue
+            if "=" in item:
+                col, num_str = item.split("=", 1)
+                try:
+                    cols[col] = float(num_str)
+                except ValueError:
+                    continue
+        if cols:
+            widths[table] = cols
 
     admin_user = Uzytkownik.query.filter_by(role="admin").first()
     admin_login = admin_user.login if admin_user else ""
