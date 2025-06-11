@@ -40,3 +40,6 @@ static/*.jpg
 static/*.png
 szablon.docx
 rejestr.docx
+
+# Node
+node_modules/

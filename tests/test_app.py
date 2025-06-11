@@ -3,6 +3,7 @@ import io
 from PIL import Image
 import pytest
 import json
+import subprocess
 from app import create_app
 from datetime import datetime, timedelta
 from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik, PasswordResetToken, Setting
@@ -32,6 +33,12 @@ def app(tmp_path):
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_jsdom():
+    if not os.path.exists("node_modules/jsdom"):
+        subprocess.run(["npm", "install", "jsdom@22"], check=True)
 
 
 def test_start_fails_without_mail_vars(tmp_path, monkeypatch):
@@ -993,6 +1000,16 @@ def _login_admin(client, app):
     client.post("/login", data={"login": "admw@example.com", "hasło": "pass"})
 
 
+def _parse_settings_preview(html: str) -> dict:
+    proc = subprocess.run(
+        ["node", "tests/run_theme.js"],
+        input=html.encode(),
+        capture_output=True,
+        check=True,
+    )
+    return json.loads(proc.stdout.decode())
+
+
 def test_save_column_widths(client, app):
     _login_admin(client, app)
     resp = client.post(
@@ -1064,3 +1081,55 @@ def test_admin_page_applies_column_widths(client, app):
     assert resp.status_code == 200
     html = resp.data.decode()
     assert 'col-admin-trainers-id" style="width: 25.0%' in html
+
+
+def test_admin_settings_rejects_bad_widths(client, app):
+    with app.app_context():
+        db.session.add(Setting(key="table_admin_trainers_widths", value="id=20,name=80"))
+        db.session.commit()
+
+    _login_admin(client, app)
+    resp = client.post(
+        "/admin/settings",
+        data={"width_admin_trainers_id": "50", "width_admin_trainers_name": "30"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 200
+    assert b"Suma" in resp.data
+    with app.app_context():
+        setting = Setting.query.get("table_admin_trainers_widths")
+        assert setting.value == "id=20,name=80"
+
+
+def test_settings_preview_shows_saved_widths(client, app):
+    _login_admin(client, app)
+    resp = client.post(
+        "/admin/settings",
+        data={
+            "width_admin_trainers_id": "25",
+            "width_admin_trainers_name": "75",
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+
+    resp = client.get("/admin/settings")
+    assert resp.status_code == 200
+    result = _parse_settings_preview(resp.data.decode())
+    assert result["idWidth"].startswith("25")
+    assert result["nameWidth"].startswith("75")
+    assert result["warn"] == ""
+
+
+def test_theme_totals_warning_zero_once_valid():
+    html = (
+        "<table id='admin-trainers'><col id='admin-trainers-id'><col id='admin-trainers-name'></table>"
+        "<span class='total-warning' data-table='admin_trainers'></span>"
+        "<input data-table='admin_trainers' data-column='id' value='60'>"
+        "<input data-table='admin_trainers' data-column='name' value='30'>"
+    )
+    invalid = _parse_settings_preview(html)
+    assert invalid["warn"] != ""
+    html_valid = html.replace("value='30'", "value='40'")
+    valid = _parse_settings_preview(html_valid)
+    assert valid["warn"] == ""
