@@ -2,9 +2,10 @@ import os
 import io
 from PIL import Image
 import pytest
+import json
 from app import create_app
 from datetime import datetime, timedelta
-from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik, PasswordResetToken
+from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik, PasswordResetToken, Setting
 from docx import Document
 import utils
 from werkzeug.security import generate_password_hash
@@ -976,3 +977,39 @@ def test_panel_profile_post_updates_trainer(client, app, trainer):
         assert prow.nazwisko == "Nazwisko"
         assert prow.numer_umowy == "99"
         assert prow.domyslny_czas == 3.0
+
+
+def _login_admin(client, app):
+    with app.app_context():
+        user = Uzytkownik(
+            login="admw@example.com",
+            haslo_hash=generate_password_hash("pass"),
+            role="admin",
+            approved=True,
+        )
+        db.session.add(user)
+        db.session.commit()
+    client.post("/login", data={"login": "admw@example.com", "hasło": "pass"})
+
+
+def test_save_column_widths(client, app):
+    _login_admin(client, app)
+    resp = client.post(
+        "/admin/settings",
+        data={"width_admin_trainers_name": "30"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    with app.app_context():
+        setting = Setting.query.get("table_column_widths")
+        assert setting is not None
+        data = json.loads(setting.value)
+        assert data["admin_trainers"]["name"] == 30
+
+
+def test_admin_page_contains_width_class(client, app):
+    _login_admin(client, app)
+    resp = client.get("/admin")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert "col-admin-trainers-name" in html
