@@ -176,7 +176,7 @@
       {% for (rok, miesiac), godziny in podsumowanie|dictsort(reverse=True) %}
       <tr>
         <td>{{ rok }}</td>
-        <td>{{ '%02d'|format(miesiac) }}</td>
+        <td>{{ miesiac|month_name }}</td>
         <td>{{ godziny }}</td>
         <td class="action-col text-nowrap">
           <a href="{{ url_for('routes.panel_raport') }}?rok={{ rok }}&miesiac={{ miesiac }}" class="btn btn-sm text-primary" aria-label="Pobierz" title="Pobierz">
