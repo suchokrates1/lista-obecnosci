@@ -934,3 +934,20 @@ def test_panel_progress_and_edit_forms(client, trainer):
     html2 = resp2.data.decode()
     assert "name=\"new_participant\"" in html2
     assert "name=\"new_name\"" in html2
+
+def test_panel_profile_edit_mode(client, trainer):
+    resp = client.get("/panel")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert "name=\"imie\"" not in html
+    assert "name=\"nazwisko\"" not in html
+    assert "name=\"domyslny_czas\"" not in html
+
+    resp2 = client.get("/panel?edit_profile=1")
+    assert resp2.status_code == 200
+    html2 = resp2.data.decode()
+    assert "name=\"imie\"" in html2
+    assert "name=\"nazwisko\"" in html2
+    assert "name=\"domyslny_czas\"" in html2
+    assert "name=\"podpis\"" in html2
+
