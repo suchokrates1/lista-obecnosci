@@ -12,6 +12,7 @@ import queue
 import atexit
 from email.message import EmailMessage
 import re
+import json
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
 import uuid
@@ -125,6 +126,9 @@ SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
 # Whether to clean white background from signatures
 REMOVE_SIGNATURE_BG = os.getenv("REMOVE_SIGNATURE_BG", "0").lower() in {"1", "true", "yes"}
 
+# Mapping of column width percentages loaded from the database
+TABLE_COLUMN_WIDTHS: dict[str, dict[str, float]] = {}
+
 
 def load_db_settings(app) -> None:
     """Load configuration from the Setting table into ``os.environ``.
@@ -145,7 +149,13 @@ def load_db_settings(app) -> None:
         for setting in settings:
             os.environ[setting.key.upper()] = setting.value
 
-    global SIGNATURE_MAX_SIZE, REMOVE_SIGNATURE_BG
+    global SIGNATURE_MAX_SIZE, REMOVE_SIGNATURE_BG, TABLE_COLUMN_WIDTHS
+    try:
+        TABLE_COLUMN_WIDTHS = json.loads(os.getenv("TABLE_COLUMN_WIDTHS", "{}"))
+    except json.JSONDecodeError:
+        logger.warning("Invalid TABLE_COLUMN_WIDTHS JSON")
+        TABLE_COLUMN_WIDTHS = {}
+
     SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
     REMOVE_SIGNATURE_BG = os.getenv("REMOVE_SIGNATURE_BG", "0").lower() in {"1", "true", "yes"}
 

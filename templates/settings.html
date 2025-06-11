@@ -120,6 +120,24 @@
         </div>
       </div>
     </div>
+
+    <hr class="my-4">
+    <h5>Szerokości kolumn</h5>
+    {% set cols = {
+      'admin_new_users': [('id','Konta oczekujące – ID'), ('login','Konta oczekujące – Login'), ('name','Konta oczekujące – Imię i nazwisko'), ('action','Konta oczekujące – Akcja')],
+      'admin_trainers': [('id','Lista prowadzących – ID'), ('name','Lista prowadzących – Imię i nazwisko'), ('signature','Lista prowadzących – Podpis'), ('participants','Lista prowadzących – Uczestnicy'), ('action','Lista prowadzących – Akcje')],
+      'admin_sessions': [('sent','Historia zajęć – Wysłano'), ('date','Historia zajęć – Data'), ('duration','Historia zajęć – Czas trwania'), ('trainer','Historia zajęć – Prowadzący'), ('participants','Historia zajęć – Obecni'), ('action','Historia zajęć – Akcja')],
+      'admin_stats': [('name','Statystyki – Uczestnik'), ('present','Statystyki – Obecności'), ('percent','Statystyki – Frekwencja')]
+    } %}
+    {% for table, pairs in cols.items() %}
+      {% for col, label in pairs %}
+      <div class="mb-2">
+        <label class="form-label" for="width_{{ table }}_{{ col }}">{{ label }} (%):</label>
+        <input type="number" class="form-control" id="width_{{ table }}_{{ col }}" name="width_{{ table }}_{{ col }}" min="0" max="100" value="{{ widths.get(table, {}).get(col, '') }}" data-table="{{ table }}" data-column="{{ col }}">
+      </div>
+      {% endfor %}
+    {% endfor %}
+
     <hr class="my-4">
     <h5>Dane administratora</h5>
     <div class="row g-3">
@@ -136,4 +154,28 @@
       <button type="submit" class="btn btn-primary" tabindex="22">Zapisz</button>
     </div>
   </form>
+
+  <h5 class="mt-5">Podgląd</h5>
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th class="col-admin-trainers-id">ID</th>
+          <th class="col-admin-trainers-name">Imię i nazwisko</th>
+          <th class="col-admin-trainers-signature">Podpis</th>
+          <th class="col-admin-trainers-participants">Uczestnicy</th>
+          <th class="col-admin-trainers-action">Akcje</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-admin-trainers-id">1</td>
+          <td class="col-admin-trainers-name">Przykład</td>
+          <td class="col-admin-trainers-signature">Tak</td>
+          <td class="col-admin-trainers-participants">5</td>
+          <td class="col-admin-trainers-action">...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 {% endblock %}

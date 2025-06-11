@@ -5,17 +5,17 @@
   <table class="table table-striped table-hover mb-4">
     <thead class="table-secondary">
       <tr>
-        <th class="name-col">Uczestnik</th>
-        <th class="participants-col">Obecności</th>
-        <th>Frekwencja</th>
+        <th class="name-col col-admin-stats-name">Uczestnik</th>
+        <th class="participants-col col-admin-stats-present">Obecności</th>
+        <th class="col-admin-stats-percent">Frekwencja</th>
       </tr>
     </thead>
     <tbody>
       {% for row in stats %}
       <tr>
-        <td class="name-col">{{ row.uczestnik.imie_nazwisko }}</td>
-        <td class="participants-col">{{ row.present }}/{{ total_sessions }}</td>
-        <td>{{ '%.0f'|format(row.percent) }}%</td>
+        <td class="name-col col-admin-stats-name">{{ row.uczestnik.imie_nazwisko }}</td>
+        <td class="participants-col col-admin-stats-present">{{ row.present }}/{{ total_sessions }}</td>
+        <td class="col-admin-stats-percent">{{ '%.0f'|format(row.percent) }}%</td>
       </tr>
       {% endfor %}
     </tbody>

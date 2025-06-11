@@ -68,5 +68,33 @@ function togglePassword(id, btn) {
         }
       });
     }
+
+    const widthInputs = document.querySelectorAll('[data-column]');
+    function applyWidth(inp) {
+      const table = inp.dataset.table;
+      const col = inp.dataset.column;
+      let val = parseFloat(inp.value);
+      if (isNaN(val)) val = 0;
+      if (val < 0) val = 0;
+      if (val > 100) val = 100;
+      inp.value = val;
+      document.querySelectorAll('.col-' + table + '-' + col).forEach(function(el) {
+        el.style.width = val + '%';
+      });
+      // ensure total per table <= 100
+      const others = Array.from(document.querySelectorAll('[data-table="' + table + '"]'));
+      let total = others.reduce(function(s, o){ return s + parseFloat(o.value || 0); },0);
+      if (total > 100) {
+        const over = total - 100;
+        inp.value = val - over;
+        document.querySelectorAll('.col-' + table + '-' + col).forEach(function(el){
+          el.style.width = (val - over) + '%';
+        });
+      }
+    }
+    widthInputs.forEach(function(inp){
+      inp.addEventListener('input', function(){ applyWidth(inp); });
+      applyWidth(inp);
+    });
   });
 })();
