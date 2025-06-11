@@ -116,7 +116,7 @@ def admin_settings():
                 db.session.add(Setting(key=key, value=val))
             os.environ[key.upper()] = val
 
-        widths: dict[str, list[str]] = {}
+        widths: dict[str, dict[str, float]] = {}
         for form_key, form_val in request.form.items():
             if not form_key.startswith("width_"):
                 continue
@@ -126,8 +126,55 @@ def admin_settings():
                 num = float(form_val)
             except (TypeError, ValueError):
                 continue
-            widths.setdefault(table, []).append(f"{column}={num}")
-        for table, parts in widths.items():
+            widths.setdefault(table, {})[column] = num
+
+        invalid = []
+        for table, cols in widths.items():
+            total = sum(cols.values())
+            if abs(total - 100.0) > 0.1:
+                invalid.append(table)
+
+        if invalid:
+            for table in invalid:
+                flash(
+                    f"Suma szerokości w tabeli {table.replace('_', ' ')} musi wynosić 100%",
+                    "danger",
+                )
+
+            values = {}
+            for key in keys:
+                setting = db.session.get(Setting, key)
+                values[key] = os.getenv(key.upper(), setting.value if setting else "")
+                if key == "remove_signature_bg":
+                    if request.form.get(key) is not None:
+                        values[key] = "1"
+                elif key in request.form:
+                    values[key] = request.form.get(key)
+
+            admin_user = Uzytkownik.query.filter_by(role="admin").first()
+            admin_login = request.form.get(
+                "admin_login", admin_user.login if admin_user else ""
+            )
+            return render_template(
+                "settings.html", values=values, widths=widths, admin_login=admin_login
+            )
+
+        for key in keys:
+            if key == "remove_signature_bg":
+                val = "1" if request.form.get(key) else "0"
+            else:
+                val = request.form.get(key)
+            if val is None:
+                continue
+            setting = db.session.get(Setting, key)
+            if setting:
+                setting.value = val
+            else:
+                db.session.add(Setting(key=key, value=val))
+            os.environ[key.upper()] = val
+
+        for table, cols in widths.items():
+            parts = [f"{col}={num}" for col, num in cols.items()]
             val = ",".join(parts)
             key = f"table_{table}_widths"
             setting = db.session.get(Setting, key)
