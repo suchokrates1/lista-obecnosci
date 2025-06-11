@@ -11,42 +11,84 @@
     {% endwith %}
   </div>
 
-  <h2 class="mb-4">Moje dane</h2>
-  <form method="POST" action="{{ url_for('routes.panel_update_profile') }}" enctype="multipart/form-data" class="mb-5">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div class="row g-3">
-      <div class="col-md-4">
-        <label for="imie" class="form-label">Imię:</label>
-        <input type="text" class="form-control" id="imie" name="imie" value="{{ prowadzacy.imie }}">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Moje dane</h2>
+    {% if edit_profile %}
+      <a href="{{ url_for('routes.panel') }}" class="btn btn-secondary">Zakończ edycję</a>
+    {% else %}
+      <a href="{{ url_for('routes.panel', edit_profile=1) }}" class="btn btn-outline-primary">Edytuj</a>
+    {% endif %}
+  </div>
+
+  {% if edit_profile %}
+    <form method="POST" action="{{ url_for('routes.panel_update_profile') }}" enctype="multipart/form-data" class="mb-5">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="imie" class="form-label">Imię:</label>
+          <input type="text" class="form-control" id="imie" name="imie" value="{{ prowadzacy.imie }}">
+        </div>
+        <div class="col-md-4">
+          <label for="nazwisko" class="form-label">Nazwisko:</label>
+          <input type="text" class="form-control" id="nazwisko" name="nazwisko" value="{{ prowadzacy.nazwisko }}">
+        </div>
+        <div class="col-md-4">
+          <label for="numer_umowy" class="form-label">Numer umowy:</label>
+          <input type="text" class="form-control" id="numer_umowy" name="numer_umowy" value="{{ prowadzacy.numer_umowy }}">
+        </div>
+        <div class="col-md-4">
+          <label for="domyslny_czas" class="form-label">Domyślny czas zajęć:</label>
+          <input type="text" class="form-control" id="domyslny_czas" name="domyslny_czas" value="{{ domyslny_czas }}">
+        </div>
+        <div class="col-md-6 d-flex align-items-center">
+          <label for="podpis" class="form-label me-2 mb-0">Podpis (.png/.jpg):</label>
+          <input type="file" class="form-control me-2" id="podpis" name="podpis" accept=".png,.jpg,.jpeg">
+          {% if prowadzacy.podpis_filename %}
+            <img src="{{ url_for('static', filename=prowadzacy.podpis_filename) }}"
+                 alt="Aktualny podpis"
+                 class="img-thumbnail me-2"
+                 style="height: 60px;">
+          {% endif %}
+          <img id="podpisPreview" class="img-thumbnail d-none" alt="Podgląd podpisu" style="height: 60px;">
+        </div>
       </div>
-      <div class="col-md-4">
-        <label for="nazwisko" class="form-label">Nazwisko:</label>
-        <input type="text" class="form-control" id="nazwisko" name="nazwisko" value="{{ prowadzacy.nazwisko }}">
+      <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Zapisz dane</button>
       </div>
-      <div class="col-md-4">
-        <label for="numer_umowy" class="form-label">Numer umowy:</label>
-        <input type="text" class="form-control" id="numer_umowy" name="numer_umowy" value="{{ prowadzacy.numer_umowy }}">
-      </div>
-      <div class="col-md-4">
-        <label for="domyslny_czas" class="form-label">Domyślny czas zajęć:</label>
-        <input type="text" class="form-control" id="domyslny_czas" name="domyslny_czas" value="{{ domyslny_czas }}">
-      </div>
-      <div class="col-md-6">
-        <label for="podpis" class="form-label">Podpis (.png/.jpg):</label>
-        <input type="file" class="form-control" id="podpis" name="podpis" accept=".png,.jpg,.jpeg">
-        {% if prowadzacy.podpis_filename %}
-          <img src="{{ url_for('static', filename=prowadzacy.podpis_filename) }}"
-               alt="Aktualny podpis"
-               class="img-thumbnail mt-2"
-               style="height: 60px;">
-        {% endif %}
-        <img id="podpisPreview" class="img-thumbnail mt-2 d-none" alt="Podgląd podpisu">
+    </form>
+  {% else %}
+    <div class="mb-5">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Imię:</label>
+          <p class="form-control-plaintext mb-0">{{ prowadzacy.imie }}</p>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Nazwisko:</label>
+          <p class="form-control-plaintext mb-0">{{ prowadzacy.nazwisko }}</p>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Numer umowy:</label>
+          <p class="form-control-plaintext mb-0">{{ prowadzacy.numer_umowy }}</p>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Domyślny czas zajęć:</label>
+          <p class="form-control-plaintext mb-0">{{ domyslny_czas }}</p>
+        </div>
+        <div class="col-md-6 d-flex align-items-center">
+          <label class="form-label me-2 mb-0">Podpis:</label>
+          {% if prowadzacy.podpis_filename %}
+            <img src="{{ url_for('static', filename=prowadzacy.podpis_filename) }}"
+                 alt="Podpis"
+                 class="img-thumbnail"
+                 style="height: 60px;">
+          {% else %}
+            <span class="text-muted">Brak</span>
+          {% endif %}
+        </div>
       </div>
     </div>
-    <div class="mt-3">
-      <button type="submit" class="btn btn-primary">Zapisz dane</button>
-    </div>
-  </form>
+  {% endif %}
 
   {% if edit_mode %}
     <h2 class="mb-4">Uczestnicy</h2>

@@ -32,6 +32,7 @@ def panel():
 
     uczestnicy, all_zajecia, stats, total_sessions = get_participant_stats(prow)
     edit_mode = request.args.get("edit") == "1"
+    edit_profile = request.args.get("edit_profile") == "1"
     page = request.args.get("page", 1, type=int)
     pagination = (
         Zajecia.query.filter_by(prowadzacy_id=prow.id)
@@ -58,6 +59,7 @@ def panel():
         stats=stats,
         total_sessions=total_sessions,
         edit_mode=edit_mode,
+        edit_profile=edit_profile,
     )
 
 
