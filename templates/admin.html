@@ -5,11 +5,12 @@
   <h2 class="mb-4">Konta oczekujące na zatwierdzenie</h2>
   <div class="table-responsive">
   <table class="table table-bordered align-middle" id="admin-new-users">
+    {% set w = table_widths.get('admin-new-users', []) %}
     <colgroup>
-      <col class="id-col col-admin-new_users-id">
-      <col class="col-admin-new_users-login">
-      <col class="name-col col-admin-new_users-name">
-      <col class="action-col col-admin-new_users-action">
+      <col class="id-col col-admin-new_users-id"{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>
+      <col class="col-admin-new_users-login"{% if w|length > 1 %} style="width: {{ w[1] }}%"{% endif %}>
+      <col class="name-col col-admin-new_users-name"{% if w|length > 2 %} style="width: {{ w[2] }}%"{% endif %}>
+      <col class="action-col col-admin-new_users-action"{% if w|length > 3 %} style="width: {{ w[3] }}%"{% endif %}>
     </colgroup>
     <thead class="table-warning">
       <tr>
@@ -56,12 +57,13 @@
 
   <div class="table-responsive">
   <table class="table table-striped table-bordered align-middle" id="admin-trainers">
+    {% set w = table_widths.get('admin-trainers', []) %}
     <colgroup>
-      <col class="id-col col-admin-trainers-id">
-      <col class="name-col col-admin-trainers-name">
-      <col class="col-admin-trainers-signature">
-      <col class="participants-col col-admin-trainers-participants">
-      <col class="action-col col-admin-trainers-action">
+      <col class="id-col col-admin-trainers-id"{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>
+      <col class="name-col col-admin-trainers-name"{% if w|length > 1 %} style="width: {{ w[1] }}%"{% endif %}>
+      <col class="col-admin-trainers-signature"{% if w|length > 2 %} style="width: {{ w[2] }}%"{% endif %}>
+      <col class="participants-col col-admin-trainers-participants"{% if w|length > 3 %} style="width: {{ w[3] }}%"{% endif %}>
+      <col class="action-col col-admin-trainers-action"{% if w|length > 4 %} style="width: {{ w[4] }}%"{% endif %}>
     </colgroup>
     <thead class="table-dark">
       <tr>
@@ -175,13 +177,14 @@
 
   <div class="table-responsive">
   <table class="table table-striped table-hover" id="admin-history">
+    {% set w = table_widths.get('admin-sessions', []) %}
     <colgroup>
-      <col class="col-admin-sessions-sent">
-      <col class="col-admin-sessions-date">
-      <col class="col-admin-sessions-duration">
-      <col class="col-admin-sessions-trainer">
-      <col class="participants-col col-admin-sessions-participants">
-      <col class="action-col col-admin-sessions-action">
+      <col class="col-admin-sessions-sent"{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>
+      <col class="col-admin-sessions-date"{% if w|length > 1 %} style="width: {{ w[1] }}%"{% endif %}>
+      <col class="col-admin-sessions-duration"{% if w|length > 2 %} style="width: {{ w[2] }}%"{% endif %}>
+      <col class="col-admin-sessions-trainer"{% if w|length > 3 %} style="width: {{ w[3] }}%"{% endif %}>
+      <col class="participants-col col-admin-sessions-participants"{% if w|length > 4 %} style="width: {{ w[4] }}%"{% endif %}>
+      <col class="action-col col-admin-sessions-action"{% if w|length > 5 %} style="width: {{ w[5] }}%"{% endif %}>
     </colgroup>
     <thead class="table-secondary">
       <tr>

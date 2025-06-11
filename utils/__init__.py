@@ -127,7 +127,7 @@ SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
 REMOVE_SIGNATURE_BG = os.getenv("REMOVE_SIGNATURE_BG", "0").lower() in {"1", "true", "yes"}
 
 # Mapping of column width percentages loaded from the database
-TABLE_COLUMN_WIDTHS: dict[str, dict[str, float]] = {}
+TABLE_COLUMN_WIDTHS: dict[str, list[float]] = {}
 
 
 def load_db_settings(app) -> None:
@@ -150,11 +150,25 @@ def load_db_settings(app) -> None:
             os.environ[setting.key.upper()] = setting.value
 
     global SIGNATURE_MAX_SIZE, REMOVE_SIGNATURE_BG, TABLE_COLUMN_WIDTHS
-    try:
-        TABLE_COLUMN_WIDTHS = json.loads(os.getenv("TABLE_COLUMN_WIDTHS", "{}"))
-    except json.JSONDecodeError:
-        logger.warning("Invalid TABLE_COLUMN_WIDTHS JSON")
-        TABLE_COLUMN_WIDTHS = {}
+    TABLE_COLUMN_WIDTHS = {}
+    for key, value in os.environ.items():
+        if not key.startswith("TABLE_") or not key.endswith("_WIDTHS"):
+            continue
+        table = key[len("TABLE_") : -len("_WIDTHS")].lower().replace("_", "-")
+        widths: list[float] = []
+        for part in (value or "").split(","):
+            if not part:
+                continue
+            if "=" in part:
+                _, num = part.split("=", 1)
+            else:
+                num = part
+            try:
+                widths.append(float(num))
+            except ValueError:
+                continue
+        if widths:
+            TABLE_COLUMN_WIDTHS[table] = widths
 
     SIGNATURE_MAX_SIZE = int(os.getenv("MAX_SIGNATURE_SIZE", 1024 * 1024))
     REMOVE_SIGNATURE_BG = os.getenv("REMOVE_SIGNATURE_BG", "0").lower() in {"1", "true", "yes"}
