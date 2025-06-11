@@ -32,6 +32,11 @@ def inject_is_admin():
     return {"is_admin": current_user.is_authenticated and current_user.role == "admin"}
 
 
+def inject_table_widths():
+    from utils import TABLE_COLUMN_WIDTHS
+    return {"table_widths": TABLE_COLUMN_WIDTHS}
+
+
 def create_app():
     logging.basicConfig(level=logging.INFO)
     app = Flask(__name__)
@@ -85,6 +90,7 @@ def create_app():
     app.register_blueprint(routes_bp)
 
     app.context_processor(inject_is_admin)
+    app.context_processor(inject_table_widths)
     app.add_template_filter(month_name, "month_name")
 
     @app.cli.command("purge-tokens")

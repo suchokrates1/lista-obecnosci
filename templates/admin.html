@@ -6,26 +6,26 @@
   <div class="table-responsive">
   <table class="table table-bordered align-middle">
     <colgroup>
-      <col class="id-col">
-      <col>
-      <col class="name-col">
-      <col class="action-col">
+      <col class="id-col col-admin-new_users-id">
+      <col class="col-admin-new_users-login">
+      <col class="name-col col-admin-new_users-name">
+      <col class="action-col col-admin-new_users-action">
     </colgroup>
     <thead class="table-warning">
       <tr>
-        <th class="id-col">ID</th>
-        <th>Login</th>
-        <th class="name-col">Imię i nazwisko</th>
-        <th class="action-col text-nowrap">Akcja</th>
+        <th class="id-col col-admin-new_users-id">ID</th>
+        <th class="col-admin-new_users-login">Login</th>
+        <th class="name-col col-admin-new_users-name">Imię i nazwisko</th>
+        <th class="action-col text-nowrap col-admin-new_users-action">Akcja</th>
       </tr>
     </thead>
     <tbody>
       {% for u in new_users %}
       <tr>
-        <td class="id-col">{{ u.id }}</td>
-        <td>{{ u.login }}</td>
-        <td class="name-col">{{ u.prowadzacy.imie }} {{ u.prowadzacy.nazwisko }}</td>
-        <td class="action-col text-nowrap">
+        <td class="id-col col-admin-new_users-id">{{ u.id }}</td>
+        <td class="col-admin-new_users-login">{{ u.login }}</td>
+        <td class="name-col col-admin-new_users-name">{{ u.prowadzacy.imie }} {{ u.prowadzacy.nazwisko }}</td>
+        <td class="action-col text-nowrap col-admin-new_users-action">
           <form action="{{ url_for('routes.approve_user', id=u.id) }}" method="POST" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-sm btn-success" aria-label="Akceptuj" title="Akceptuj">
@@ -57,35 +57,35 @@
   <div class="table-responsive">
   <table class="table table-striped table-bordered align-middle">
     <colgroup>
-      <col class="id-col">
-      <col class="name-col">
-      <col>
-      <col class="participants-col">
-      <col class="action-col">
+      <col class="id-col col-admin-trainers-id">
+      <col class="name-col col-admin-trainers-name">
+      <col class="col-admin-trainers-signature">
+      <col class="participants-col col-admin-trainers-participants">
+      <col class="action-col col-admin-trainers-action">
     </colgroup>
     <thead class="table-dark">
       <tr>
-        <th class="id-col">ID</th>
-        <th class="name-col">Imię i nazwisko</th>
-        <th>Podpis</th>
-        <th class="participants-col">Uczestnicy</th>
-        <th class="action-col">Akcje</th>
+        <th class="id-col col-admin-trainers-id">ID</th>
+        <th class="name-col col-admin-trainers-name">Imię i nazwisko</th>
+        <th class="col-admin-trainers-signature">Podpis</th>
+        <th class="participants-col col-admin-trainers-participants">Uczestnicy</th>
+        <th class="action-col col-admin-trainers-action">Akcje</th>
       </tr>
     </thead>
     <tbody>
       {% for p in prowadzacy %}
       <tr>
-        <td class="id-col">{{ p.id }}</td>
-        <td class="name-col">{{ p.imie }} {{ p.nazwisko }}</td>
-        <td>
+        <td class="id-col col-admin-trainers-id">{{ p.id }}</td>
+        <td class="name-col col-admin-trainers-name">{{ p.imie }} {{ p.nazwisko }}</td>
+        <td class="col-admin-trainers-signature">
           {% if p.podpis_filename %}
             <img src="{{ url_for('static', filename=p.podpis_filename) }}" alt="Podpis" style="height: 40px;">
           {% else %}
             Brak
           {% endif %}
         </td>
-        <td class="participants-col">{{ p.uczestnicy|length }}</td>
-        <td class="action-col text-nowrap">
+        <td class="participants-col col-admin-trainers-participants">{{ p.uczestnicy|length }}</td>
+        <td class="action-col text-nowrap col-admin-trainers-action">
           <button class="btn btn-sm" onclick="edytujProwadzacego({{ p.id }}, '{{ p.imie }}', '{{ p.nazwisko }}', '{{ p.numer_umowy }}')" aria-label="Edytuj prowadzącego" title="Edytuj prowadzącego">
             <i class="bi bi-pencil"></i>
             <span class="visually-hidden">Edytuj prowadzącego</span>
@@ -176,36 +176,36 @@
   <div class="table-responsive">
   <table class="table table-striped table-hover">
     <colgroup>
-      <col>
-      <col>
-      <col>
-      <col>
-      <col class="participants-col">
-      <col class="action-col">
+      <col class="col-admin-sessions-sent">
+      <col class="col-admin-sessions-date">
+      <col class="col-admin-sessions-duration">
+      <col class="col-admin-sessions-trainer">
+      <col class="participants-col col-admin-sessions-participants">
+      <col class="action-col col-admin-sessions-action">
     </colgroup>
     <thead class="table-secondary">
       <tr>
-        <th>Wysłano</th>
-        <th>Data</th>
-        <th>Czas trwania</th>
-        <th>Prowadzący</th>
-        <th class="participants-col">Obecni</th>
-        <th class="action-col text-nowrap">Akcja</th>
+        <th class="col-admin-sessions-sent">Wysłano</th>
+        <th class="col-admin-sessions-date">Data</th>
+        <th class="col-admin-sessions-duration">Czas trwania</th>
+        <th class="col-admin-sessions-trainer">Prowadzący</th>
+        <th class="participants-col col-admin-sessions-participants">Obecni</th>
+        <th class="action-col text-nowrap col-admin-sessions-action">Akcja</th>
       </tr>
     </thead>
     <tbody>
       {% for z in zajecia %}
       <tr>
-        <td>
+        <td class="col-admin-sessions-sent">
           {% if z.wyslano %}
           <i class="bi bi-check-lg text-success"></i>
           {% endif %}
         </td>
-        <td>{{ z.data.date() }}</td>
-        <td>{{ z.czas_trwania }}</td>
-        <td>{{ z.prowadzacy.imie }} {{ z.prowadzacy.nazwisko }}</td>
-        <td class="participants-col">{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
-        <td class="action-col text-nowrap">
+        <td class="col-admin-sessions-date">{{ z.data.date() }}</td>
+        <td class="col-admin-sessions-duration">{{ z.czas_trwania }}</td>
+        <td class="col-admin-sessions-trainer">{{ z.prowadzacy.imie }} {{ z.prowadzacy.nazwisko }}</td>
+        <td class="participants-col col-admin-sessions-participants">{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
+        <td class="action-col text-nowrap col-admin-sessions-action">
           <a href="{{ url_for('routes.edytuj_zajecie', id=z.id) }}" class="btn btn-sm" aria-label="Edytuj zajęcia" title="Edytuj zajęcia">
             <i class="bi bi-pencil"></i>
             <span class="visually-hidden">Edytuj zajęcia</span>
