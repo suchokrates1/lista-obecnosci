@@ -1000,7 +1000,14 @@ def test_save_column_widths(client, app):
         data={
             "width_admin_trainers_id": "10",
             "width_admin_trainers_name": "30",
-            "width_panel_history_date": "40",
+            "width_admin_trainers_signature": "20",
+            "width_admin_trainers_participants": "20",
+            "width_admin_trainers_action": "20",
+            "width_panel_history_sent": "20",
+            "width_panel_history_date": "20",
+            "width_panel_history_duration": "20",
+            "width_panel_history_participants": "20",
+            "width_panel_history_action": "20",
         },
         follow_redirects=False,
     )
@@ -1012,14 +1019,43 @@ def test_save_column_widths(client, app):
         assert "name=30.0" in setting.value
         hist = Setting.query.get("table_panel_history_widths")
         assert hist is not None
-        assert hist.value == "date=40.0"
+        parts = {}
+        for item in hist.value.split(','):
+            if not item:
+                continue
+            key, val = item.split('=')
+            parts[key] = float(val)
+        assert abs(sum(parts.values()) - 100.0) < 0.1
+        assert parts.get("date") == 20.0
+
+
+def test_save_column_widths_invalid_sum(client, app):
+    _login_admin(client, app)
+    resp = client.post(
+        "/admin/settings",
+        data={
+            "width_admin_trainers_id": "50",
+            "width_admin_trainers_name": "30",
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 200
+    assert b"Suma" in resp.data
+    with app.app_context():
+        assert Setting.query.get("table_admin_trainers_widths") is None
 
 
 def test_admin_page_applies_column_widths(client, app):
     _login_admin(client, app)
     resp = client.post(
         "/admin/settings",
-        data={"width_admin_trainers_id": "25"},
+        data={
+            "width_admin_trainers_id": "25",
+            "width_admin_trainers_name": "25",
+            "width_admin_trainers_signature": "25",
+            "width_admin_trainers_participants": "15",
+            "width_admin_trainers_action": "10",
+        },
         follow_redirects=False,
     )
     assert resp.status_code == 302
