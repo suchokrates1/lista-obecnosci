@@ -44,7 +44,14 @@
   <hr class="my-4">
   {% endif %}
 
-  <h2 class="mb-4">Lista prowadzących</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Lista prowadzących</h2>
+    {% if edit_mode %}
+      <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-secondary">Zakończ edycję</a>
+    {% else %}
+      <a href="{{ url_for('routes.admin_dashboard', edit=1) }}" class="btn btn-outline-primary">Edytuj</a>
+    {% endif %}
+  </div>
 
   <div aria-live="polite" role="status">
     {% with messages = get_flashed_messages(with_categories=True) %}
@@ -78,6 +85,35 @@
     </thead>
     <tbody>
       {% for p in prowadzacy %}
+      {% if edit_mode %}
+      <form id="tr{{ p.id }}f" method="post" action="{{ url_for('routes.admin_update_trainer_inline', id=p.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      </form>
+      <tr>
+        <td class="id-col col-admin-trainers-id">{{ p.id }}</td>
+        <td class="name-col col-admin-trainers-name">
+          <input form="tr{{ p.id }}f" type="text" name="imie" value="{{ p.imie }}" class="form-control form-control-sm mb-1">
+          <input form="tr{{ p.id }}f" type="text" name="nazwisko" value="{{ p.nazwisko }}" class="form-control form-control-sm">
+          <input form="tr{{ p.id }}f" type="hidden" name="numer_umowy" value="{{ p.numer_umowy }}">
+        </td>
+        <td class="col-admin-trainers-signature">
+          {% if p.podpis_filename %}
+            <img src="{{ url_for('static', filename=p.podpis_filename) }}" alt="Podpis" style="height: 40px;">
+          {% else %}
+            Brak
+          {% endif %}
+        </td>
+        <td class="participants-col col-admin-trainers-participants">{{ p.uczestnicy|length }}</td>
+        <td class="action-col text-nowrap col-admin-trainers-action">
+          <button form="tr{{ p.id }}f" type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz" title="Zapisz">
+            <i class="bi bi-check"></i>
+          </button>
+          <a href="{{ url_for('routes.admin_dashboard', edit=1) }}" class="btn btn-sm text-danger" aria-label="Anuluj" title="Anuluj">
+            <i class="bi bi-x"></i>
+          </a>
+        </td>
+      </tr>
+      {% else %}
       <tr>
         <td class="id-col col-admin-trainers-id">{{ p.id }}</td>
         <td class="name-col col-admin-trainers-name">{{ p.imie }} {{ p.nazwisko }}</td>
@@ -115,7 +151,8 @@
           </button>
         </td>
       </tr>
-
+      {% endif %}
+      
       <div class="modal fade" id="raportModal{{ p.id }}" tabindex="-1" aria-labelledby="raportModalLabel{{ p.id }}" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
@@ -156,7 +193,14 @@
 
   <hr class="my-5">
 
-  <h2 class="mb-4">Historia zajęć</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Historia zajęć</h2>
+    {% if edit_mode %}
+      <a href="{{ url_for('routes.admin_dashboard', p_id=selected_p_id) }}" class="btn btn-secondary">Zakończ edycję</a>
+    {% else %}
+      <a href="{{ url_for('routes.admin_dashboard', p_id=selected_p_id, edit=1) }}" class="btn btn-outline-primary">Edytuj</a>
+    {% endif %}
+  </div>
 
   <form method="get" class="mb-3">
     <div class="row g-2 align-items-end">
@@ -201,6 +245,24 @@
     </thead>
     <tbody>
       {% for z in zajecia %}
+      {% if edit_mode %}
+      <form id="sz{{ z.id }}f" method="post" action="{{ url_for('routes.admin_update_session_inline', id=z.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      </form>
+      <tr>
+        <td class="col-admin-sessions-sent">
+          {% if z.wyslano %}<i class="bi bi-check-lg text-success"></i>{% endif %}
+        </td>
+        <td class="col-admin-sessions-date"><input form="sz{{ z.id }}f" type="date" name="data" value="{{ z.data.date() }}" class="form-control form-control-sm"></td>
+        <td class="col-admin-sessions-duration"><input form="sz{{ z.id }}f" type="text" name="czas" value="{{ z.czas_trwania }}" class="form-control form-control-sm"></td>
+        <td class="col-admin-sessions-trainer">{{ z.prowadzacy.imie }} {{ z.prowadzacy.nazwisko }}</td>
+        <td class="participants-col col-admin-sessions-participants">{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
+        <td class="action-col text-nowrap col-admin-sessions-action">
+          <button form="sz{{ z.id }}f" type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz" title="Zapisz"><i class="bi bi-check"></i></button>
+          <a href="{{ url_for('routes.admin_dashboard', edit=1, p_id=selected_p_id) }}" class="btn btn-sm text-danger" aria-label="Anuluj" title="Anuluj"><i class="bi bi-x"></i></a>
+        </td>
+      </tr>
+      {% else %}
       <tr>
         <td class="col-admin-sessions-sent">
           {% if z.wyslano %}
@@ -233,6 +295,7 @@
           </form>
         </td>
       </tr>
+      {% endif %}
       {% endfor %}
     </tbody>
   </table>
