@@ -960,6 +960,50 @@ def test_panel_profile_post_updates_trainer(client, app, trainer):
         assert prow.domyslny_czas == 3.0
 
 
+def test_panel_edit_history_inputs(client, trainer):
+    resp = client.get("/panel?edit=1")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert 'name="data"' in html
+    assert 'name="czas"' in html
+
+
+def test_admin_edit_mode_inputs(client, app):
+    with app.app_context():
+        p = Prowadzacy(imie="A", nazwisko="B", numer_umowy="1")
+        db.session.add(p)
+        db.session.flush()
+        z = Zajecia(prowadzacy_id=p.id, data=datetime(2023, 1, 1), czas_trwania=1.0)
+        admin = Uzytkownik(login="admtest@example.com", haslo_hash=generate_password_hash("x"), role="admin", approved=True)
+        db.session.add_all([z, admin])
+        db.session.commit()
+    client.post("/login", data={"login": "admtest@example.com", "hasło": "x"})
+    resp = client.get("/admin?edit=1")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert 'name="imie"' in html
+    assert 'name="data"' in html
+
+
+def test_admin_stats_edit_mode_inputs(client, app):
+    with app.app_context():
+        p = Prowadzacy(imie="S", nazwisko="T")
+        db.session.add(p)
+        db.session.flush()
+        u = Uczestnik(imie_nazwisko="P", prowadzacy_id=p.id)
+        z = Zajecia(prowadzacy_id=p.id, data=datetime(2023, 1, 1), czas_trwania=1.0)
+        z.obecni.append(u)
+        admin = Uzytkownik(login="admstat@example.com", haslo_hash=generate_password_hash("s"), role="admin", approved=True)
+        db.session.add_all([u, z, admin])
+        db.session.commit()
+        pid = p.id
+    client.post("/login", data={"login": "admstat@example.com", "hasło": "s"})
+    resp = client.get(f"/admin/statystyki/{pid}?edit=1")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert 'name="present_' in html
+
+
 def _login_admin(client, app):
     with app.app_context():
         user = Uzytkownik(
