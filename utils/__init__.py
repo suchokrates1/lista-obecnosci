@@ -405,7 +405,19 @@ def parse_registration_form(form, files):
     haslo = form.get("haslo")
     podpis = files.get("podpis")
 
-    if not all([imie, nazwisko, numer_umowy, lista_uczestnikow, login_val, haslo]):
+    uczestnik_values = [v for v in form.getlist("uczestnik") if v]
+    if uczestnik_values:
+        lista_vals = uczestnik_values
+    else:
+        lista_vals = [lista_uczestnikow] if lista_uczestnikow else []
+
+    uczestnicy: list[str] = []
+    for val in lista_vals:
+        if not val:
+            continue
+        uczestnicy.extend(l.strip() for l in val.splitlines() if l.strip())
+
+    if not all([imie, nazwisko, numer_umowy, login_val, haslo]) or not uczestnicy:
         return None, "Wszystkie pola oprócz podpisu są wymagane"
 
     if not is_valid_email(login_val):
@@ -423,8 +435,6 @@ def parse_registration_form(form, files):
         if error:
             return None, error
         valid_signature = True
-
-    uczestnicy = [l.strip() for l in lista_uczestnikow.splitlines() if l.strip()]
 
     return {
         "imie": imie,

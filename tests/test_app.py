@@ -154,6 +154,35 @@ def test_successful_register(client, app, monkeypatch):
         assert Uzytkownik.query.count() == 1
 
 
+def test_register_with_new_participant_fields(client, app, monkeypatch):
+    monkeypatch.setattr("routes.auth.send_plain_email", lambda *a, **k: None)
+    from werkzeug.datastructures import MultiDict
+
+    data = MultiDict(
+        [
+            ("imie", "A"),
+            ("nazwisko", "B"),
+            ("numer_umowy", "1"),
+            ("uczestnik", "X"),
+            ("uczestnik", "Y\nZ"),
+            ("login", "new@example.com"),
+            ("haslo", "pass"),
+        ]
+    )
+    resp = client.post(
+        "/register",
+        data=data,
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    assert resp.headers["Location"].endswith("/login")
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        names = [u.imie_nazwisko for u in prow.uczestnicy]
+        assert names == ["X", "Y", "Z"]
+
+
 def test_login_success(client, app):
     with app.app_context():
         user = Uzytkownik(
