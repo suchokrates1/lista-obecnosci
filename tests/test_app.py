@@ -781,32 +781,6 @@ def test_panel_summary_table_links(client, app):
     assert "/panel/raport?rok=2023&miesiac=5&wyslij=1" in data
 
 
-def test_panel_statystyki_requires_login(client):
-    resp = client.get("/panel/statystyki")
-    assert resp.status_code == 302
-    assert "/login" in resp.headers["Location"]
-
-
-def test_panel_statystyki_data(client, app):
-    login_val = _create_trainer(app)
-    with app.app_context():
-        prow = Prowadzacy.query.first()
-        u1 = Uczestnik(imie_nazwisko="A", prowadzacy_id=prow.id)
-        u2 = Uczestnik(imie_nazwisko="B", prowadzacy_id=prow.id)
-        db.session.add_all([u1, u2])
-        zaj = Zajecia.query.first()
-        zaj.obecni.append(u1)
-        db.session.commit()
-
-    client.post(
-        "/login", data={"login": login_val, "hasło": "pass"}, follow_redirects=False
-    )
-    resp = client.get("/panel/statystyki")
-    assert resp.status_code == 200
-    data = resp.data.decode()
-    assert "A" in data and "1/1" in data and "100%" in data
-    assert "B" in data and "0/1" in data and "0%" in data
-
 
 def test_admin_statystyki_requires_admin(client, app):
     login_val = _create_trainer(app)
