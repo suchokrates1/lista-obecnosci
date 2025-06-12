@@ -61,20 +61,21 @@
       <div class="table-responsive">
       <table class="table table-bordered w-auto" id="panel-profile-data">
         <caption class="visually-hidden">Moje dane</caption>
+        {% set w = table_widths.get('panel-profile-data', []) %}
         <colgroup>
-          <col>
-          <col>
-          <col>
-          <col>
-          <col>
+          <col class="col-panel-profile-data-first"{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>
+          <col class="col-panel-profile-data-last"{% if w|length > 1 %} style="width: {{ w[1] }}%"{% endif %}>
+          <col class="col-panel-profile-data-contract"{% if w|length > 2 %} style="width: {{ w[2] }}%"{% endif %}>
+          <col class="col-panel-profile-data-default"{% if w|length > 3 %} style="width: {{ w[3] }}%"{% endif %}>
+          <col class="col-panel-profile-data-signature"{% if w|length > 4 %} style="width: {{ w[4] }}%"{% endif %}>
         </colgroup>
         <thead>
           <tr>
-            <th>Imię</th>
-            <th>Nazwisko</th>
-            <th>Numer umowy</th>
-            <th>Domyślny czas zajęć</th>
-            <th>Podpis</th>
+            <th class="col-panel-profile-data-first">Imię</th>
+            <th class="col-panel-profile-data-last">Nazwisko</th>
+            <th class="col-panel-profile-data-contract">Numer umowy</th>
+            <th class="col-panel-profile-data-default">Domyślny czas zajęć</th>
+            <th class="col-panel-profile-data-signature">Podpis</th>
           </tr>
         </thead>
         <tbody>

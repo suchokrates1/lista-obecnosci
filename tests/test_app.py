@@ -999,6 +999,11 @@ def test_save_column_widths(client, app):
             "width_panel_history_duration": "20",
             "width_panel_history_participants": "20",
             "width_panel_history_action": "20",
+            "width_panel_profile_data_first": "20",
+            "width_panel_profile_data_last": "20",
+            "width_panel_profile_data_contract": "20",
+            "width_panel_profile_data_default": "20",
+            "width_panel_profile_data_signature": "20",
         },
         follow_redirects=False,
     )
@@ -1018,6 +1023,9 @@ def test_save_column_widths(client, app):
             parts[key] = float(val)
         assert abs(sum(parts.values()) - 100.0) < 0.1
         assert parts.get("date") == 20.0
+        profile = Setting.query.get("table_panel_profile_data_widths")
+        assert profile is not None
+        assert "first=20.0" in profile.value
 
 
 def test_save_column_widths_invalid_sum(client, app):
@@ -1055,6 +1063,30 @@ def test_admin_page_applies_column_widths(client, app):
     assert resp.status_code == 200
     html = resp.data.decode()
     assert 'col-admin-trainers-id" style="width: 25.0%' in html
+
+
+def test_panel_profile_widths_render(client, app):
+    _login_admin(client, app)
+    trainer_login = _create_trainer(app)
+    resp = client.post(
+        "/admin/settings",
+        data={
+            "width_panel_profile_data_first": "10",
+            "width_panel_profile_data_last": "20",
+            "width_panel_profile_data_contract": "20",
+            "width_panel_profile_data_default": "30",
+            "width_panel_profile_data_signature": "20",
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    utils.load_db_settings(app)
+    client.get("/logout")
+    client.post("/login", data={"login": trainer_login, "hasło": "pass"})
+    resp = client.get("/panel")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert 'col-panel-profile-data-first" style="width: 10.0%' in html
 
 
 def test_admin_settings_rejects_bad_widths(client, app):
