@@ -9,7 +9,7 @@
       <a href="{{ url_for('routes.admin_statystyki', trainer_id=prowadzacy.id, edit=1) }}" class="btn btn-outline-primary">Edytuj</a>
     {% endif %}
   </div>
-  <table class="table table-striped table-hover mb-4" id="admin-stats">
+  <table class="table table-striped table-hover table-bordered mb-4" id="admin-stats">
     <caption class="visually-hidden">Statystyki obecności</caption>
     {% set w = table_widths.get('admin-stats', []) %}
     <thead class="table-secondary">
