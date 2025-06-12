@@ -176,6 +176,17 @@
           ('participants', 'Obecni', 'participants-col col-panel-history-participants'),
           ('action', 'Akcja', 'action-col text-nowrap col-panel-history-action'),
         ]
+      },
+      'panel_profile_data': {
+        'class': 'table table-bordered w-auto',
+        'thead': '',
+        'columns': [
+          ('first', 'Imię', 'col-panel-profile-data-first'),
+          ('last', 'Nazwisko', 'col-panel-profile-data-last'),
+          ('contract', 'Numer umowy', 'col-panel-profile-data-contract'),
+          ('default', 'Domyślny czas zajęć', 'col-panel-profile-data-default'),
+          ('signature', 'Podpis', 'col-panel-profile-data-signature'),
+        ]
       }
     } %}
     {% set table_titles = {
@@ -183,7 +194,8 @@
       'admin_trainers': 'Lista prowadzących',
       'admin_sessions': 'Historia zajęć',
       'admin_stats': 'Statystyki obecności',
-      'panel_history': 'Historia zajęć'
+      'panel_history': 'Historia zajęć',
+      'panel_profile_data': 'Moje dane'
     } %}
     {% for table, info in tables.items() %}
     <h6 class="mb-1">{{ table_titles[table] }}</h6>

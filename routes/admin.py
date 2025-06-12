@@ -99,6 +99,7 @@ def admin_settings():
         "table_admin_sessions_widths",
         "table_admin_stats_widths",
         "table_panel_history_widths",
+        "table_panel_profile_data_widths",
     ]
 
     if request.method == "POST":
