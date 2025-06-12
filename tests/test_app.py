@@ -10,6 +10,7 @@ from model import db, Uzytkownik, Prowadzacy, Zajecia, Uczestnik, PasswordResetT
 from docx import Document
 import utils
 from werkzeug.security import generate_password_hash
+import re
 
 
 @pytest.fixture
@@ -1255,3 +1256,34 @@ def test_theme_totals_warning_zero_once_valid():
     html_valid = html.replace("value='30'", "value='40'")
     valid = _parse_settings_preview(html_valid)
     assert valid["warn"] == ""
+
+
+def test_panel_tables_have_table_bordered(client, trainer):
+    resp = client.get("/panel")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    for tid in ("panel-participants", "panel-monthly-reports", "panel-history"):
+        m = re.search(r'<table[^>]*id="%s"[^>]*>' % tid, html)
+        assert m and "table-bordered" in m.group(0)
+
+
+def test_admin_history_table_bordered(client, app):
+    _create_trainer(app)
+    _login_admin(client, app)
+    resp = client.get("/admin")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    m = re.search(r'<table[^>]*id="admin-history"[^>]*>', html)
+    assert m and "table-bordered" in m.group(0)
+
+
+def test_admin_stats_table_bordered(client, app):
+    _create_trainer(app)
+    with app.app_context():
+        tid = Prowadzacy.query.first().id
+    _login_admin(client, app)
+    resp = client.get(f"/admin/statystyki/{tid}")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    m = re.search(r'<table[^>]*id="admin-stats"[^>]*>', html)
+    assert m and "table-bordered" in m.group(0)
