@@ -319,28 +319,3 @@ def panel_raport():
     )
 
 
-@routes_bp.route("/panel/statystyki")
-@role_required("prowadzacy")
-def panel_statystyki():
-    """Show attendance statistics for the logged in trainer."""
-
-    prow = current_user.prowadzacy
-    if not prow:
-        abort(404)
-
-    uczestnicy, _zajecia, stats_map, total = get_participant_stats(prow)
-    stats = [
-        {
-            "uczestnik": val["uczestnik"],
-            "present": val["present"],
-            "percent": val["percent"],
-        }
-        for val in stats_map.values()
-    ]
-
-    return render_template(
-        "statystyki.html",
-        prowadzacy=prow,
-        stats=stats,
-        total_sessions=total,
-    )
