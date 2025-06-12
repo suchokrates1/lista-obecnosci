@@ -34,6 +34,32 @@ function togglePassword(id, btn) {
   }
 }
 
+function handleParticipantPaste(e) {
+  const data = (e.clipboardData || window.clipboardData).getData('text');
+  if (data && /[\r\n]/.test(data)) {
+    e.preventDefault();
+    const lines = data.replace(/\r/g, '').split('\n');
+    const first = lines.shift();
+    e.target.value = first;
+    lines.forEach(function(line) { addParticipantField(line); });
+  }
+}
+
+function addParticipantField(value = '') {
+  const container = document.getElementById('participants-container');
+  if (!container) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.name = 'uczestnik';
+  input.required = true;
+  input.placeholder = 'Imię i nazwisko';
+  input.className = 'form-control mb-2 participant-input';
+  input.value = value;
+  input.addEventListener('paste', handleParticipantPaste);
+  container.appendChild(input);
+  return input;
+}
+
 (function() {
   let theme = localStorage.getItem('theme');
   if (!theme) {
@@ -68,6 +94,12 @@ function togglePassword(id, btn) {
         }
       });
     }
+
+    const addBtn = document.getElementById('addParticipant');
+    if (addBtn) addBtn.addEventListener('click', function(){ addParticipantField(); });
+    document.querySelectorAll('.participant-input').forEach(function(inp){
+      inp.addEventListener('paste', handleParticipantPaste);
+    });
 
     const widthInputs = document.querySelectorAll('[data-column]');
 
