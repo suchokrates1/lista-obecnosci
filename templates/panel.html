@@ -223,7 +223,14 @@
   </table>
   </div>
 
-  <h2 class="mb-4">Historia zajęć</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Historia zajęć</h2>
+    {% if edit_mode %}
+      <a href="{{ url_for('routes.panel') }}" class="btn btn-secondary">Zakończ edycję</a>
+    {% else %}
+      <a href="{{ url_for('routes.panel', edit=1) }}" class="btn btn-outline-primary">Edytuj</a>
+    {% endif %}
+  </div>
   <div class="table-responsive">
   <table class="table table-striped table-hover" id="panel-history">
     <caption class="visually-hidden">Historia zajęć</caption>
@@ -246,6 +253,23 @@
     </thead>
     <tbody>
       {% for z in zajecia %}
+      {% if edit_mode %}
+      <form id="ps{{ z.id }}f" method="post" action="{{ url_for('routes.panel_update_session_inline', id=z.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      </form>
+      <tr>
+        <td>
+          {% if z.wyslano %}<i class="bi bi-check-lg text-success"></i>{% endif %}
+        </td>
+        <td><input form="ps{{ z.id }}f" type="date" name="data" value="{{ z.data.date() }}" class="form-control form-control-sm"></td>
+        <td><input form="ps{{ z.id }}f" type="text" name="czas" value="{{ z.czas_trwania }}" class="form-control form-control-sm"></td>
+        <td class="participants-col">{{ z.obecni|length }}/{{ z.prowadzacy.uczestnicy|length }}</td>
+        <td class="action-col text-nowrap">
+          <button form="ps{{ z.id }}f" type="submit" class="btn btn-sm text-secondary" aria-label="Zapisz" title="Zapisz"><i class="bi bi-check"></i></button>
+          <a href="{{ url_for('routes.panel', edit=1) }}" class="btn btn-sm text-danger" aria-label="Anuluj" title="Anuluj"><i class="bi bi-x"></i></a>
+        </td>
+      </tr>
+      {% else %}
       <tr>
         <td>
           {% if z.wyslano %}
@@ -277,6 +301,7 @@
           </form>
         </td>
       </tr>
+      {% endif %}
       {% endfor %}
     </tbody>
   </table>
