@@ -3,6 +3,7 @@
 {% block content %}
   <h2 class="mb-4">Statystyki obecności - {{ prowadzacy.imie }} {{ prowadzacy.nazwisko }}</h2>
   <table class="table table-striped table-hover mb-4" id="admin-stats">
+    <caption class="visually-hidden">Statystyki obecności</caption>
     {% set w = table_widths.get('admin-stats', []) %}
     <thead class="table-secondary">
       <tr>
