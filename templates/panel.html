@@ -140,23 +140,24 @@
     <div class="table-responsive">
     <table class="table table-striped table-hover mb-3" id="panel-participants">
       <caption class="visually-hidden">Uczestnicy</caption>
+      {% set w = table_widths.get('panel-participants', []) %}
       <colgroup>
-        <col class="name-col">
-        <col>
-        <col class="participants-col">
+        <col class="name-col col-panel-participants-name"{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>
+        <col class="col-panel-participants-percent"{% if w|length > 1 %} style="width: {{ w[1] }}%"{% endif %}>
+        <col class="participants-col col-panel-participants-present"{% if w|length > 2 %} style="width: {{ w[2] }}%"{% endif %}>
       </colgroup>
       <thead class="table-secondary">
         <tr>
-          <th class="name-col">Uczestnik</th>
-          <th>Frekwencja %</th>
-          <th class="participants-col">Obecności</th>
+          <th class="name-col col-panel-participants-name">Uczestnik</th>
+          <th class="col-panel-participants-percent">Frekwencja %</th>
+          <th class="participants-col col-panel-participants-present">Obecności</th>
         </tr>
       </thead>
       <tbody>
         {% for u in uczestnicy %}
         <tr>
-          <td class="name-col">{{ u.imie_nazwisko }}</td>
-          <td>
+          <td class="name-col col-panel-participants-name">{{ u.imie_nazwisko }}</td>
+          <td class="col-panel-participants-percent">
             <div class="d-flex align-items-center attendance-col">
               <div class="progress flex-grow-1 me-2" style="height: 6px;">
                 {# <50% red, 50-79% yellow, >=80% green #}
@@ -172,7 +173,7 @@
               <small class="text-nowrap">{{ '%.0f'|format(stats[u.id].percent) }}%</small>
             </div>
           </td>
-          <td class="participants-col">{{ stats[u.id].present }}/{{ total_sessions }}</td>
+          <td class="participants-col col-panel-participants-present">{{ stats[u.id].present }}/{{ total_sessions }}</td>
         </tr>
         {% endfor %}
       </tbody>
