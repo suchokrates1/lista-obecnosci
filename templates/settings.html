@@ -186,6 +186,16 @@
           ('present', 'Obecności', 'participants-col col-panel-participants-present'),
         ]
       },
+      'panel_monthly_reports': {
+        'class': 'table table-striped table-hover mb-5',
+        'thead': 'table-secondary',
+        'columns': [
+          ('year', 'Rok', 'col-panel-monthly-reports-year'),
+          ('month', 'Miesiąc', 'col-panel-monthly-reports-month'),
+          ('hours', 'Godzin', 'col-panel-monthly-reports-hours'),
+          ('action', 'Akcja', 'action-col text-nowrap col-panel-monthly-reports-action'),
+        ]
+      },
       'panel_profile_data': {
         'class': 'table table-bordered w-auto',
         'thead': '',
@@ -205,6 +215,7 @@
       'admin_stats': 'Statystyki obecności',
       'panel_history': 'Historia zajęć',
       'panel_participants': 'Uczestnicy',
+      'panel_monthly_reports': 'Raporty miesięczne',
       'panel_profile_data': 'Moje dane'
     } %}
     {% for table, info in tables.items() %}
