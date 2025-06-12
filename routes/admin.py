@@ -101,6 +101,7 @@ def admin_settings():
         "table_panel_history_widths",
         "table_panel_profile_data_widths",
         "table_panel_participants_widths",
+        "table_panel_monthly_reports_widths",
     ]
 
     if request.method == "POST":
