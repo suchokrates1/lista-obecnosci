@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}Statystyki{% endblock %}
 {% block content %}
-  <h2 class="mb-4">Statystyki obecności - {{ prowadzacy.imie }} {{ prowadzacy.nazwisko }}</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Statystyki obecności - {{ prowadzacy.imie }} {{ prowadzacy.nazwisko }}</h2>
+    {% if edit_mode %}
+      <a href="{{ url_for('routes.admin_statystyki', trainer_id=prowadzacy.id) }}" class="btn btn-secondary">Zakończ edycję</a>
+    {% else %}
+      <a href="{{ url_for('routes.admin_statystyki', trainer_id=prowadzacy.id, edit=1) }}" class="btn btn-outline-primary">Edytuj</a>
+    {% endif %}
+  </div>
   <table class="table table-striped table-hover mb-4" id="admin-stats">
     <caption class="visually-hidden">Statystyki obecności</caption>
     {% set w = table_widths.get('admin-stats', []) %}
@@ -14,11 +21,22 @@
     </thead>
     <tbody>
       {% for row in stats %}
+      {% if edit_mode %}
+      <form id="st{{ row.uczestnik.id }}f" method="post" action="#">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      </form>
+      <tr>
+        <td class="name-col col-admin-stats-name">{{ row.uczestnik.imie_nazwisko }}</td>
+        <td class="participants-col col-admin-stats-present"><input form="st{{ row.uczestnik.id }}f" type="text" name="present_{{ row.uczestnik.id }}" value="{{ row.present }}" class="form-control form-control-sm"></td>
+        <td class="col-admin-stats-percent"><input form="st{{ row.uczestnik.id }}f" type="text" name="percent_{{ row.uczestnik.id }}" value="{{ '%.0f'|format(row.percent) }}" class="form-control form-control-sm"></td>
+      </tr>
+      {% else %}
       <tr>
         <td class="name-col col-admin-stats-name">{{ row.uczestnik.imie_nazwisko }}</td>
         <td class="participants-col col-admin-stats-present">{{ row.present }}/{{ total_sessions }}</td>
         <td class="col-admin-stats-percent">{{ '%.0f'|format(row.percent) }}%</td>
       </tr>
+      {% endif %}
       {% endfor %}
     </tbody>
   </table>

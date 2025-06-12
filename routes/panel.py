@@ -319,3 +319,27 @@ def panel_raport():
     )
 
 
+@routes_bp.route("/panel/session/<int:id>/update_inline", methods=["POST"])
+@role_required("prowadzacy")
+def panel_update_session_inline(id):
+    """Inline update of a session from the panel history table."""
+    zaj = db.session.get(Zajecia, id)
+    if not zaj or zaj.prowadzacy_id != current_user.prowadzacy_id:
+        abort(403)
+    data_str = request.form.get("data")
+    czas = request.form.get("czas")
+    if data_str:
+        try:
+            zaj.data = datetime.strptime(data_str, "%Y-%m-%d")
+        except ValueError:
+            pass
+    if czas:
+        try:
+            zaj.czas_trwania = float(czas.replace(",", "."))
+        except ValueError:
+            pass
+    db.session.commit()
+    flash("Zajęcia zaktualizowane", "success")
+    return redirect(url_for("routes.panel", edit=1))
+
+

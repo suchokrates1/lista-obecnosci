@@ -45,6 +45,7 @@ def admin_dashboard():
 
     p_id = request.args.get("p_id", type=int)
     page = request.args.get("page", 1, type=int)
+    edit_mode = request.args.get("edit") == "1"
     query = Zajecia.query.order_by(Zajecia.data.desc())
     if p_id:
         query = query.filter_by(prowadzacy_id=p_id)
@@ -67,6 +68,7 @@ def admin_dashboard():
         ostatnie=ostatnie,
         new_users=new_users,
         selected_p_id=p_id,
+        edit_mode=edit_mode,
     )
 
 
@@ -567,6 +569,7 @@ def admin_statystyki(trainer_id):
 
     total = Zajecia.query.filter_by(prowadzacy_id=trainer_id).count()
     uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
+    edit_mode = request.args.get("edit") == "1"
 
     stats = []
     for u in uczestnicy:
@@ -579,4 +582,44 @@ def admin_statystyki(trainer_id):
         prowadzacy=prow,
         stats=stats,
         total_sessions=total,
+        edit_mode=edit_mode,
     )
+
+
+@routes_bp.route("/admin/trainer/<int:id>/update_inline", methods=["POST"])
+@role_required("admin")
+def admin_update_trainer_inline(id):
+    """Inline update of trainer fields from the dashboard."""
+    prow = db.session.get(Prowadzacy, id)
+    if not prow:
+        abort(404)
+    prow.imie = request.form.get("imie", prow.imie)
+    prow.nazwisko = request.form.get("nazwisko", prow.nazwisko)
+    prow.numer_umowy = request.form.get("numer_umowy", prow.numer_umowy)
+    db.session.commit()
+    flash("Prowadzący zaktualizowany", "success")
+    return redirect(url_for("routes.admin_dashboard", edit=1))
+
+
+@routes_bp.route("/admin/session/<int:id>/update_inline", methods=["POST"])
+@role_required("admin")
+def admin_update_session_inline(id):
+    """Inline update of session fields from the dashboard."""
+    zaj = db.session.get(Zajecia, id)
+    if not zaj:
+        abort(404)
+    data_str = request.form.get("data")
+    czas = request.form.get("czas")
+    if data_str:
+        try:
+            zaj.data = datetime.strptime(data_str, "%Y-%m-%d")
+        except ValueError:
+            pass
+    if czas:
+        try:
+            zaj.czas_trwania = float(czas.replace(",", "."))
+        except ValueError:
+            pass
+    db.session.commit()
+    flash("Zajęcia zaktualizowane", "success")
+    return redirect(url_for("routes.admin_dashboard", edit=1))
