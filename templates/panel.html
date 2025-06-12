@@ -60,6 +60,7 @@
     <div class="mb-5">
       <div class="table-responsive">
       <table class="table table-bordered w-auto" id="panel-profile-data">
+        <caption class="visually-hidden">Moje dane</caption>
         <colgroup>
           <col>
           <col>
@@ -137,6 +138,7 @@
 
     <div class="table-responsive">
     <table class="table table-striped table-hover mb-3" id="panel-participants">
+      <caption class="visually-hidden">Uczestnicy</caption>
       <colgroup>
         <col class="name-col">
         <col>
@@ -181,6 +183,7 @@
   <h2 class="mb-4">Raporty miesięczne</h2>
   <div class="table-responsive">
   <table class="table table-striped table-hover mb-5" id="panel-monthly-reports">
+    <caption class="visually-hidden">Raporty miesięczne</caption>
     <colgroup>
       <col>
       <col>
@@ -220,6 +223,7 @@
   <h2 class="mb-4">Historia zajęć</h2>
   <div class="table-responsive">
   <table class="table table-striped table-hover" id="panel-history">
+    <caption class="visually-hidden">Historia zajęć</caption>
     {% set w = table_widths.get('panel-history', []) %}
     <colgroup>
       <col{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>
