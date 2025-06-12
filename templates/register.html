@@ -17,9 +17,13 @@
         <input type="text" class="form-control" id="numer_umowy" name="numer_umowy" placeholder="Numer umowy" required tabindex="3">
         <label for="numer_umowy">Numer umowy:</label>
       </div>
-      <div class="form-floating mb-3">
-        <textarea class="form-control" id="lista_uczestnikow" name="lista_uczestnikow" placeholder="Lista uczestników" style="height: 7rem" required tabindex="4"></textarea>
-        <label for="lista_uczestnikow">Lista uczestników (po jednym na linię):</label>
+      <div class="mb-3">
+        <label for="participants-container" class="form-label">Lista uczestników:</label>
+        <div id="participants-container">
+          <input type="text" class="form-control mb-2" name="uczestnik" placeholder="Imię i nazwisko" required tabindex="4">
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="addParticipant" tabindex="-1">Dodaj</button>
+        <div class="form-text">Wklejenie wielu linii spowoduje utworzenie tylu pól, ile wierszy.</div>
       </div>
       <div class="form-floating mb-3">
         <input type="email" class="form-control" id="login" name="login" placeholder="Login" required autocomplete="username" tabindex="5">
