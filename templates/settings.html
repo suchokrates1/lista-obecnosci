@@ -177,6 +177,15 @@
           ('action', 'Akcja', 'action-col text-nowrap col-panel-history-action'),
         ]
       },
+      'panel_participants': {
+        'class': 'table table-striped table-hover mb-3',
+        'thead': 'table-secondary',
+        'columns': [
+          ('name', 'Uczestnik', 'name-col col-panel-participants-name'),
+          ('percent', 'Frekwencja %', 'col-panel-participants-percent'),
+          ('present', 'Obecności', 'participants-col col-panel-participants-present'),
+        ]
+      },
       'panel_profile_data': {
         'class': 'table table-bordered w-auto',
         'thead': '',
@@ -195,6 +204,7 @@
       'admin_sessions': 'Historia zajęć',
       'admin_stats': 'Statystyki obecności',
       'panel_history': 'Historia zajęć',
+      'panel_participants': 'Uczestnicy',
       'panel_profile_data': 'Moje dane'
     } %}
     {% for table, info in tables.items() %}
