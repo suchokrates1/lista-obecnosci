@@ -214,3 +214,40 @@ def test_month_name_filter_registered(app):
     assert filt is not None
     assert filt(1) == "styczeń"
     assert filt("12") == "grudzień"
+
+
+def test_parse_registration_form_old_field(app):
+    from werkzeug.datastructures import MultiDict
+
+    form = MultiDict(
+        {
+            "imie": "A",
+            "nazwisko": "B",
+            "numer_umowy": "1",
+            "lista_uczestnikow": "X\nY",
+            "login": "u@example.com",
+            "haslo": "pass",
+        }
+    )
+    data, error = utils.parse_registration_form(form, MultiDict())
+    assert error is None
+    assert data["uczestnicy"] == ["X", "Y"]
+
+
+def test_parse_registration_form_new_field(app):
+    from werkzeug.datastructures import MultiDict
+
+    form = MultiDict(
+        [
+            ("imie", "A"),
+            ("nazwisko", "B"),
+            ("numer_umowy", "1"),
+            ("uczestnik", "X"),
+            ("uczestnik", "Y\nZ"),
+            ("login", "u2@example.com"),
+            ("haslo", "pass"),
+        ]
+    )
+    data, error = utils.parse_registration_form(form, MultiDict())
+    assert error is None
+    assert data["uczestnicy"] == ["X", "Y", "Z"]
