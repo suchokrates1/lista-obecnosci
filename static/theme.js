@@ -48,16 +48,38 @@ function handleParticipantPaste(e) {
 function addParticipantField(value = '') {
   const container = document.getElementById('participants-container');
   if (!container) return;
+  const group = document.createElement('div');
+  group.className = 'participant-group mb-2';
+
   const input = document.createElement('input');
   input.type = 'text';
   input.name = 'uczestnik';
   input.required = true;
   input.placeholder = 'Imię i nazwisko';
-  input.className = 'form-control mb-2 participant-input';
+  input.className = 'form-control participant-input';
   input.value = value;
   input.addEventListener('paste', handleParticipantPaste);
-  container.appendChild(input);
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'btn btn-outline-secondary btn-sm remove-participant ms-2';
+  removeBtn.textContent = 'Usuń';
+  removeBtn.addEventListener('click', function(){ removeParticipantField(removeBtn); });
+
+  group.appendChild(input);
+  group.appendChild(removeBtn);
+  container.appendChild(group);
   return input;
+}
+
+function removeParticipantField(btn) {
+  const group = btn.closest('.participant-group');
+  if (!group) return;
+  const container = document.getElementById('participants-container');
+  if (!container) return;
+  const groups = container.querySelectorAll('.participant-group');
+  if (groups.length <= 1) return;
+  group.remove();
 }
 
 (function() {
@@ -99,6 +121,9 @@ function addParticipantField(value = '') {
     if (addBtn) addBtn.addEventListener('click', function(){ addParticipantField(); });
     document.querySelectorAll('.participant-input').forEach(function(inp){
       inp.addEventListener('paste', handleParticipantPaste);
+    });
+    document.querySelectorAll('.remove-participant').forEach(function(btn){
+      btn.addEventListener('click', function(){ removeParticipantField(btn); });
     });
 
     const widthInputs = document.querySelectorAll('[data-column]');
