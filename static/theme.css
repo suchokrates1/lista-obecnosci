@@ -50,3 +50,16 @@ body.high-contrast .btn {
 .attendance-col {
   min-width: 120px;
 }
+
+@media (max-width: 576px) {
+  body {
+    font-size: 0.9rem;
+  }
+  .login-box {
+    padding: 1rem;
+  }
+  #main.container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
