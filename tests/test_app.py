@@ -1058,6 +1058,27 @@ def _parse_settings_preview(html: str) -> dict:
     return json.loads(proc.stdout.decode())
 
 
+def _simulate_remove(html: str) -> int:
+    proc = subprocess.run(
+        ["node", "tests/run_participants.js"],
+        input=html.encode(),
+        capture_output=True,
+        check=True,
+    )
+    return int(proc.stdout.decode().strip())
+
+
+def test_remove_participant_keeps_one(ensure_jsdom):
+    html = (
+        "<div id='participants-container'>"
+        "<div class='participant-group'><input class='participant-input' name='uczestnik'><button type='button' class='remove-participant'>Usuń</button></div>"
+        "<div class='participant-group'><input class='participant-input' name='uczestnik'><button type='button' class='remove-participant'>Usuń</button></div>"
+        "</div>"
+    )
+    remaining = _simulate_remove(html)
+    assert remaining == 1
+
+
 def test_save_column_widths(client, app):
     _login_admin(client, app)
     resp = client.post(
