@@ -26,7 +26,8 @@
           </div>
         </div>
         <button type="button" class="btn btn-outline-secondary btn-sm" id="addParticipant" tabindex="-1">Dodaj</button>
-        <div class="form-text">Wklejenie wielu linii spowoduje utworzenie tylu pól, ile wierszy.</div>
+        <div class="form-text">Wklejenie wielu linii spowoduje utworzenie tylu pól, ile wierszy. Niedokończone dane są zapisywane w przeglądarce.</div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-1" onclick="saveRegForm(null)">Wyczyść dane</button>
       </div>
       <div class="form-floating mb-3">
         <input type="email" class="form-control" id="login" name="login" placeholder="Login" required autocomplete="username" tabindex="5">

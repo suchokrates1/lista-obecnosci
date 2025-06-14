@@ -45,6 +45,67 @@ function handleParticipantPaste(e) {
   }
 }
 
+function saveRegForm(clear) {
+  if (clear === null) {
+    localStorage.removeItem('registerForm');
+    return;
+  }
+  const form = document.querySelector('form');
+  const container = document.getElementById('participants-container');
+  if (!form || !container) return;
+  const data = {};
+  form.querySelectorAll('input').forEach(function(inp) {
+    if (inp.name === 'uczestnik') {
+      if (!data.uczestnik) data.uczestnik = [];
+      data.uczestnik.push(inp.value);
+    } else if (inp.type !== 'file') {
+      if (inp.id) data[inp.id] = inp.value;
+    }
+  });
+  localStorage.setItem('registerForm', JSON.stringify(data));
+}
+
+function loadRegForm() {
+  const form = document.querySelector('form');
+  const container = document.getElementById('participants-container');
+  if (!form || !container) return;
+  const saved = localStorage.getItem('registerForm');
+  if (!saved) return;
+  let data;
+  try { data = JSON.parse(saved); } catch(e) { return; }
+  if (data.imie !== undefined) {
+    const el = document.getElementById('imie');
+    if (el) el.value = data.imie;
+  }
+  if (data.nazwisko !== undefined) {
+    const el = document.getElementById('nazwisko');
+    if (el) el.value = data.nazwisko;
+  }
+  if (data.numer_umowy !== undefined) {
+    const el = document.getElementById('numer_umowy');
+    if (el) el.value = data.numer_umowy;
+  }
+  if (data.login !== undefined) {
+    const el = document.getElementById('login');
+    if (el) el.value = data.login;
+  }
+  if (data.haslo !== undefined) {
+    const el = document.getElementById('haslo');
+    if (el) el.value = data.haslo;
+  }
+  if (Array.isArray(data.uczestnik)) {
+    const groups = container.querySelectorAll('.participant-group');
+    if (groups.length) {
+      const firstInput = groups[0].querySelector('.participant-input');
+      if (firstInput) firstInput.value = data.uczestnik[0] || '';
+      Array.from(groups).slice(1).forEach(function(g){ g.remove(); });
+    }
+    for (let i = 1; i < data.uczestnik.length; i++) {
+      addParticipantField(data.uczestnik[i]);
+    }
+  }
+}
+
 function addParticipantField(value = '') {
   const container = document.getElementById('participants-container');
   if (!container) return;
@@ -69,6 +130,7 @@ function addParticipantField(value = '') {
   group.appendChild(input);
   group.appendChild(removeBtn);
   container.appendChild(group);
+  saveRegForm();
   return input;
 }
 
@@ -80,6 +142,7 @@ function removeParticipantField(btn) {
   const groups = container.querySelectorAll('.participant-group');
   if (groups.length <= 1) return;
   group.remove();
+  saveRegForm();
 }
 
 (function() {
@@ -125,6 +188,7 @@ function removeParticipantField(btn) {
     document.querySelectorAll('.remove-participant').forEach(function(btn){
       btn.addEventListener('click', function(){ removeParticipantField(btn); });
     });
+    loadRegForm();
 
     const widthInputs = document.querySelectorAll('[data-column]');
 
@@ -236,7 +300,9 @@ function removeParticipantField(btn) {
         tableKeys.forEach(function(key){
           adjustLastColumn(key);
         });
+        saveRegForm(null);
       });
+      form.addEventListener('input', function(){ saveRegForm(); });
     }
 
     const resetButtons = document.querySelectorAll('.reset-widths');
