@@ -1067,6 +1067,15 @@ def _simulate_remove(html: str) -> int:
     )
     return int(proc.stdout.decode().strip())
 
+def _simulate_regform(html: str) -> dict:
+    proc = subprocess.run(
+        ["node", "tests/run_register_form.js"],
+        input=html.encode(),
+        capture_output=True,
+        check=True,
+    )
+    return json.loads(proc.stdout.decode())
+
 
 def test_remove_participant_keeps_one(ensure_jsdom):
     html = (
@@ -1077,6 +1086,26 @@ def test_remove_participant_keeps_one(ensure_jsdom):
     )
     remaining = _simulate_remove(html)
     assert remaining == 1
+
+
+def test_load_regform_restores_values(ensure_jsdom):
+    html = (
+        "<form>"
+        "<div id='participants-container'>"
+        "<div class='participant-group'><input class='participant-input' name='uczestnik'><button type='button' class='remove-participant'>Usuń</button></div>"
+        "</div>"
+        "<button type='button' id='addParticipant'>Dodaj</button>"
+        "<input id='imie'><input id='nazwisko'><input id='numer_umowy'>"
+        "<input id='login'><input id='haslo'>"
+        "</form>"
+    )
+    result = _simulate_regform(html)
+    assert result["imie"] == "A"
+    assert result["nazwisko"] == "B"
+    assert result["numer"] == "1"
+    assert result["login"] == "x@example.com"
+    assert result["haslo"] == "pass"
+    assert result["participants"] == ["P1", "P2"]
 
 
 def test_save_column_widths(client, app):
