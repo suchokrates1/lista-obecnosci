@@ -250,7 +250,12 @@ def przetworz_liste_obecnosci(form, wybrany):
     return ("success", buf, data_str)
 
 def email_do_koordynatora(
-    buf, data, typ: str = "lista", course: str | None = None, queue: bool = False
+    buf,
+    data,
+    typ: str = "lista",
+    course: str | None = None,
+    queue: bool = False,
+    trainer: object | None = None,
 ):
     odbiorca = os.getenv("EMAIL_RECIPIENT")
     if not odbiorca:
@@ -284,6 +289,12 @@ def email_do_koordynatora(
     msg.set_content(body)
 
     sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
+    use_trainer = os.getenv("EMAIL_USE_TRAINER_NAME", "0").lower() in {"1", "true", "yes"}
+    if use_trainer and trainer is not None:
+        try:
+            sender_name = f"{trainer.imie} {trainer.nazwisko}"
+        except Exception:
+            pass
     login = os.getenv("EMAIL_LOGIN")
     msg["From"] = f"{sender_name} <{login}>"
     msg["To"] = odbiorca
@@ -331,6 +342,7 @@ def send_attendance_list(zajecie, queue: bool = False) -> bool:
             typ="lista",
             course=prow.nazwa_zajec,
             queue=queue,
+            trainer=prow,
         )
     except smtplib.SMTPException:
         logger.exception("Failed to send attendance email")

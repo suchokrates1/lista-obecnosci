@@ -38,6 +38,10 @@
         <input type="text" class="form-control" id="email_sender_name" name="email_sender_name" placeholder="Nazwa" value="{{ values.email_sender_name }}" tabindex="6">
         <label for="email_sender_name">Nazwa nadawcy:</label>
       </div>
+      <div class="col-md-6 form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="email_use_trainer_name" name="email_use_trainer_name" value="1" {% if values.email_use_trainer_name.lower() in ['1','true','yes'] %}checked{% endif %} tabindex="7">
+        <label class="form-check-label" for="email_use_trainer_name">Używaj imienia prowadzącego w polu "Od"</label>
+      </div>
       <div class="col-md-6 form-floating">
         <input type="email" class="form-control" id="email_login" name="email_login" placeholder="Login" value="{{ values.email_login }}" tabindex="7" autocomplete="username">
         <label for="email_login">Login SMTP:</label>
