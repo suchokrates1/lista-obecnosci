@@ -3,10 +3,18 @@ from docx.shared import Pt, Cm
 import logging
 import os
 
+def ensure_template_exists(path: str) -> None:
+    """Raise ``RuntimeError`` if template ``path`` does not exist."""
+    if not os.path.exists(path):
+        logger.error("Template file not found: %s", path)
+        raise RuntimeError(f"Template file not found: {path}")
+
 logger = logging.getLogger(__name__)
 
 def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path, nazwa_zajec=None):
-    doc = Document("szablon.docx")
+    template = "szablon.docx"
+    ensure_template_exists(template)
+    doc = Document(template)
 
     for para in doc.paragraphs:
         if "Lista obecności" in para.text and nazwa_zajec:
@@ -40,6 +48,7 @@ def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path, nazwa_zajec
     return doc
 
 def generuj_raport_miesieczny(prowadzacy, zajecia, szablon_path, podpis_dir, miesiac, rok):
+    ensure_template_exists(szablon_path)
     doc = Document(szablon_path)
     logger.debug("Generowanie raportu dla miesiąca: %s rok: %s", miesiac, rok)
 

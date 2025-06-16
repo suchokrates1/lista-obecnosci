@@ -610,6 +610,8 @@ def test_admin_inline_update_trainer(client, app):
 def test_admin_replace_signature_deletes_old_file(client, app, monkeypatch, tmp_path):
     monkeypatch.setattr(utils, "SIGNATURE_MAX_SIZE", 1000)
     _login_admin(client, app)
+    # _login_admin reloads settings from the DB which resets SIGNATURE_MAX_SIZE
+    monkeypatch.setattr(utils, "SIGNATURE_MAX_SIZE", 1000)
     with app.app_context():
         p = Prowadzacy(imie="A", nazwisko="B", numer_umowy="1", nazwa_zajec="X", podpis_filename="old.png")
         db.session.add(p)
