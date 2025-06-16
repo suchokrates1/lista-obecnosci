@@ -249,7 +249,9 @@ def przetworz_liste_obecnosci(form, wybrany):
 
     return ("success", buf, data_str)
 
-def email_do_koordynatora(buf, data, typ="lista", queue: bool = False):
+def email_do_koordynatora(
+    buf, data, typ: str = "lista", course: str | None = None, queue: bool = False
+):
     odbiorca = os.getenv("EMAIL_RECIPIENT")
     if not odbiorca:
         logger.warning("EMAIL_RECIPIENT not configured, skipping mail send.")
@@ -258,15 +260,23 @@ def email_do_koordynatora(buf, data, typ="lista", queue: bool = False):
     msg = EmailMessage()
 
     if typ == "raport":
-        subject_tmpl = os.getenv("EMAIL_REPORT_SUBJECT", "Raport miesięczny – {date}")
-        body_tmpl = os.getenv("EMAIL_REPORT_BODY", "W załączniku raport miesięczny do umowy.")
+        subject_tmpl = os.getenv(
+            "EMAIL_REPORT_SUBJECT", "Raport miesięczny – {date}"
+        )
+        body_tmpl = os.getenv(
+            "EMAIL_REPORT_BODY", "W załączniku raport miesięczny do umowy."
+        )
         filename = f"raport_{data}.docx"
     else:
-        subject_tmpl = os.getenv("EMAIL_LIST_SUBJECT", "Lista obecności – {date}")
-        body_tmpl = os.getenv("EMAIL_LIST_BODY", "W załączniku lista obecności z zajęć.")
+        subject_tmpl = os.getenv(
+            "EMAIL_LIST_SUBJECT", "Lista obecności – {date}"
+        )
+        body_tmpl = os.getenv(
+            "EMAIL_LIST_BODY", "W załączniku lista obecności z zajęć."
+        )
         filename = f"lista_{data}.docx"
-    msg["Subject"] = subject_tmpl.format(date=data)
-    body = body_tmpl.format(date=data)
+    msg["Subject"] = subject_tmpl.format(date=data, course=course or "")
+    body = body_tmpl.format(date=data, course=course or "")
 
     footer = os.getenv("EMAIL_FOOTER", "")
     if footer:
@@ -315,7 +325,13 @@ def send_attendance_list(zajecie, queue: bool = False) -> bool:
     data_str = zajecie.data.strftime("%Y-%m-%d")
 
     try:
-        email_do_koordynatora(buf, data_str, typ="lista", queue=queue)
+        email_do_koordynatora(
+            buf,
+            data_str,
+            typ="lista",
+            course=prow.nazwa_zajec,
+            queue=queue,
+        )
     except smtplib.SMTPException:
         logger.exception("Failed to send attendance email")
         return False
