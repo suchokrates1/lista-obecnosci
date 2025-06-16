@@ -1,5 +1,6 @@
 import os
 import io
+from pathlib import Path
 from PIL import Image
 import pytest
 import json
@@ -606,6 +607,37 @@ def test_admin_inline_update_trainer(client, app):
         assert prow.nazwa_zajec == "Course"
 
 
+def test_admin_replace_signature_deletes_old_file(client, app, monkeypatch, tmp_path):
+    monkeypatch.setattr(utils, "SIGNATURE_MAX_SIZE", 1000)
+    _login_admin(client, app)
+    with app.app_context():
+        p = Prowadzacy(imie="A", nazwisko="B", numer_umowy="1", nazwa_zajec="X", podpis_filename="old.png")
+        db.session.add(p)
+        db.session.commit()
+        pid = p.id
+    static_dir = Path("static")
+    old_file = static_dir / "old.png"
+    old_file.write_bytes(b"x")
+    buf = io.BytesIO()
+    Image.new("RGB", (1, 1), (0, 0, 0)).save(buf, format="PNG")
+    buf.seek(0)
+    data = {
+        "edit_id": str(pid),
+        "nowy_imie": "A",
+        "nowy_nazwisko": "B",
+        "nowy_umowa": "1",
+        "nazwa_zajec": "X",
+        "nowy_podpis": (buf, "new.png", "image/png"),
+    }
+    resp = client.post("/dodaj", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 302
+    assert not old_file.exists()
+    with app.app_context():
+        prow = db.session.get(Prowadzacy, pid)
+        assert prow.podpis_filename != "old.png"
+        assert (static_dir / prow.podpis_filename).exists()
+
+
 def test_update_default_time(client, app):
     login_val = _create_trainer(app)
     client.post(
@@ -625,6 +657,32 @@ def test_update_default_time(client, app):
     with app.app_context():
         prow = Prowadzacy.query.first()
         assert prow.domyslny_czas == 2.5
+
+
+def test_panel_signature_replace_removes_old_file(client, app, monkeypatch, tmp_path):
+    monkeypatch.setattr(utils, "SIGNATURE_MAX_SIZE", 1000)
+    login_val = _create_trainer(app)
+    static_dir = Path("static")
+    old = static_dir / "sig.png"
+    old.write_bytes(b"x")
+    client.post("/login", data={"login": login_val, "hasło": "pass"}, follow_redirects=False)
+    buf = io.BytesIO()
+    Image.new("RGB", (1, 1), (255, 0, 0)).save(buf, format="PNG")
+    buf.seek(0)
+    data = {
+        "imie": "T",
+        "nazwisko": "T",
+        "numer_umowy": "1",
+        "nazwa_zajec": "Z",
+        "podpis": (buf, "new.png", "image/png"),
+    }
+    resp = client.post("/panel/profil", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 302
+    assert not old.exists()
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        assert prow.podpis_filename != "sig.png"
+        assert (static_dir / prow.podpis_filename).exists()
 
 
 def test_usun_uczestnika_requires_login(client, app):
