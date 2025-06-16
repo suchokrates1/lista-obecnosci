@@ -305,6 +305,7 @@ def dodaj_prowadzacego():
     imie = request.form.get("nowy_imie")
     nazwisko = request.form.get("nowy_nazwisko")
     numer_umowy = request.form.get("nowy_umowa")
+    nazwa_zajec = request.form.get("nazwa_zajec")
     podpis = request.files.get("nowy_podpis")
 
     if not imie or not nazwisko:
@@ -319,8 +320,14 @@ def dodaj_prowadzacego():
         prow.imie = imie
         prow.nazwisko = nazwisko
         prow.numer_umowy = numer_umowy
+        prow.nazwa_zajec = nazwa_zajec
     else:
-        prow = Prowadzacy(imie=imie, nazwisko=nazwisko, numer_umowy=numer_umowy)
+        prow = Prowadzacy(
+            imie=imie,
+            nazwisko=nazwisko,
+            numer_umowy=numer_umowy,
+            nazwa_zajec=nazwa_zajec,
+        )
         db.session.add(prow)
         db.session.flush()
 
