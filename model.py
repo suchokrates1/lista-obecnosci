@@ -80,8 +80,9 @@ class Setting(db.Model):
 
     Known keys include SMTP and e-mail options such as ``smtp_host``,
     ``smtp_port`` and ``email_recipient`` as well as message templates:
-    ``email_sender_name``, ``email_login``, ``email_password``, ``email_footer``
-    and individual subjects/bodies for outgoing messages.  These include
+    ``email_sender_name``, ``email_login``, ``email_password``, ``email_footer``,
+    ``email_use_trainer_name`` and individual subjects/bodies for outgoing
+    messages.  These include
     ``email_list_subject``/``email_list_body``,
     ``email_report_subject``/``email_report_body``,
     ``registration_email_subject``/``registration_email_body``,
