@@ -34,6 +34,18 @@ function togglePassword(id, btn) {
   }
 }
 
+function insertPlaceholder(text) {
+  const active = document.activeElement;
+  if (!active || active.tagName !== 'TEXTAREA') return;
+  const start = active.selectionStart || 0;
+  const end = active.selectionEnd || 0;
+  const value = active.value;
+  active.value = value.slice(0, start) + text + value.slice(end);
+  const pos = start + text.length;
+  active.selectionStart = active.selectionEnd = pos;
+  active.focus();
+}
+
 function handleParticipantPaste(e) {
   const data = (e.clipboardData || window.clipboardData).getData('text');
   if (data && /[\r\n]/.test(data)) {
@@ -164,6 +176,12 @@ function removeParticipantField(btn) {
     if (darkBtn) darkBtn.addEventListener('click', toggleTheme);
     const contrastBtn = document.getElementById('contrastToggle');
     if (contrastBtn) contrastBtn.addEventListener('click', toggleContrast);
+
+    document.querySelectorAll('.placeholder-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        insertPlaceholder(btn.getAttribute('data-value'));
+      });
+    });
 
     const sigInput = document.getElementById('podpis');
     const sigPreview = document.getElementById('podpisPreview');
