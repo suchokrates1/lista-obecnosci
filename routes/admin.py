@@ -604,6 +604,7 @@ def admin_update_trainer_inline(id):
     prow.imie = request.form.get("imie", prow.imie)
     prow.nazwisko = request.form.get("nazwisko", prow.nazwisko)
     prow.numer_umowy = request.form.get("numer_umowy", prow.numer_umowy)
+    prow.nazwa_zajec = request.form.get("nazwa_zajec", prow.nazwa_zajec)
     db.session.commit()
     flash("Prowadzący zaktualizowany", "success")
     return redirect(url_for("routes.admin_dashboard", edit=1))
