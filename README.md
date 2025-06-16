@@ -39,7 +39,7 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `EMAIL_FOOTER` – text appended to every outgoing message.
   - `MAX_SIGNATURE_SIZE` – optional limit for uploaded signature images in bytes (default `1048576`).
   - `REMOVE_SIGNATURE_BG` – when set to `1`, white background is removed from uploaded signatures.
-  - `EMAIL_LIST_SUBJECT` / `EMAIL_LIST_BODY` – templates for attendance lists (`{date}` placeholder).
+  - `EMAIL_LIST_SUBJECT` / `EMAIL_LIST_BODY` – templates for attendance lists (`{date}` and `{course}` placeholders).
   - `EMAIL_REPORT_SUBJECT` / `EMAIL_REPORT_BODY` – templates for monthly reports (`{date}` placeholder).
   - `REGISTRATION_EMAIL_SUBJECT` / `REGISTRATION_EMAIL_BODY` – templates for registration notifications (`{name}`, `{login}`, `{link}`).
   - `REG_EMAIL_SUBJECT` / `REG_EMAIL_BODY` – templates for the account activation e-mail.
@@ -48,8 +48,8 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
 All of the above mail variables (except `EMAIL_RECIPIENT`) must be provided. `SMTP_PORT` has to be an integer and the application will refuse to start when any of these settings are missing or invalid.
 
 The placeholders shown above are substituted automatically when the e-mails are
-sent. For example, `{date}` is replaced with the list or report date and `{link}`
-with the appropriate URL.
+sent. For example, `{date}` is replaced with the list or report date,
+`{course}` with the course name and `{link}` with the appropriate URL.
 
 You can export them in your shell or copy `.env.example` to `.env` when using docker-compose.
 
