@@ -102,6 +102,14 @@ def panel_update_profile():
         except Exception:
             flash("Nie udało się przetworzyć obrazu podpisu", "danger")
             return redirect(url_for("routes.panel"))
+        if prow.podpis_filename:
+            old_path = os.path.join("static", prow.podpis_filename)
+            try:
+                os.remove(old_path)
+            except FileNotFoundError:
+                pass
+            except Exception:
+                logger.exception("Failed to remove old signature file: %s", old_path)
         prow.podpis_filename = filename
 
     db.session.commit()
