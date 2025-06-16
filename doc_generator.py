@@ -5,10 +5,13 @@ import os
 
 logger = logging.getLogger(__name__)
 
-def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path):
+def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path, nazwa_zajec=None):
     doc = Document("szablon.docx")
 
     for para in doc.paragraphs:
+        if "Lista obecności" in para.text and nazwa_zajec:
+            para.text = f"Lista obecności – {nazwa_zajec}"
+            continue
         if "Data zajęć:" in para.text and "Czas trwania zajęć:" in para.text:
             para.text = f"Data zajęć: {data}    Czas trwania zajęć: {czas}"
 

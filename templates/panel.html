@@ -37,6 +37,10 @@
           <input type="text" class="form-control" id="numer_umowy" name="numer_umowy" value="{{ prowadzacy.numer_umowy }}">
         </div>
         <div class="col-md-4">
+          <label for="nazwa_zajec" class="form-label">Nazwa zajęć:</label>
+          <input type="text" class="form-control" id="nazwa_zajec" name="nazwa_zajec" value="{{ prowadzacy.nazwa_zajec }}">
+        </div>
+        <div class="col-md-4">
           <label for="domyslny_czas" class="form-label">Domyślny czas zajęć:</label>
           <input type="text" class="form-control" id="domyslny_czas" name="domyslny_czas" value="{{ domyslny_czas }}">
         </div>
@@ -66,14 +70,16 @@
           <col class="col-panel-profile-data-first"{% if w|length > 0 %} style="width: {{ w[0] }}%"{% endif %}>
           <col class="col-panel-profile-data-last"{% if w|length > 1 %} style="width: {{ w[1] }}%"{% endif %}>
           <col class="col-panel-profile-data-contract"{% if w|length > 2 %} style="width: {{ w[2] }}%"{% endif %}>
-          <col class="col-panel-profile-data-default"{% if w|length > 3 %} style="width: {{ w[3] }}%"{% endif %}>
-          <col class="col-panel-profile-data-signature"{% if w|length > 4 %} style="width: {{ w[4] }}%"{% endif %}>
+          <col class="col-panel-profile-data-course"{% if w|length > 3 %} style="width: {{ w[3] }}%"{% endif %}>
+          <col class="col-panel-profile-data-default"{% if w|length > 4 %} style="width: {{ w[4] }}%"{% endif %}>
+          <col class="col-panel-profile-data-signature"{% if w|length > 5 %} style="width: {{ w[5] }}%"{% endif %}>
         </colgroup>
         <thead>
           <tr>
             <th class="col-panel-profile-data-first">Imię</th>
             <th class="col-panel-profile-data-last">Nazwisko</th>
             <th class="col-panel-profile-data-contract">Numer umowy</th>
+            <th class="col-panel-profile-data-course">Nazwa zajęć</th>
             <th class="col-panel-profile-data-default">Domyślny czas zajęć</th>
             <th class="col-panel-profile-data-signature">Podpis</th>
           </tr>
@@ -83,6 +89,7 @@
             <td>{{ prowadzacy.imie }}</td>
             <td>{{ prowadzacy.nazwisko }}</td>
             <td>{{ prowadzacy.numer_umowy }}</td>
+            <td>{{ prowadzacy.nazwa_zajec }}</td>
             <td>{{ domyslny_czas }}</td>
             <td>
               {% if prowadzacy.podpis_filename %}

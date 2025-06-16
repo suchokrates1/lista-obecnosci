@@ -85,6 +85,10 @@ function loadRegForm() {
     const el = document.getElementById('numer_umowy');
     if (el) el.value = data.numer_umowy;
   }
+  if (data.nazwa_zajec !== undefined) {
+    const el = document.getElementById('nazwa_zajec');
+    if (el) el.value = data.nazwa_zajec;
+  }
   if (data.login !== undefined) {
     const el = document.getElementById('login');
     if (el) el.value = data.login;
