@@ -178,7 +178,7 @@ def test_send_attendance_list_success(app, monkeypatch):
 
         called = {}
 
-        def fake_email(buf, data, typ="lista", queue=False):
+        def fake_email(buf, data, typ="lista", course=None, queue=False):
             called["sent"] = True
 
         monkeypatch.setattr(utils, "generuj_liste_obecnosci", dummy_doc)
@@ -198,7 +198,7 @@ def test_send_attendance_list_failure(app, monkeypatch):
             doc.add_paragraph("x")
             return doc
 
-        def fail_email(*_a, **_k):
+        def fail_email(buf, data, typ="lista", course=None, queue=False):
             raise smtplib.SMTPException("x")
 
         monkeypatch.setattr(utils, "generuj_liste_obecnosci", dummy_doc)

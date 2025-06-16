@@ -68,7 +68,7 @@ def test_generate_reports_email(app, monkeypatch, tmp_path):
 
     sent = {}
 
-    def fake_email(buf, data, typ=None):
+    def fake_email(buf, data, typ=None, course=None):
         sent["called"] = True
 
     monkeypatch.setattr("app.generuj_raport_miesieczny", dummy_report)
