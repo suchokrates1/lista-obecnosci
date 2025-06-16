@@ -1330,6 +1330,15 @@ def test_settings_preview_shows_saved_widths(client, app):
     assert result["warn"] == ""
 
 
+def test_settings_page_has_placeholder_buttons(client, app):
+    _login_admin(client, app)
+    resp = client.get("/admin/settings")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    for ph in ("{date}", "{course}", "{name}", "{login}", "{link}"):
+        assert f'data-value="{ph}"' in html
+
+
 def test_theme_totals_warning_zero_once_valid():
     html = (
         "<table id='admin-trainers'><col id='admin-trainers-id'><col id='admin-trainers-name'></table>"
