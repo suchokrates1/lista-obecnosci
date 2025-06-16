@@ -74,6 +74,7 @@ def panel_update_profile():
     prow.imie = request.form.get("imie")
     prow.nazwisko = request.form.get("nazwisko")
     prow.numer_umowy = request.form.get("numer_umowy")
+    prow.nazwa_zajec = request.form.get("nazwa_zajec")
     czas_val = request.form.get("domyslny_czas", "").strip()
     if czas_val:
         try:

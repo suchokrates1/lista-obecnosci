@@ -158,7 +158,7 @@ def test_purge_expired_tokens(app):
 
 
 def _create_simple_session():
-    prow = Prowadzacy(imie="T", nazwisko="T", numer_umowy="1", podpis_filename="sig.png")
+    prow = Prowadzacy(imie="T", nazwisko="T", numer_umowy="1", nazwa_zajec="Z", podpis_filename="sig.png")
     db.session.add(prow)
     db.session.flush()
     zaj = Zajecia(prowadzacy_id=prow.id, data=datetime(2023, 5, 1), czas_trwania=1.0)
@@ -224,6 +224,7 @@ def test_parse_registration_form_old_field(app):
             "imie": "A",
             "nazwisko": "B",
             "numer_umowy": "1",
+            "nazwa_zajec": "Z",
             "lista_uczestnikow": "X\nY",
             "login": "u@example.com",
             "haslo": "pass",
@@ -242,6 +243,7 @@ def test_parse_registration_form_new_field(app):
             ("imie", "A"),
             ("nazwisko", "B"),
             ("numer_umowy", "1"),
+            ("nazwa_zajec", "Z"),
             ("uczestnik", "X"),
             ("uczestnik", "Y\nZ"),
             ("login", "u2@example.com"),
