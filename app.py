@@ -139,7 +139,7 @@ def create_app():
                     doc.save(buf)
                     buf.seek(0)
                     try:
-                        email_do_koordynatora(buf, f"{month}_{year}", typ="raport")
+                        email_do_koordynatora(buf, f"{month}_{year}", typ="raport", trainer=trainer)
                         click.echo(f"Sent {filename}")
                     except smtplib.SMTPException:
                         logger.exception("Failed to send report e-mail")

@@ -83,6 +83,7 @@ def admin_settings():
         "max_signature_size",
         "remove_signature_bg",
         "email_sender_name",
+        "email_use_trainer_name",
         "email_login",
         "email_password",
         "email_footer",
@@ -108,7 +109,7 @@ def admin_settings():
 
     if request.method == "POST":
         for key in keys:
-            if key == "remove_signature_bg":
+            if key in ("remove_signature_bg", "email_use_trainer_name"):
                 val = "1" if request.form.get(key) else "0"
             else:
                 val = request.form.get(key)
@@ -150,7 +151,7 @@ def admin_settings():
             for key in keys:
                 setting = db.session.get(Setting, key)
                 values[key] = os.getenv(key.upper(), setting.value if setting else "")
-                if key == "remove_signature_bg":
+                if key in ("remove_signature_bg", "email_use_trainer_name"):
                     if request.form.get(key) is not None:
                         values[key] = "1"
                 elif key in request.form:
@@ -165,7 +166,7 @@ def admin_settings():
             )
 
         for key in keys:
-            if key == "remove_signature_bg":
+            if key in ("remove_signature_bg", "email_use_trainer_name"):
                 val = "1" if request.form.get(key) else "0"
             else:
                 val = request.form.get(key)
@@ -282,7 +283,7 @@ def raport(prowadzacy_id):
 
     if wyslij:
         try:
-            email_do_koordynatora(buf, f"{miesiac}_{rok}", typ="raport")
+            email_do_koordynatora(buf, f"{miesiac}_{rok}", typ="raport", trainer=prow)
             flash("Raport został wysłany e-mailem", "success")
         except smtplib.SMTPException:
             logger.exception("Failed to send report email")
