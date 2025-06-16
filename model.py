@@ -22,6 +22,7 @@ class Prowadzacy(db.Model):
     imie = db.Column(db.String)
     nazwisko = db.Column(db.String)
     numer_umowy = db.Column(db.String)  # Dodane pole
+    nazwa_zajec = db.Column(db.String)
     podpis_filename = db.Column(db.String)
     domyslny_czas = db.Column(db.Float)
 
