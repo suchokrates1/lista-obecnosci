@@ -306,6 +306,7 @@ def send_attendance_list(zajecie, queue: bool = False) -> bool:
         obecni,
         f"{prow.imie} {prow.nazwisko}",
         os.path.join("static", prow.podpis_filename),
+        prow.nazwa_zajec,
     )
 
     buf = BytesIO()
@@ -400,6 +401,7 @@ def parse_registration_form(form, files):
     imie = form.get("imie")
     nazwisko = form.get("nazwisko")
     numer_umowy = form.get("numer_umowy")
+    nazwa_zajec = form.get("nazwa_zajec")
     lista_uczestnikow = form.get("lista_uczestnikow")
     login_val = form.get("login")
     haslo = form.get("haslo")
@@ -417,7 +419,7 @@ def parse_registration_form(form, files):
             continue
         uczestnicy.extend(l.strip() for l in val.splitlines() if l.strip())
 
-    if not all([imie, nazwisko, numer_umowy, login_val, haslo]) or not uczestnicy:
+    if not all([imie, nazwisko, numer_umowy, nazwa_zajec, login_val, haslo]) or not uczestnicy:
         return None, "Wszystkie pola oprócz podpisu są wymagane"
 
     if not is_valid_email(login_val):
@@ -440,6 +442,7 @@ def parse_registration_form(form, files):
         "imie": imie,
         "nazwisko": nazwisko,
         "numer_umowy": numer_umowy,
+        "nazwa_zajec": nazwa_zajec,
         "login": login_val,
         "haslo": haslo,
         "podpis": podpis,
@@ -463,6 +466,7 @@ def create_trainer(data):
         imie=data["imie"],
         nazwisko=data["nazwisko"],
         numer_umowy=data["numer_umowy"],
+        nazwa_zajec=data["nazwa_zajec"],
         podpis_filename=filename,
     )
     db.session.add(prow)

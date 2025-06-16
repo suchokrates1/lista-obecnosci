@@ -137,6 +137,7 @@ def test_successful_register(client, app, monkeypatch):
         "imie": "A",
         "nazwisko": "B",
         "numer_umowy": "1",
+        "nazwa_zajec": "Z",
         "uczestnik": ["X"],
         "login": "ok@example.com",
         "haslo": "pass",
@@ -163,6 +164,7 @@ def test_register_with_new_participant_fields(client, app, monkeypatch):
             ("imie", "A"),
             ("nazwisko", "B"),
             ("numer_umowy", "1"),
+            ("nazwa_zajec", "Z"),
             ("uczestnik", "X"),
             ("uczestnik", "Y\nZ"),
             ("login", "new@example.com"),
@@ -331,7 +333,7 @@ def _create_trainer(app):
     """Create a trainer account with one session and return the login."""
     with app.app_context():
         prow = Prowadzacy(
-            imie="T", nazwisko="T", numer_umowy="1", podpis_filename="sig.png"
+            imie="T", nazwisko="T", numer_umowy="1", nazwa_zajec="Z", podpis_filename="sig.png"
         )
         db.session.add(prow)
         db.session.flush()
@@ -978,6 +980,7 @@ def test_panel_profile_post_updates_trainer(client, app, trainer):
         "imie": "Nowe",
         "nazwisko": "Nazwisko",
         "numer_umowy": "99",
+        "nazwa_zajec": "NZ",
         "domyslny_czas": "3",
     }
     resp = client.post("/panel/profil", data=data, follow_redirects=False)
@@ -987,6 +990,7 @@ def test_panel_profile_post_updates_trainer(client, app, trainer):
         assert prow.imie == "Nowe"
         assert prow.nazwisko == "Nazwisko"
         assert prow.numer_umowy == "99"
+        assert prow.nazwa_zajec == "NZ"
         assert prow.domyslny_czas == 3.0
 
 
@@ -1095,7 +1099,7 @@ def test_load_regform_restores_values(ensure_jsdom):
         "<div class='participant-group'><input class='participant-input' name='uczestnik'><button type='button' class='remove-participant'>Usuń</button></div>"
         "</div>"
         "<button type='button' id='addParticipant'>Dodaj</button>"
-        "<input id='imie'><input id='nazwisko'><input id='numer_umowy'>"
+        "<input id='imie'><input id='nazwisko'><input id='numer_umowy'><input id='nazwa_zajec'>"
         "<input id='login'><input id='haslo'>"
         "</form>"
     )
@@ -1103,6 +1107,7 @@ def test_load_regform_restores_values(ensure_jsdom):
     assert result["imie"] == "A"
     assert result["nazwisko"] == "B"
     assert result["numer"] == "1"
+    assert result["nazwa"] == "Zajęcia"
     assert result["login"] == "x@example.com"
     assert result["haslo"] == "pass"
     assert result["participants"] == ["P1", "P2"]
@@ -1123,9 +1128,10 @@ def test_save_column_widths(client, app):
             "width_panel_history_duration": "20",
             "width_panel_history_participants": "20",
             "width_panel_history_action": "20",
-            "width_panel_profile_data_first": "20",
-            "width_panel_profile_data_last": "20",
-            "width_panel_profile_data_contract": "20",
+            "width_panel_profile_data_first": "15",
+            "width_panel_profile_data_last": "15",
+            "width_panel_profile_data_contract": "15",
+            "width_panel_profile_data_course": "15",
             "width_panel_profile_data_default": "20",
             "width_panel_profile_data_signature": "20",
             "width_panel_participants_name": "20",
@@ -1156,7 +1162,7 @@ def test_save_column_widths(client, app):
         assert parts.get("date") == 20.0
         profile = Setting.query.get("table_panel_profile_data_widths")
         assert profile is not None
-        assert "first=20.0" in profile.value
+        assert "course=15.0" in profile.value
         participants = Setting.query.get("table_panel_participants_widths")
         assert participants is not None
         parts_p = {}
@@ -1225,8 +1231,9 @@ def test_panel_profile_widths_render(client, app):
             "width_panel_profile_data_first": "10",
             "width_panel_profile_data_last": "20",
             "width_panel_profile_data_contract": "20",
-            "width_panel_profile_data_default": "30",
-            "width_panel_profile_data_signature": "20",
+            "width_panel_profile_data_course": "20",
+            "width_panel_profile_data_default": "20",
+            "width_panel_profile_data_signature": "10",
         },
         follow_redirects=False,
     )

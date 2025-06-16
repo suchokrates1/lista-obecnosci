@@ -16,6 +16,7 @@ process.stdin.on('end', () => {
   d1.getElementById('imie').value = 'A';
   d1.getElementById('nazwisko').value = 'B';
   d1.getElementById('numer_umowy').value = '1';
+  d1.getElementById('nazwa_zajec').value = 'Zajęcia';
   d1.getElementById('login').value = 'x@example.com';
   d1.getElementById('haslo').value = 'pass';
   const p1 = d1.querySelector('.participant-input');
@@ -35,6 +36,7 @@ process.stdin.on('end', () => {
     imie: d2.getElementById('imie').value,
     nazwisko: d2.getElementById('nazwisko').value,
     numer: d2.getElementById('numer_umowy').value,
+    nazwa: d2.getElementById('nazwa_zajec').value,
     login: d2.getElementById('login').value,
     haslo: d2.getElementById('haslo').value,
     participants: Array.from(d2.querySelectorAll('.participant-input')).map(n => n.value)
