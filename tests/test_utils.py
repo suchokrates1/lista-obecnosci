@@ -178,14 +178,16 @@ def test_send_attendance_list_success(app, monkeypatch):
 
         called = {}
 
-        def fake_email(buf, data, typ="lista", course=None, queue=False):
+        def fake_email(buf, data, typ="lista", course=None, queue=False, trainer=None):
             called["sent"] = True
+            called["trainer"] = trainer
 
         monkeypatch.setattr(utils, "generuj_liste_obecnosci", dummy_doc)
         monkeypatch.setattr(utils, "email_do_koordynatora", fake_email)
 
         assert utils.send_attendance_list(zaj)
         assert called.get("sent")
+        assert called.get("trainer") is zaj.prowadzacy
         assert zaj.wyslano is True
 
 
@@ -198,7 +200,7 @@ def test_send_attendance_list_failure(app, monkeypatch):
             doc.add_paragraph("x")
             return doc
 
-        def fail_email(buf, data, typ="lista", course=None, queue=False):
+        def fail_email(buf, data, typ="lista", course=None, queue=False, trainer=None):
             raise smtplib.SMTPException("x")
 
         monkeypatch.setattr(utils, "generuj_liste_obecnosci", dummy_doc)
@@ -206,6 +208,53 @@ def test_send_attendance_list_failure(app, monkeypatch):
 
         assert utils.send_attendance_list(zaj) is False
         assert zaj.wyslano is False
+
+
+def test_email_do_koordynatora_trainer_name(monkeypatch, app):
+    with app.app_context():
+        prow = Prowadzacy(imie="Jan", nazwisko="Kowalski", numer_umowy="1", nazwa_zajec="Z", podpis_filename="sig.png")
+        db.session.add(prow)
+        db.session.commit()
+
+        os.environ["EMAIL_RECIPIENT"] = "coord@example.com"
+        os.environ["EMAIL_LOGIN"] = "user@example.com"
+        os.environ["EMAIL_USE_TRAINER_NAME"] = "1"
+
+        called = {}
+
+        def fake_send(msg):
+            called["from"] = msg["From"]
+
+        monkeypatch.setattr(utils, "_send_message", fake_send)
+
+        buf = io.BytesIO(b"x")
+        utils.email_do_koordynatora(buf, "2025-01-01", trainer=prow)
+
+        assert called["from"].startswith("Jan Kowalski <")
+
+
+def test_email_do_koordynatora_default_name(monkeypatch, app):
+    with app.app_context():
+        prow = Prowadzacy(imie="Jan", nazwisko="Kowalski", numer_umowy="1", nazwa_zajec="Z", podpis_filename="sig.png")
+        db.session.add(prow)
+        db.session.commit()
+
+        os.environ["EMAIL_RECIPIENT"] = "coord@example.com"
+        os.environ["EMAIL_LOGIN"] = "user@example.com"
+        os.environ["EMAIL_SENDER_NAME"] = "Vest"
+        os.environ["EMAIL_USE_TRAINER_NAME"] = "0"
+
+        called = {}
+
+        def fake_send(msg):
+            called["from"] = msg["From"]
+
+        monkeypatch.setattr(utils, "_send_message", fake_send)
+
+        buf = io.BytesIO(b"x")
+        utils.email_do_koordynatora(buf, "2025-01-01", trainer=prow)
+
+        assert called["from"].startswith("Vest <")
 
 
 def test_month_name_filter_registered(app):

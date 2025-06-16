@@ -18,6 +18,7 @@ Copy `.env.example` to `.env` and adjust the variables. The table below shows th
 | EMAIL_LOGIN | user@example.com | SMTP login |
 | EMAIL_PASSWORD | pass | SMTP password |
 | EMAIL_SENDER_NAME | Vest Media | Name used in the From header |
+| EMAIL_USE_TRAINER_NAME | 0 | Use trainer name in the From header |
 | EMAIL_FOOTER | Pozdrawiamy | Footer appended to every email |
 
 ## Environment variables
@@ -36,6 +37,7 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `EMAIL_LOGIN` – SMTP user name.
   - `EMAIL_PASSWORD` – SMTP password.
   - `EMAIL_SENDER_NAME` – name used in the *From* header.
+  - `EMAIL_USE_TRAINER_NAME` – when set to `1`, use the trainer's full name in the *From* header.
   - `EMAIL_FOOTER` – text appended to every outgoing message.
   - `MAX_SIGNATURE_SIZE` – optional limit for uploaded signature images in bytes (default `1048576`).
   - `REMOVE_SIGNATURE_BG` – when set to `1`, white background is removed from uploaded signatures.
