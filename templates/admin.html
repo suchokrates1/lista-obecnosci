@@ -93,7 +93,8 @@
         <td class="id-col col-admin-trainers-id">{{ p.id }}</td>
         <td class="name-col col-admin-trainers-name">
           <input form="tr{{ p.id }}f" type="text" name="imie" value="{{ p.imie }}" class="form-control form-control-sm mb-1">
-          <input form="tr{{ p.id }}f" type="text" name="nazwisko" value="{{ p.nazwisko }}" class="form-control form-control-sm">
+          <input form="tr{{ p.id }}f" type="text" name="nazwisko" value="{{ p.nazwisko }}" class="form-control form-control-sm mb-1">
+          <input form="tr{{ p.id }}f" type="text" name="nazwa_zajec" value="{{ p.nazwa_zajec }}" class="form-control form-control-sm">
           <input form="tr{{ p.id }}f" type="hidden" name="numer_umowy" value="{{ p.numer_umowy }}">
         </td>
         <td class="col-admin-trainers-signature">

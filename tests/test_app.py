@@ -568,6 +568,44 @@ def test_admin_dashboard_filter(client, app):
     assert "2023-01-02" not in data
 
 
+def test_admin_inline_update_trainer(client, app):
+    with app.app_context():
+        p = Prowadzacy(imie="A", nazwisko="B", numer_umowy="1", nazwa_zajec="X")
+        db.session.add(p)
+        admin = Uzytkownik(
+            login="admup@example.com",
+            haslo_hash=generate_password_hash("x"),
+            role="admin",
+            approved=True,
+        )
+        db.session.add(admin)
+        db.session.commit()
+        pid = p.id
+
+    client.post(
+        "/login",
+        data={"login": "admup@example.com", "hasło": "x"},
+        follow_redirects=False,
+    )
+    resp = client.post(
+        f"/admin/trainer/{pid}/update_inline",
+        data={
+            "imie": "New",
+            "nazwisko": "Name",
+            "numer_umowy": "1",
+            "nazwa_zajec": "Course",
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    assert resp.headers["Location"].endswith("/admin?edit=1")
+    with app.app_context():
+        prow = db.session.get(Prowadzacy, pid)
+        assert prow.imie == "New"
+        assert prow.nazwisko == "Name"
+        assert prow.nazwa_zajec == "Course"
+
+
 def test_update_default_time(client, app):
     login_val = _create_trainer(app)
     client.post(
