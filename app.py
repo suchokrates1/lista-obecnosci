@@ -81,6 +81,12 @@ def create_app():
         logger.error("Missing mail configuration: %s", ", ".join(missing))
         raise RuntimeError("Incomplete mail configuration")
 
+    # Ensure required document templates are available
+    from doc_generator import ensure_template_exists
+
+    for template in ("szablon.docx", "rejestr.docx"):
+        ensure_template_exists(template)
+
     login_manager.init_app(app)
     csrf.init_app(app)
 

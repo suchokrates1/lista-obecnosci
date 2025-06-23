@@ -3,6 +3,7 @@ from werkzeug.datastructures import FileStorage
 from PIL import Image
 from datetime import datetime, timedelta
 import os
+from pathlib import Path
 import smtplib
 from docx import Document
 
@@ -23,13 +24,19 @@ def app(tmp_path):
     os.environ['SMTP_PORT'] = '25'
     os.environ['EMAIL_LOGIN'] = 'user'
     os.environ['EMAIL_PASSWORD'] = 'pass'
+    Path("szablon.docx").touch()
+    Path("rejestr.docx").touch()
     application = create_app()
     application.config['WTF_CSRF_ENABLED'] = False
-    with application.app_context():
-        db.create_all()
-        yield application
-        db.session.remove()
-        db.drop_all()
+    try:
+        with application.app_context():
+            db.create_all()
+            yield application
+            db.session.remove()
+            db.drop_all()
+    finally:
+        Path("szablon.docx").unlink(missing_ok=True)
+        Path("rejestr.docx").unlink(missing_ok=True)
 
 
 @pytest.fixture

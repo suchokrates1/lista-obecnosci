@@ -23,13 +23,19 @@ def app(tmp_path):
     os.environ["SMTP_PORT"] = "25"
     os.environ["EMAIL_LOGIN"] = "user"
     os.environ["EMAIL_PASSWORD"] = "pass"
-    app = create_app()
-    app.config["WTF_CSRF_ENABLED"] = False
-    with app.app_context():
-        db.create_all()
-        yield app
-        db.session.remove()
-        db.drop_all()
+    Path("szablon.docx").touch()
+    Path("rejestr.docx").touch()
+    application = create_app()
+    application.config["WTF_CSRF_ENABLED"] = False
+    try:
+        with application.app_context():
+            db.create_all()
+            yield application
+            db.session.remove()
+            db.drop_all()
+    finally:
+        Path("szablon.docx").unlink(missing_ok=True)
+        Path("rejestr.docx").unlink(missing_ok=True)
 
 
 @pytest.fixture
@@ -53,6 +59,23 @@ def test_start_fails_without_mail_vars(tmp_path, monkeypatch):
     os.environ["MAX_SIGNATURE_SIZE"] = "10"
     with pytest.raises(RuntimeError):
         create_app()
+
+
+def test_start_fails_without_templates(tmp_path, monkeypatch):
+    """create_app should raise if required docx templates are missing."""
+    os.environ["SECRET_KEY"] = "x"
+    os.environ["DATABASE_URL"] = "sqlite:///" + str(tmp_path / "db.db")
+    os.environ["MAX_SIGNATURE_SIZE"] = "10"
+    os.environ["SMTP_HOST"] = "smtp"
+    os.environ["SMTP_PORT"] = "25"
+    os.environ["EMAIL_LOGIN"] = "user"
+    os.environ["EMAIL_PASSWORD"] = "pass"
+    for name in ("szablon.docx", "rejestr.docx"):
+        if os.path.exists(name):
+            os.remove(name)
+    with pytest.raises(RuntimeError) as exc:
+        create_app()
+    assert "szablon.docx" in str(exc.value)
 
 
 def test_routes_accessible(client):
