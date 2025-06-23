@@ -340,5 +340,23 @@ function removeParticipantField(btn) {
         });
       });
     });
+
+    if (window.Quill) {
+      document.querySelectorAll('.toggle-editor').forEach(function(btn){
+        const key = btn.getAttribute('data-target');
+        const hidden = document.getElementById(key + '_html_body');
+        const editorDiv = document.getElementById(key + '_html_editor');
+        let quill = null;
+        btn.addEventListener('click', function(){
+          if (!editorDiv || !hidden) return;
+          editorDiv.classList.toggle('d-none');
+          if (!quill) {
+            quill = new Quill(editorDiv, {theme: 'snow'});
+            quill.root.innerHTML = hidden.value || '';
+            quill.on('text-change', function(){ hidden.value = quill.root.innerHTML; });
+          }
+        });
+      });
+    }
   });
 })();

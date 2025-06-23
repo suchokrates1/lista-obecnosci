@@ -28,9 +28,14 @@ from datetime import datetime
 import smtplib
 import logging
 import json
+import bleach
 from . import routes_bp
 
 logger = logging.getLogger(__name__)
+
+ALLOWED_TAGS = list(bleach.sanitizer.ALLOWED_TAGS) + ["p", "br", "img"]
+ALLOWED_ATTRS = dict(bleach.sanitizer.ALLOWED_ATTRIBUTES)
+ALLOWED_ATTRS.setdefault("img", ["src", "alt"])
 
 
 @routes_bp.route("/admin")
@@ -89,14 +94,19 @@ def admin_settings():
         "email_footer",
         "email_list_subject",
         "email_list_body",
+        "email_list_html_body",
         "email_report_subject",
         "email_report_body",
+        "email_report_html_body",
         "registration_email_subject",
         "registration_email_body",
+        "registration_email_html_body",
         "reg_email_subject",
         "reg_email_body",
+        "reg_email_html_body",
         "reset_email_subject",
         "reset_email_body",
+        "reset_email_html_body",
         "table_admin_new_users_widths",
         "table_admin_trainers_widths",
         "table_admin_sessions_widths",
@@ -111,6 +121,13 @@ def admin_settings():
         for key in keys:
             if key in ("remove_signature_bg", "email_use_trainer_name"):
                 val = "1" if request.form.get(key) else "0"
+            elif key.endswith("_html_body"):
+                val = bleach.clean(
+                    request.form.get(key) or "",
+                    tags=ALLOWED_TAGS,
+                    attributes=ALLOWED_ATTRS,
+                    strip=True,
+                )
             else:
                 val = request.form.get(key)
             if val is None:
@@ -155,7 +172,15 @@ def admin_settings():
                     if request.form.get(key) is not None:
                         values[key] = "1"
                 elif key in request.form:
-                    values[key] = request.form.get(key)
+                    if key.endswith("_html_body"):
+                        values[key] = bleach.clean(
+                            request.form.get(key) or "",
+                            tags=ALLOWED_TAGS,
+                            attributes=ALLOWED_ATTRS,
+                            strip=True,
+                        )
+                    else:
+                        values[key] = request.form.get(key)
 
             admin_user = Uzytkownik.query.filter_by(role="admin").first()
             admin_login = request.form.get(
@@ -168,6 +193,13 @@ def admin_settings():
         for key in keys:
             if key in ("remove_signature_bg", "email_use_trainer_name"):
                 val = "1" if request.form.get(key) else "0"
+            elif key.endswith("_html_body"):
+                val = bleach.clean(
+                    request.form.get(key) or "",
+                    tags=ALLOWED_TAGS,
+                    attributes=ALLOWED_ATTRS,
+                    strip=True,
+                )
             else:
                 val = request.form.get(key)
             if val is None:

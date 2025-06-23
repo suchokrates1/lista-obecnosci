@@ -140,6 +140,41 @@ def test_shutdown_email_worker_thread(monkeypatch):
     assert utils._worker is None or not utils._worker.is_alive()
 
 
+def test_send_plain_email_html(monkeypatch):
+    called = {}
+
+    def fake_send(msg):
+        called['html'] = msg.get_body(preferencelist=('html',)).get_content()
+        att = [p for p in msg.iter_attachments()][0]
+        called['cid'] = att['Content-ID']
+
+    monkeypatch.setattr(utils, '_send_message', fake_send)
+    img = Path('static/logo.png')
+    img.write_bytes(b'img')
+    os.environ['EMAIL_LIST_HTML_BODY'] = '<p>Hello<img src="cid:logo.png"></p>'
+    utils.send_plain_email('x@example.com', 'EMAIL_LIST_SUBJECT', 'EMAIL_LIST_BODY', 's', 'b', date='2025')
+    assert '<p>Hello' in called['html']
+    assert called['cid'] == 'logo.png'
+
+
+def test_email_do_koordynatora_html(monkeypatch, app):
+    with app.app_context():
+        os.environ['EMAIL_RECIPIENT'] = 'coord@example.com'
+        os.environ['EMAIL_LOGIN'] = 'user@example.com'
+        called = {}
+
+        def fake_send(msg):
+            called['html'] = msg.get_body(preferencelist=('html',)).get_content()
+
+        monkeypatch.setattr(utils, '_send_message', fake_send)
+        img = Path('static/icon.png')
+        img.write_bytes(b'img')
+        os.environ['EMAIL_LIST_HTML_BODY'] = '<b>List<img src="cid:icon.png"></b>'
+        buf = io.BytesIO(b'x')
+        utils.email_do_koordynatora(buf, '2025-01-01')
+        assert 'List' in called['html']
+
+
 
 def test_purge_expired_tokens(app):
     with app.app_context():

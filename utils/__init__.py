@@ -17,6 +17,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
 import uuid
 from PIL import Image
+import mimetypes
 try:
     from rembg import remove as rembg_remove  # type: ignore
 except Exception:  # rembg is optional
@@ -116,6 +117,28 @@ def _send_message(msg: EmailMessage) -> None:
             smtp.login(login, password)
             smtp.send_message(msg)
     logger.info("Mail sent to %s", msg.get("To"))
+
+
+def _attach_cid_images(msg: EmailMessage, html_body: str) -> None:
+    """Attach images referenced via ``cid:filename`` in ``html_body``."""
+    for cid in set(re.findall(r"cid:([^'\" >]+)", html_body)):
+        path = os.path.join("static", cid)
+        if not os.path.exists(path):
+            continue
+        ctype, _ = mimetypes.guess_type(path)
+        if ctype is None:
+            ctype = "application/octet-stream"
+        maintype, subtype = ctype.split("/", 1)
+        with open(path, "rb") as fh:
+            data = fh.read()
+        msg.add_attachment(
+            data,
+            maintype=maintype,
+            subtype=subtype,
+            filename=cid,
+            cid=cid,
+            disposition="inline",
+        )
 
 # Allowed signature upload formats
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
@@ -271,6 +294,7 @@ def email_do_koordynatora(
         body_tmpl = os.getenv(
             "EMAIL_REPORT_BODY", "W załączniku raport miesięczny do umowy."
         )
+        html_tmpl = os.getenv("EMAIL_REPORT_HTML_BODY")
         filename = f"raport_{data}.docx"
     else:
         subject_tmpl = os.getenv(
@@ -279,14 +303,19 @@ def email_do_koordynatora(
         body_tmpl = os.getenv(
             "EMAIL_LIST_BODY", "W załączniku lista obecności z zajęć."
         )
+        html_tmpl = os.getenv("EMAIL_LIST_HTML_BODY")
         filename = f"lista_{data}.docx"
     msg["Subject"] = subject_tmpl.format(date=data, course=course or "")
     body = body_tmpl.format(date=data, course=course or "")
+    html_body = html_tmpl.format(date=data, course=course or "") if html_tmpl else None
 
     footer = os.getenv("EMAIL_FOOTER", "")
     if footer:
         body = f"{body}\n\n{footer}"
     msg.set_content(body)
+    if html_body:
+        msg.add_alternative(html_body, subtype="html")
+        _attach_cid_images(msg, html_body)
 
     sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
     use_trainer = os.getenv("EMAIL_USE_TRAINER_NAME", "0").lower() in {"1", "true", "yes"}
@@ -359,18 +388,26 @@ def send_plain_email(
     body_key: str,
     default_subject: str,
     default_body: str,
+    html_key: str | None = None,
     queue: bool = False,
     **fmt,
 ) -> None:
     """Send a simple text e-mail using templates from environment variables."""
     subject = os.getenv(subject_key, default_subject).format(**fmt)
     body = os.getenv(body_key, default_body).format(**fmt)
+    if html_key is None:
+        html_key = body_key.replace("_BODY", "_HTML_BODY")
+    html_tmpl = os.getenv(html_key)
+    html_body = html_tmpl.format(**fmt) if html_tmpl else None
     msg = EmailMessage()
     msg["Subject"] = subject
     footer = os.getenv("EMAIL_FOOTER", "")
     if footer:
         body = f"{body}\n\n{footer}"
     msg.set_content(body)
+    if html_body:
+        msg.add_alternative(html_body, subtype="html")
+        _attach_cid_images(msg, html_body)
     sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
     login = os.getenv("EMAIL_LOGIN")
     msg["From"] = f"{sender_name} <{login}>"
