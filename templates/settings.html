@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}Ustawienia{% endblock %}
+{% block head_extra %}
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+{% endblock %}
 {% block content %}
   <div aria-live="polite" role="status">
     {% with messages = get_flashed_messages(with_categories=True) %}
@@ -83,10 +86,14 @@
           {% for ph in placeholders %}
           <button type="button" class="btn btn-outline-secondary btn-sm placeholder-btn me-1" data-value="{{ ph }}">{{ ph }}</button>
           {% endfor %}
+          <button type="button" class="btn btn-outline-secondary btn-sm html-toggle" data-target="email_list_body">Edytor HTML</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="email_list_body" name="email_list_body" placeholder="Treść" style="height: 4rem" tabindex="11">{{ values.email_list_body }}</textarea>
           <label for="email_list_body">Treść:</label>
+        </div>
+        <div class="quill-container d-none mb-3" data-target="email_list_body">
+          <div id="email_list_body_editor" class="quill-editor" style="height: 8rem;"></div>
         </div>
       </div>
       <div class="tab-pane fade" id="report" role="tabpanel">
@@ -98,10 +105,14 @@
           {% for ph in placeholders %}
           <button type="button" class="btn btn-outline-secondary btn-sm placeholder-btn me-1" data-value="{{ ph }}">{{ ph }}</button>
           {% endfor %}
+          <button type="button" class="btn btn-outline-secondary btn-sm html-toggle" data-target="email_report_body">Edytor HTML</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="email_report_body" name="email_report_body" placeholder="Treść" style="height: 4rem" tabindex="13">{{ values.email_report_body }}</textarea>
           <label for="email_report_body">Treść:</label>
+        </div>
+        <div class="quill-container d-none mb-3" data-target="email_report_body">
+          <div id="email_report_body_editor" class="quill-editor" style="height: 8rem;"></div>
         </div>
       </div>
       <div class="tab-pane fade" id="registration" role="tabpanel">
@@ -113,10 +124,14 @@
           {% for ph in placeholders %}
           <button type="button" class="btn btn-outline-secondary btn-sm placeholder-btn me-1" data-value="{{ ph }}">{{ ph }}</button>
           {% endfor %}
+          <button type="button" class="btn btn-outline-secondary btn-sm html-toggle" data-target="registration_email_body">Edytor HTML</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="registration_email_body" name="registration_email_body" placeholder="Treść" style="height: 4rem" tabindex="15">{{ values.registration_email_body }}</textarea>
           <label for="registration_email_body">Treść:</label>
+        </div>
+        <div class="quill-container d-none mb-3" data-target="registration_email_body">
+          <div id="registration_email_body_editor" class="quill-editor" style="height: 8rem;"></div>
         </div>
       </div>
       <div class="tab-pane fade" id="activation" role="tabpanel">
@@ -128,10 +143,14 @@
           {% for ph in placeholders %}
           <button type="button" class="btn btn-outline-secondary btn-sm placeholder-btn me-1" data-value="{{ ph }}">{{ ph }}</button>
           {% endfor %}
+          <button type="button" class="btn btn-outline-secondary btn-sm html-toggle" data-target="reg_email_body">Edytor HTML</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="reg_email_body" name="reg_email_body" placeholder="Treść" style="height: 4rem" tabindex="17">{{ values.reg_email_body }}</textarea>
           <label for="reg_email_body">Treść:</label>
+        </div>
+        <div class="quill-container d-none mb-3" data-target="reg_email_body">
+          <div id="reg_email_body_editor" class="quill-editor" style="height: 8rem;"></div>
         </div>
       </div>
       <div class="tab-pane fade" id="reset" role="tabpanel">
@@ -143,10 +162,14 @@
           {% for ph in placeholders %}
           <button type="button" class="btn btn-outline-secondary btn-sm placeholder-btn me-1" data-value="{{ ph }}">{{ ph }}</button>
           {% endfor %}
+          <button type="button" class="btn btn-outline-secondary btn-sm html-toggle" data-target="reset_email_body">Edytor HTML</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="reset_email_body" name="reset_email_body" placeholder="Treść" style="height: 4rem" tabindex="19">{{ values.reset_email_body }}</textarea>
           <label for="reset_email_body">Treść:</label>
+        </div>
+        <div class="quill-container d-none mb-3" data-target="reset_email_body">
+          <div id="reset_email_body_editor" class="quill-editor" style="height: 8rem;"></div>
         </div>
       </div>
     </div>
@@ -293,7 +316,10 @@
     </div>
     <div class="mt-4">
       <button type="submit" class="btn btn-primary" tabindex="22">Zapisz</button>
-    </div>
+  </div>
   </form>
 
+{% endblock %}
+{% block scripts %}
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 {% endblock %}
