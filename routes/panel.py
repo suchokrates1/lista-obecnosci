@@ -107,7 +107,7 @@ def panel_update_profile():
             try:
                 os.remove(old_path)
             except FileNotFoundError:
-                pass
+                logger.warning("Old signature file not found: %s", old_path)
             except Exception:
                 logger.exception("Failed to remove old signature file: %s", old_path)
         prow.podpis_filename = filename
