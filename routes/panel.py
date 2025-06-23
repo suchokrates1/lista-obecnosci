@@ -305,7 +305,12 @@ def panel_raport():
 
     if wyslij:
         try:
-            email_do_koordynatora(buf, f"{miesiac}_{rok}", typ="raport")
+            email_do_koordynatora(
+                buf,
+                f"{miesiac}_{rok}",
+                typ="raport",
+                trainer_name=f"{prow.imie} {prow.nazwisko}",
+            )
             flash("Raport został wysłany e-mailem", "success")
         except smtplib.SMTPException:
             logger.exception("Failed to send report email")

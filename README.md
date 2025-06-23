@@ -36,6 +36,8 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `EMAIL_LOGIN` – SMTP user name.
   - `EMAIL_PASSWORD` – SMTP password.
   - `EMAIL_SENDER_NAME` – name used in the *From* header.
+  - `USE_TRAINER_SENDER_NAME` – when set to `1`, use the trainer's full name
+    as the *From* header for attendance and report e-mails.
   - `EMAIL_FOOTER` – text appended to every outgoing message.
   - `MAX_SIGNATURE_SIZE` – optional limit for uploaded signature images in bytes (default `1048576`).
   - `REMOVE_SIGNATURE_BG` – when set to `1`, white background is removed from uploaded signatures.

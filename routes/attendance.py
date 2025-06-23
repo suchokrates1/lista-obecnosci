@@ -77,7 +77,13 @@ def index():
                     )
                 elif akcja == 'wyslij':
                     try:
-                        email_do_koordynatora(buf, data_str, typ='lista')
+                        email_do_koordynatora(
+                            buf,
+                            data_str,
+                            typ='lista',
+                            course=wybrany.nazwa_zajec,
+                            trainer_name=f"{wybrany.imie} {wybrany.nazwisko}",
+                        )
                         flash('Lista została wysłana e-mailem', 'success')
                     except smtplib.SMTPException:
                         logger.exception('Failed to send attendance email')

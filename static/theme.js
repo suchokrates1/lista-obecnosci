@@ -322,5 +322,20 @@ function removeParticipantField(btn) {
         });
       });
     });
+
+    document.querySelectorAll('.insert-var').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const targetId = btn.getAttribute('data-target');
+        const value = btn.getAttribute('data-value');
+        const field = document.getElementById(targetId);
+        if (!field) return;
+        const start = field.selectionStart || field.value.length;
+        const end = field.selectionEnd || start;
+        field.value = field.value.slice(0, start) + value + field.value.slice(end);
+        field.focus();
+        const pos = start + value.length;
+        if (field.setSelectionRange) field.setSelectionRange(pos, pos);
+      });
+    });
   });
 })();

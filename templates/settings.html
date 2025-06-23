@@ -37,16 +37,20 @@
         <input type="text" class="form-control" id="email_sender_name" name="email_sender_name" placeholder="Nazwa" value="{{ values.email_sender_name }}" tabindex="6">
         <label for="email_sender_name">Nazwa nadawcy:</label>
       </div>
+      <div class="col-md-6 form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="use_trainer_sender_name" name="use_trainer_sender_name" value="1" {% if values.use_trainer_sender_name.lower() in ['1','true','yes'] %}checked{% endif %} tabindex="7">
+        <label class="form-check-label" for="use_trainer_sender_name">Używaj nazwy prowadzącego jako nadawcy</label>
+      </div>
       <div class="col-md-6 form-floating">
-        <input type="email" class="form-control" id="email_login" name="email_login" placeholder="Login" value="{{ values.email_login }}" tabindex="7" autocomplete="username">
+        <input type="email" class="form-control" id="email_login" name="email_login" placeholder="Login" value="{{ values.email_login }}" tabindex="8" autocomplete="username">
         <label for="email_login">Login SMTP:</label>
       </div>
       <div class="col-md-6 form-floating">
-        <input type="password" class="form-control" id="email_password" name="email_password" placeholder="Hasło" value="{{ values.email_password }}" tabindex="8" autocomplete="current-password">
+        <input type="password" class="form-control" id="email_password" name="email_password" placeholder="Hasło" value="{{ values.email_password }}" tabindex="9" autocomplete="current-password">
         <label for="email_password">Hasło SMTP:</label>
       </div>
       <div class="col-12 form-floating">
-        <textarea class="form-control" id="email_footer" name="email_footer" placeholder="Stopka" style="height: 4rem" tabindex="9">{{ values.email_footer }}</textarea>
+        <textarea class="form-control" id="email_footer" name="email_footer" placeholder="Stopka" style="height: 4rem" tabindex="10">{{ values.email_footer }}</textarea>
         <label for="email_footer">Stopka e-mail:</label>
       </div>
     </div>
@@ -70,9 +74,17 @@
     </ul>
     <div class="tab-content border border-top-0 p-3" id="mailTabsContent">
       <div class="tab-pane fade show active" id="list" role="tabpanel">
+        <div class="mb-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="email_list_subject" data-value="{date}">{date}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="email_list_subject" data-value="{course}">{course}</button>
+        </div>
         <div class="form-floating mb-3">
           <input type="text" class="form-control" id="email_list_subject" name="email_list_subject" placeholder="Temat" value="{{ values.email_list_subject }}" tabindex="10">
           <label for="email_list_subject">Temat:</label>
+        </div>
+        <div class="mb-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="email_list_body" data-value="{date}">{date}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="email_list_body" data-value="{course}">{course}</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="email_list_body" name="email_list_body" placeholder="Treść" style="height: 4rem" tabindex="11">{{ values.email_list_body }}</textarea>
@@ -80,9 +92,15 @@
         </div>
       </div>
       <div class="tab-pane fade" id="report" role="tabpanel">
+        <div class="mb-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="email_report_subject" data-value="{date}">{date}</button>
+        </div>
         <div class="form-floating mb-3">
           <input type="text" class="form-control" id="email_report_subject" name="email_report_subject" placeholder="Temat" value="{{ values.email_report_subject }}" tabindex="12">
           <label for="email_report_subject">Temat:</label>
+        </div>
+        <div class="mb-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="email_report_body" data-value="{date}">{date}</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="email_report_body" name="email_report_body" placeholder="Treść" style="height: 4rem" tabindex="13">{{ values.email_report_body }}</textarea>
@@ -90,9 +108,19 @@
         </div>
       </div>
       <div class="tab-pane fade" id="registration" role="tabpanel">
+        <div class="mb-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="registration_email_subject" data-value="{name}">{name}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="registration_email_subject" data-value="{login}">{login}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="registration_email_subject" data-value="{link}">{link}</button>
+        </div>
         <div class="form-floating mb-3">
           <input type="text" class="form-control" id="registration_email_subject" name="registration_email_subject" placeholder="Temat" value="{{ values.registration_email_subject }}" tabindex="14">
           <label for="registration_email_subject">Temat:</label>
+        </div>
+        <div class="mb-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="registration_email_body" data-value="{name}">{name}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="registration_email_body" data-value="{login}">{login}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="registration_email_body" data-value="{link}">{link}</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="registration_email_body" name="registration_email_body" placeholder="Treść" style="height: 4rem" tabindex="15">{{ values.registration_email_body }}</textarea>
@@ -110,9 +138,15 @@
         </div>
       </div>
       <div class="tab-pane fade" id="reset" role="tabpanel">
+        <div class="mb-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="reset_email_subject" data-value="{link}">{link}</button>
+        </div>
         <div class="form-floating mb-3">
           <input type="text" class="form-control" id="reset_email_subject" name="reset_email_subject" placeholder="Temat" value="{{ values.reset_email_subject }}" tabindex="18">
           <label for="reset_email_subject">Temat:</label>
+        </div>
+        <div class="mb-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm insert-var" data-target="reset_email_body" data-value="{link}">{link}</button>
         </div>
         <div class="form-floating mb-3">
           <textarea class="form-control" id="reset_email_body" name="reset_email_body" placeholder="Treść" style="height: 4rem" tabindex="19">{{ values.reset_email_body }}</textarea>

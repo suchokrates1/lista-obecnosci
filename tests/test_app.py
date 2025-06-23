@@ -422,7 +422,7 @@ def test_panel_raport_email_sending(client, app, monkeypatch):
 
     sent = {}
 
-    def fake_email(buf, data, typ=None, course=None):
+    def fake_email(buf, data, typ=None, course=None, trainer_name=None):
         sent["called"] = True
 
     monkeypatch.setattr("routes.panel.generuj_raport_miesieczny", dummy_report)

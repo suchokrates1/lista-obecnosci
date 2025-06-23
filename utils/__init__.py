@@ -250,7 +250,12 @@ def przetworz_liste_obecnosci(form, wybrany):
     return ("success", buf, data_str)
 
 def email_do_koordynatora(
-    buf, data, typ: str = "lista", course: str | None = None, queue: bool = False
+    buf,
+    data,
+    typ: str = "lista",
+    course: str | None = None,
+    trainer_name: str | None = None,
+    queue: bool = False,
 ):
     odbiorca = os.getenv("EMAIL_RECIPIENT")
     if not odbiorca:
@@ -283,7 +288,15 @@ def email_do_koordynatora(
         body = f"{body}\n\n{footer}"
     msg.set_content(body)
 
-    sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
+    use_trainer = os.getenv("USE_TRAINER_SENDER_NAME", "0").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if use_trainer and trainer_name:
+        sender_name = trainer_name
+    else:
+        sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
     login = os.getenv("EMAIL_LOGIN")
     msg["From"] = f"{sender_name} <{login}>"
     msg["To"] = odbiorca
@@ -330,6 +343,7 @@ def send_attendance_list(zajecie, queue: bool = False) -> bool:
             data_str,
             typ="lista",
             course=prow.nazwa_zajec,
+            trainer_name=f"{prow.imie} {prow.nazwisko}",
             queue=queue,
         )
     except smtplib.SMTPException:
@@ -348,6 +362,7 @@ def send_plain_email(
     default_subject: str,
     default_body: str,
     queue: bool = False,
+    trainer_name: str | None = None,
     **fmt,
 ) -> None:
     """Send a simple text e-mail using templates from environment variables."""
@@ -359,7 +374,15 @@ def send_plain_email(
     if footer:
         body = f"{body}\n\n{footer}"
     msg.set_content(body)
-    sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
+    use_trainer = os.getenv("USE_TRAINER_SENDER_NAME", "0").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if use_trainer and trainer_name:
+        sender_name = trainer_name
+    else:
+        sender_name = os.getenv("EMAIL_SENDER_NAME", "Vest Media")
     login = os.getenv("EMAIL_LOGIN")
     msg["From"] = f"{sender_name} <{login}>"
     msg["To"] = to_addr
