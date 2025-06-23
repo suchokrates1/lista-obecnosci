@@ -20,6 +20,11 @@ Copy `.env.example` to `.env` and adjust the variables. The table below shows th
 | EMAIL_SENDER_NAME | Vest Media | Name used in the From header |
 | EMAIL_USE_TRAINER_NAME | 0 | Use trainer name in the From header |
 | EMAIL_FOOTER | Pozdrawiamy | Footer appended to every email |
+| EMAIL_LIST_HTML_BODY | - | HTML template for attendance list e-mails |
+| EMAIL_REPORT_HTML_BODY | - | HTML template for monthly report e-mails |
+| REGISTRATION_EMAIL_HTML_BODY | - | HTML template for registration notification |
+| REG_EMAIL_HTML_BODY | - | HTML template for activation e-mails |
+| RESET_EMAIL_HTML_BODY | - | HTML template for password reset e-mails |
 
 ## Environment variables
 
