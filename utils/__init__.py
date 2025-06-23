@@ -11,6 +11,7 @@ import threading
 import queue
 import atexit
 from email.message import EmailMessage
+import mimetypes
 import re
 import json
 from werkzeug.utils import secure_filename
@@ -130,6 +131,33 @@ def _send_message(msg: EmailMessage) -> None:
             smtp.login(login, password)
             smtp.send_message(msg)
     logger.info("Mail sent to %s", msg.get("To"))
+
+
+CID_RE = re.compile(r"cid:([^\"'>]+)")
+
+
+def _attach_cid_images(msg: EmailMessage, html: str) -> None:
+    """Attach images referenced as ``cid:`` URLs in ``html``.
+
+    Filenames are sanitized to stay within ``static/``. Missing files are
+    ignored with a warning.
+    """
+    static_root = os.path.abspath("static")
+    for name in CID_RE.findall(html):
+        filename = os.path.basename(name)
+        path = os.path.abspath(os.path.join("static", filename))
+        if not path.startswith(static_root + os.sep):
+            logger.warning("Invalid CID image path: %s", name)
+            continue
+        try:
+            with open(path, "rb") as fh:
+                data = fh.read()
+        except OSError:
+            logger.warning("CID image missing: %s", path)
+            continue
+        mime = mimetypes.guess_type(path)[0] or "application/octet-stream"
+        maintype, subtype = mime.split("/", 1)
+        msg.add_related(data, maintype=maintype, subtype=subtype, cid=filename)
 
 # Allowed signature upload formats
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}

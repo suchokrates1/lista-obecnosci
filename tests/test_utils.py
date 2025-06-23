@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import smtplib
 from docx import Document
+from email.message import EmailMessage
 
 import utils
 import pytest
@@ -357,3 +358,14 @@ def test_parse_registration_form_new_field(app):
     data, error = utils.parse_registration_form(form, MultiDict())
     assert error is None
     assert data["uczestnicy"] == ["X", "Y", "Z"]
+
+
+def test_attach_cid_images_no_escape(monkeypatch, tmp_path):
+    msg = EmailMessage()
+    msg.set_content("<p>x</p>", subtype="html")
+    (tmp_path / "static").mkdir()
+    img = tmp_path / "static" / "ok.png"
+    img.write_bytes(b"x")
+    monkeypatch.chdir(tmp_path)
+    utils._attach_cid_images(msg, '<img src="cid:../ok.png">')
+    assert len(list(msg.iter_attachments())) == 0
