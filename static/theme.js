@@ -340,5 +340,48 @@ function removeParticipantField(btn) {
         });
       });
     });
+
+    const quillEditors = {};
+    document.querySelectorAll('.quill-container').forEach(function(wrapper) {
+      const target = wrapper.getAttribute('data-target');
+      const editorEl = wrapper.querySelector('.quill-editor');
+      if (!target || !editorEl) return;
+      const textarea = document.getElementById(target);
+      const quill = new Quill(editorEl, { theme: 'snow' });
+      if (textarea) quill.root.innerHTML = textarea.value;
+      quillEditors[target] = quill;
+    });
+
+    document.querySelectorAll('.html-toggle').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        const target = btn.getAttribute('data-target');
+        const textarea = document.getElementById(target);
+        const wrapper = document.querySelector('.quill-container[data-target="' + target + '"]');
+        const editor = quillEditors[target];
+        if (!textarea || !wrapper || !editor) return;
+        if (wrapper.classList.contains('d-none')) {
+          editor.root.innerHTML = textarea.value;
+          wrapper.classList.remove('d-none');
+          textarea.classList.add('d-none');
+        } else {
+          textarea.value = editor.root.innerHTML;
+          wrapper.classList.add('d-none');
+          textarea.classList.remove('d-none');
+        }
+      });
+    });
+
+    if (form) {
+      form.addEventListener('submit', function(){
+        Object.keys(quillEditors).forEach(function(id){
+          const wrapper = document.querySelector('.quill-container[data-target="' + id + '"]');
+          if (wrapper && !wrapper.classList.contains('d-none')) {
+            const editor = quillEditors[id];
+            const textarea = document.getElementById(id);
+            if (textarea && editor) textarea.value = editor.root.innerHTML;
+          }
+        });
+      });
+    }
   });
 })();
