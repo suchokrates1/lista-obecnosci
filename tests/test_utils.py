@@ -140,6 +140,54 @@ def test_shutdown_email_worker_thread(monkeypatch):
     assert utils._worker is None or not utils._worker.is_alive()
 
 
+def test_safe_format_missing(monkeypatch):
+    assert utils.safe_format("x {foo} {bar}", foo="y") == "x y "
+
+
+def test_send_plain_email_extra_placeholder(monkeypatch):
+    called = {}
+
+    def fake_send(msg):
+        called["subject"] = msg["Subject"]
+        called["body"] = msg.get_content()
+
+    monkeypatch.setattr(utils, "_send_message", fake_send)
+    os.environ["EXTRA_SUBJ"] = "A {name} {missing}"
+    os.environ["EXTRA_BODY"] = "B {missing}"
+    utils.send_plain_email(
+        "z@example.com",
+        "EXTRA_SUBJ",
+        "EXTRA_BODY",
+        "s",
+        "b",
+        name="Bob",
+    )
+    assert called["subject"] == "A Bob "
+    assert called["body"].startswith("B ")
+
+
+def test_email_do_koordynatora_extra_placeholder(monkeypatch, app):
+    with app.app_context():
+        os.environ["EMAIL_RECIPIENT"] = "coord@example.com"
+        os.environ["EMAIL_LOGIN"] = "user@example.com"
+        os.environ["EMAIL_LIST_SUBJECT"] = "Sub {date} {missing}"
+        os.environ["EMAIL_LIST_BODY"] = "Body {missing}"
+
+        called = {}
+
+        def fake_send(msg):
+            called["subject"] = msg["Subject"]
+            called["body"] = msg.get_content()
+
+        monkeypatch.setattr(utils, "_send_message", fake_send)
+
+        buf = io.BytesIO(b"x")
+        utils.email_do_koordynatora(buf, "2025-01-01")
+
+        assert called["subject"].startswith("Sub 2025-01-01")
+        assert called["body"].startswith("Body ")
+
+
 
 def test_purge_expired_tokens(app):
     with app.app_context():
