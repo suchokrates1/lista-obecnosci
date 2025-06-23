@@ -26,6 +26,20 @@ logger = logging.getLogger(__name__)
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
+
+class _SafeDict(dict):
+    def __missing__(self, key):  # pragma: no cover - trivial
+        return ""
+
+
+def safe_format(template: str, **data) -> str:
+    """Return ``template`` formatted with ``data``.
+
+    Missing keys are replaced with empty strings instead of raising
+    ``KeyError``.
+    """
+    return template.format_map(_SafeDict(data))
+
 # Polish month names indexed by number
 MONTH_NAMES_PL = {
     1: "styczeń",
@@ -280,8 +294,8 @@ def email_do_koordynatora(
             "EMAIL_LIST_BODY", "W załączniku lista obecności z zajęć."
         )
         filename = f"lista_{data}.docx"
-    msg["Subject"] = subject_tmpl.format(date=data, course=course or "")
-    body = body_tmpl.format(date=data, course=course or "")
+    msg["Subject"] = safe_format(subject_tmpl, date=data, course=course or "")
+    body = safe_format(body_tmpl, date=data, course=course or "")
 
     footer = os.getenv("EMAIL_FOOTER", "")
     if footer:
@@ -363,8 +377,10 @@ def send_plain_email(
     **fmt,
 ) -> None:
     """Send a simple text e-mail using templates from environment variables."""
-    subject = os.getenv(subject_key, default_subject).format(**fmt)
-    body = os.getenv(body_key, default_body).format(**fmt)
+    subject_tmpl = os.getenv(subject_key, default_subject)
+    subject = safe_format(subject_tmpl, **fmt)
+    body_tmpl = os.getenv(body_key, default_body)
+    body = safe_format(body_tmpl, **fmt)
     msg = EmailMessage()
     msg["Subject"] = subject
     footer = os.getenv("EMAIL_FOOTER", "")
