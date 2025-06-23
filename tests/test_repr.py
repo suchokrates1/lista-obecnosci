@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
@@ -17,13 +18,19 @@ def app(tmp_path):
     os.environ['SMTP_PORT'] = '25'
     os.environ['EMAIL_LOGIN'] = 'user'
     os.environ['EMAIL_PASSWORD'] = 'pass'
+    Path('szablon.docx').touch()
+    Path('rejestr.docx').touch()
     application = create_app()
     application.config['WTF_CSRF_ENABLED'] = False
-    with application.app_context():
-        db.create_all()
-        yield application
-        db.session.remove()
-        db.drop_all()
+    try:
+        with application.app_context():
+            db.create_all()
+            yield application
+            db.session.remove()
+            db.drop_all()
+    finally:
+        Path('szablon.docx').unlink(missing_ok=True)
+        Path('rejestr.docx').unlink(missing_ok=True)
 
 
 def test_model_repr(app):
