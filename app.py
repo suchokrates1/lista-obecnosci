@@ -144,9 +144,35 @@ def create_app():
                     buf = BytesIO()
                     doc.save(buf)
                     buf.seek(0)
+                    
+                    # Automatyczne generowanie faktury
+                    invoice_pdf_buffer = None
+                    from invoice_helper import generate_invoice_for_report
+                    invoice_success, invoice_msg, invoice_pdf_buffer = generate_invoice_for_report(
+                        month=month,
+                        year=year,
+                        prowadzacy_id=trainer.id,
+                        trainer_name=f"{trainer.imie} {trainer.nazwisko}"
+                    )
+                    
+                    if invoice_success:
+                        click.echo(f"Invoice: {invoice_msg}")
+                    else:
+                        click.echo(f"Invoice error: {invoice_msg}", err=True)
+                    
+                    # Wysyłanie emaila z raportem i fakturą
                     try:
-                        email_do_koordynatora(buf, f"{month}_{year}", typ="raport", trainer=trainer)
+                        email_do_koordynatora(
+                            buf, 
+                            f"{month}_{year}", 
+                            typ="raport", 
+                            trainer=trainer,
+                            invoice_pdf_buf=invoice_pdf_buffer
+                        )
                         click.echo(f"Sent {filename}")
+                        if invoice_pdf_buffer:
+                            click.echo(f"Invoice PDF attached to email")
+                            
                     except smtplib.SMTPException:
                         logger.exception("Failed to send report e-mail")
                         click.echo(f"Failed to send e-mail for {filename}", err=True)
