@@ -1,14 +1,14 @@
 """add ksef invoice settings
 
 Revision ID: d1a2b3c4d5e6
-Revises: cafe7ef48e81
+Revises: 5a8478f00ca5
 Create Date: 2025-12-21 10:00:00
 """
 from alembic import op
 import sqlalchemy as sa
 
 revision = 'd1a2b3c4d5e6'
-down_revision = 'cafe7ef48e81'
+down_revision = '5a8478f00ca5'
 branch_labels = None
 depends_on = None
 
