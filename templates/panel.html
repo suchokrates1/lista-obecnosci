@@ -227,6 +227,13 @@
       </tr>
       {% endfor %}
     </tbody>
+    <tfoot class="table-dark fw-bold">
+      <tr>
+        <td colspan="2" class="text-end">SUMA:</td>
+        <td>{{ podsumowanie.values()|sum }}</td>
+        <td class="action-col"></td>
+      </tr>
+    </tfoot>
   </table>
   </div>
 
