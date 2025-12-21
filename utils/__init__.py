@@ -298,6 +298,7 @@ def email_do_koordynatora(
     course: str | None = None,
     queue: bool = False,
     trainer: object | None = None,
+    invoice_pdf_buf: object | None = None,
 ):
     odbiorca = os.getenv("EMAIL_RECIPIENT")
     if not odbiorca:
@@ -348,6 +349,20 @@ def email_do_koordynatora(
         subtype="vnd.openxmlformats-officedocument.wordprocessingml.document",
         filename=filename
     )
+    
+    # Dodaj fakturę PDF jako drugi załącznik (jeśli dostarczona)
+    if invoice_pdf_buf is not None:
+        try:
+            invoice_pdf_buf.seek(0)
+            invoice_filename = f"faktura_{data}.pdf"
+            msg.add_attachment(
+                invoice_pdf_buf.read(),
+                maintype="application",
+                subtype="pdf",
+                filename=invoice_filename
+            )
+        except Exception as e:
+            logger.warning(f"Failed to attach invoice PDF: {e}")
 
     try:
         _dispatch(msg, queue)

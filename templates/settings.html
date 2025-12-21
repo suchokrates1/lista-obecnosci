@@ -75,6 +75,9 @@
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="reset-tab" data-bs-toggle="tab" data-bs-target="#reset" type="button" role="tab">Reset hasła</button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="invoice-tab" data-bs-toggle="tab" data-bs-target="#invoice" type="button" role="tab">Faktury KSeF</button>
+      </li>
     </ul>
     <div class="tab-content border border-top-0 p-3" id="mailTabsContent">
       <div class="tab-pane fade show active" id="list" role="tabpanel">
@@ -170,6 +173,140 @@
         </div>
         <div class="quill-container d-none mb-3" data-target="reset_email_body">
           <div id="reset_email_body_editor" class="quill-editor" style="height: 8rem;"></div>
+        </div>
+      </div>
+      
+      <div class="tab-pane fade" id="invoice" role="tabpanel">
+        <h6 class="mb-3">Konfiguracja KSeF</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="ksef_enabled" name="ksef_enabled" value="1" {% if values.ksef_enabled.lower() in ['1','true','yes'] %}checked{% endif %}>
+            <label class="form-check-label" for="ksef_enabled">Włącz automatyczne wystawianie faktur w KSeF</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <select class="form-select" id="ksef_environment" name="ksef_environment">
+              <option value="test" {% if values.ksef_environment == 'test' %}selected{% endif %}>Test</option>
+              <option value="demo" {% if values.ksef_environment == 'demo' %}selected{% endif %}>Demo</option>
+              <option value="production" {% if values.ksef_environment == 'production' %}selected{% endif %}>Produkcja</option>
+            </select>
+            <label for="ksef_environment">Środowisko KSeF:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="ksef_nip" name="ksef_nip" placeholder="NIP" value="{{ values.ksef_nip }}">
+            <label for="ksef_nip">NIP do KSeF:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="password" class="form-control" id="ksef_token" name="ksef_token" placeholder="Token" value="{{ values.ksef_token }}">
+            <label for="ksef_token">Token autoryzacyjny KSeF:</label>
+          </div>
+        </div>
+
+        <h6 class="mb-3">Dane wystawiającego (Twoje dane)</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_name" name="invoice_issuer_name" placeholder="Nazwa" value="{{ values.invoice_issuer_name }}">
+            <label for="invoice_issuer_name">Nazwa firmy:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_nip" name="invoice_issuer_nip" placeholder="NIP" value="{{ values.invoice_issuer_nip }}">
+            <label for="invoice_issuer_nip">NIP:</label>
+          </div>
+          <div class="col-md-12 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_address" name="invoice_issuer_address" placeholder="Adres" value="{{ values.invoice_issuer_address }}">
+            <label for="invoice_issuer_address">Adres:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_postal" name="invoice_issuer_postal" placeholder="Kod" value="{{ values.invoice_issuer_postal }}">
+            <label for="invoice_issuer_postal">Kod pocztowy:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_city" name="invoice_issuer_city" placeholder="Miasto" value="{{ values.invoice_issuer_city }}">
+            <label for="invoice_issuer_city">Miasto:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_country" name="invoice_issuer_country" placeholder="Kraj" value="{{ values.invoice_issuer_country }}">
+            <label for="invoice_issuer_country">Kod kraju (np. PL):</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="email" class="form-control" id="invoice_issuer_email" name="invoice_issuer_email" placeholder="Email" value="{{ values.invoice_issuer_email }}">
+            <label for="invoice_issuer_email">Email:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_phone" name="invoice_issuer_phone" placeholder="Telefon" value="{{ values.invoice_issuer_phone }}">
+            <label for="invoice_issuer_phone">Telefon:</label>
+          </div>
+        </div>
+
+        <h6 class="mb-3">Dane kontrahenta (nabywcy usługi)</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_recipient_name" name="invoice_recipient_name" placeholder="Nazwa" value="{{ values.invoice_recipient_name }}">
+            <label for="invoice_recipient_name">Nazwa firmy:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_recipient_nip" name="invoice_recipient_nip" placeholder="NIP" value="{{ values.invoice_recipient_nip }}">
+            <label for="invoice_recipient_nip">NIP:</label>
+          </div>
+          <div class="col-md-12 form-floating">
+            <input type="text" class="form-control" id="invoice_recipient_address" name="invoice_recipient_address" placeholder="Adres" value="{{ values.invoice_recipient_address }}">
+            <label for="invoice_recipient_address">Adres:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="text" class="form-control" id="invoice_recipient_postal" name="invoice_recipient_postal" placeholder="Kod" value="{{ values.invoice_recipient_postal }}">
+            <label for="invoice_recipient_postal">Kod pocztowy:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="text" class="form-control" id="invoice_recipient_city" name="invoice_recipient_city" placeholder="Miasto" value="{{ values.invoice_recipient_city }}">
+            <label for="invoice_recipient_city">Miasto:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="text" class="form-control" id="invoice_recipient_country" name="invoice_recipient_country" placeholder="Kraj" value="{{ values.invoice_recipient_country }}">
+            <label for="invoice_recipient_country">Kod kraju (np. PL):</label>
+          </div>
+        </div>
+
+        <h6 class="mb-3">Konfiguracja usługi i płatności</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-12 form-floating">
+            <input type="text" class="form-control" id="invoice_service_name" name="invoice_service_name" placeholder="Nazwa usługi" value="{{ values.invoice_service_name }}">
+            <label for="invoice_service_name">Nazwa usługi (bez miesiąca - zostanie dodany automatycznie):</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="number" step="0.01" class="form-control" id="invoice_hourly_rate" name="invoice_hourly_rate" placeholder="Stawka" value="{{ values.invoice_hourly_rate }}">
+            <label for="invoice_hourly_rate">Stawka za godzinę (PLN):</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="text" class="form-control" id="invoice_currency" name="invoice_currency" placeholder="Waluta" value="{{ values.invoice_currency }}">
+            <label for="invoice_currency">Waluta:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="number" class="form-control" id="invoice_vat_rate" name="invoice_vat_rate" placeholder="VAT %" value="{{ values.invoice_vat_rate }}">
+            <label for="invoice_vat_rate">Stawka VAT (%):</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="number" class="form-control" id="invoice_payment_deadline_days" name="invoice_payment_deadline_days" placeholder="Dni" value="{{ values.invoice_payment_deadline_days }}">
+            <label for="invoice_payment_deadline_days">Termin płatności (dni):</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <select class="form-select" id="invoice_payment_method" name="invoice_payment_method">
+              <option value="1" {% if values.invoice_payment_method == '1' %}selected{% endif %}>Przelew</option>
+              <option value="2" {% if values.invoice_payment_method == '2' %}selected{% endif %}>Gotówka</option>
+              <option value="6" {% if values.invoice_payment_method == '6' %}selected{% endif %}>Karta płatnicza</option>
+            </select>
+            <label for="invoice_payment_method">Sposób płatności:</label>
+          </div>
+        </div>
+
+        <h6 class="mb-3">Numeracja faktur</h6>
+        <div class="row g-3">
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_number_prefix" name="invoice_number_prefix" placeholder="Prefiks" value="{{ values.invoice_number_prefix }}">
+            <label for="invoice_number_prefix">Prefiks numeru faktury (np. FV):</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="number" class="form-control" id="invoice_number_counter" name="invoice_number_counter" placeholder="Licznik" value="{{ values.invoice_number_counter }}">
+            <label for="invoice_number_counter">Aktualny licznik:</label>
+          </div>
         </div>
       </div>
     </div>

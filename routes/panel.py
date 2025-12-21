@@ -312,9 +312,34 @@ def panel_raport():
     buf.seek(0)
 
     if wyslij:
+        # Automatyczne generowanie faktury
+        invoice_pdf_buffer = None
+        from invoice_helper import generate_invoice_for_report
+        invoice_success, invoice_msg, invoice_pdf_buffer = generate_invoice_for_report(
+            month=miesiac,
+            year=rok,
+            prowadzacy_id=prow.id,
+            trainer_name=f"{prow.imie} {prow.nazwisko}"
+        )
+        
+        if invoice_success:
+            flash(invoice_msg, "success")
+        else:
+            flash(invoice_msg, "warning")
+        
+        # Wysyłanie emaila z raportem i fakturą
         try:
-            email_do_koordynatora(buf, f"{miesiac}_{rok}", typ="raport", trainer=prow)
+            email_do_koordynatora(
+                buf, 
+                f"{miesiac}_{rok}", 
+                typ="raport", 
+                trainer=prow,
+                invoice_pdf_buf=invoice_pdf_buffer
+            )
             flash("Raport został wysłany e-mailem", "success")
+            if invoice_pdf_buffer:
+                flash("Faktura PDF została dołączona do emaila", "info")
+                
         except smtplib.SMTPException:
             logger.exception("Failed to send report email")
             flash("Nie udało się wysłać e-maila", "danger")

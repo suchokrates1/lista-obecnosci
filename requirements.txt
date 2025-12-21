@@ -7,3 +7,5 @@ python-docx==1.1.2
 Flask-WTF==1.2.2
 Pillow==11.2.1
 rembg==2.0.66
+requests==2.32.3
+reportlab==4.2.5

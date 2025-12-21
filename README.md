@@ -48,6 +48,58 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
   - `REMOVE_SIGNATURE_BG` – when set to `1`, white background is removed from uploaded signatures.
   - `EMAIL_LIST_SUBJECT` / `EMAIL_LIST_BODY` – templates for attendance lists (`{date}` and `{course}` placeholders).
   - `EMAIL_REPORT_SUBJECT` / `EMAIL_REPORT_BODY` – templates for monthly reports (`{date}` placeholder).
+
+### KSeF Invoice Integration
+
+The application supports automatic invoice generation and submission to the Polish KSeF (Krajowy System e-Faktur) system when monthly reports are sent. Configure the following variables:
+
+- **KSeF Configuration:**
+  - `KSEF_ENABLED` – set to `1` to enable automatic invoice generation
+  - `KSEF_ENVIRONMENT` – `test`, `demo`, or `production` 
+  - `KSEF_NIP` – your tax identification number (NIP) for KSeF
+  - `KSEF_TOKEN` – authorization token for KSeF API
+
+- **Invoice Issuer (Your Data):**
+  - `INVOICE_ISSUER_NAME` – your company name
+  - `INVOICE_ISSUER_NIP` – your NIP
+  - `INVOICE_ISSUER_ADDRESS` – street address
+  - `INVOICE_ISSUER_POSTAL` – postal code
+  - `INVOICE_ISSUER_CITY` – city
+  - `INVOICE_ISSUER_COUNTRY` – country code (e.g., PL)
+  - `INVOICE_ISSUER_EMAIL` – email address
+  - `INVOICE_ISSUER_PHONE` – phone number
+
+- **Invoice Recipient (Contractor Data):**
+  - `INVOICE_RECIPIENT_NAME` – contractor's company name
+  - `INVOICE_RECIPIENT_NIP` – contractor's NIP
+  - `INVOICE_RECIPIENT_ADDRESS` – contractor's street address
+  - `INVOICE_RECIPIENT_POSTAL` – contractor's postal code
+  - `INVOICE_RECIPIENT_CITY` – contractor's city
+  - `INVOICE_RECIPIENT_COUNTRY` – contractor's country code
+
+- **Service Configuration:**
+  - `INVOICE_SERVICE_NAME` – base service name (month and year are appended automatically)
+  - `INVOICE_HOURLY_RATE` – rate per hour in PLN
+  - `INVOICE_CURRENCY` – currency code (default: PLN)
+  - `INVOICE_VAT_RATE` – VAT percentage (default: 23)
+  - `INVOICE_PAYMENT_DEADLINE_DAYS` – payment deadline in days (default: 14)
+  - `INVOICE_PAYMENT_METHOD` – payment method code (1=transfer, 2=cash, 6=card)
+
+- **Invoice Numbering:**
+  - `INVOICE_NUMBER_PREFIX` – invoice number prefix (e.g., FV)
+  - `INVOICE_NUMBER_COUNTER` – current invoice counter
+
+When a monthly report is sent via email, the system automatically:
+1. Calculates total hours for the month
+2. Generates an invoice in FA(2) XML format
+3. Generates a PDF version of the invoice
+4. Attaches both the monthly report (DOCX) and invoice (PDF) to the email
+5. If `KSEF_ENABLED=1`, sends the invoice XML to KSeF
+6. If `KSEF_ENABLED=0`, saves the invoice XML locally to `invoices/YYYY/MM/`
+7. Increments the invoice counter
+
+Invoice numbers follow the format: `PREFIX/NNN/MM/YYYY` (e.g., `FV/001/12/2025`)
+
   - `REGISTRATION_EMAIL_SUBJECT` / `REGISTRATION_EMAIL_BODY` – templates for registration notifications (`{name}`, `{login}`, `{link}`).
   - `REG_EMAIL_SUBJECT` / `REG_EMAIL_BODY` – templates for the account activation e-mail.
   - `RESET_EMAIL_SUBJECT` / `RESET_EMAIL_BODY` – templates for password reset messages (`{link}`).
@@ -167,3 +219,15 @@ pip install pytest
 pytest
 ```
 The tests create a temporary SQLite database and verify route availability, registration, login, access control and helper utilities.
+
+## Invoice Module Files
+
+The invoice functionality is provided by four modules:
+
+- **`ksef_invoice.py`** – FA(2) XML invoice generator compatible with KSeF specifications
+- **`invoice_pdf.py`** – PDF invoice generator using ReportLab
+- **`ksef_client.py`** – KSeF API client for submitting invoices to the system
+- **`invoice_helper.py`** – Helper functions for invoice generation integrated with monthly reports
+
+Generated invoice files (both XML and PDF) are saved to `invoices/YYYY/MM/` directory when invoicing is enabled.
+The PDF invoice is automatically attached to the monthly report email sent to the coordinator.

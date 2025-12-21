@@ -105,11 +105,38 @@ def admin_settings():
         "table_panel_profile_data_widths",
         "table_panel_participants_widths",
         "table_panel_monthly_reports_widths",
+        # KSeF and Invoice settings
+        "ksef_enabled",
+        "ksef_environment",
+        "ksef_nip",
+        "ksef_token",
+        "invoice_issuer_name",
+        "invoice_issuer_nip",
+        "invoice_issuer_address",
+        "invoice_issuer_postal",
+        "invoice_issuer_city",
+        "invoice_issuer_country",
+        "invoice_issuer_email",
+        "invoice_issuer_phone",
+        "invoice_recipient_name",
+        "invoice_recipient_nip",
+        "invoice_recipient_address",
+        "invoice_recipient_postal",
+        "invoice_recipient_city",
+        "invoice_recipient_country",
+        "invoice_service_name",
+        "invoice_hourly_rate",
+        "invoice_currency",
+        "invoice_vat_rate",
+        "invoice_payment_deadline_days",
+        "invoice_payment_method",
+        "invoice_number_prefix",
+        "invoice_number_counter",
     ]
 
     if request.method == "POST":
         for key in keys:
-            if key in ("remove_signature_bg", "email_use_trainer_name"):
+            if key in ("remove_signature_bg", "email_use_trainer_name", "ksef_enabled"):
                 val = "1" if request.form.get(key) else "0"
             else:
                 val = request.form.get(key)
@@ -151,7 +178,7 @@ def admin_settings():
             for key in keys:
                 setting = db.session.get(Setting, key)
                 values[key] = os.getenv(key.upper(), setting.value if setting else "")
-                if key in ("remove_signature_bg", "email_use_trainer_name"):
+                if key in ("remove_signature_bg", "email_use_trainer_name", "ksef_enabled"):
                     if request.form.get(key) is not None:
                         values[key] = "1"
                 elif key in request.form:
@@ -166,7 +193,7 @@ def admin_settings():
             )
 
         for key in keys:
-            if key in ("remove_signature_bg", "email_use_trainer_name"):
+            if key in ("remove_signature_bg", "email_use_trainer_name", "ksef_enabled"):
                 val = "1" if request.form.get(key) else "0"
             else:
                 val = request.form.get(key)
@@ -282,9 +309,34 @@ def raport(prowadzacy_id):
     buf.seek(0)
 
     if wyslij:
+        # Automatyczne generowanie faktury
+        invoice_pdf_buffer = None
+        from invoice_helper import generate_invoice_for_report
+        invoice_success, invoice_msg, invoice_pdf_buffer = generate_invoice_for_report(
+            month=miesiac,
+            year=rok,
+            prowadzacy_id=prow.id,
+            trainer_name=f"{prow.imie} {prow.nazwisko}"
+        )
+        
+        if invoice_success:
+            flash(invoice_msg, "success")
+        else:
+            flash(invoice_msg, "warning")
+        
+        # Wysyłanie emaila z raportem i fakturą
         try:
-            email_do_koordynatora(buf, f"{miesiac}_{rok}", typ="raport", trainer=prow)
+            email_do_koordynatora(
+                buf, 
+                f"{miesiac}_{rok}", 
+                typ="raport", 
+                trainer=prow,
+                invoice_pdf_buf=invoice_pdf_buffer
+            )
             flash("Raport został wysłany e-mailem", "success")
+            if invoice_pdf_buffer:
+                flash("Faktura PDF została dołączona do emaila", "info")
+                
         except smtplib.SMTPException:
             logger.exception("Failed to send report email")
             flash("Nie udało się wysłać e-maila", "danger")
