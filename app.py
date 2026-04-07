@@ -40,6 +40,7 @@ def inject_table_widths():
 def create_app():
     logging.basicConfig(level=logging.INFO)
     app = Flask(__name__)
+    default_database_url = f"sqlite:///{os.path.join(app.instance_path, 'obecnosc.db')}"
 
     # Konfiguracja aplikacji
     secret_key = os.getenv("SECRET_KEY")
@@ -47,7 +48,7 @@ def create_app():
         raise RuntimeError("SECRET_KEY environment variable must be set")
     app.config["SECRET_KEY"] = secret_key
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "DATABASE_URL", "sqlite:///instance/obecnosc.db"
+        "DATABASE_URL", default_database_url
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
