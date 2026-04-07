@@ -75,6 +75,7 @@ def _email_worker() -> None:
     while True:
         msg = _email_queue.get()
         if msg is None:
+            _email_queue.task_done()
             break
         try:
             _send_message(msg)
@@ -144,6 +145,9 @@ def _attach_cid_images(msg: EmailMessage, html: str) -> None:
     """
     static_root = os.path.abspath("static")
     for name in CID_RE.findall(html):
+        if os.path.basename(name) != name:
+            logger.warning("Invalid CID image path: %s", name)
+            continue
         filename = os.path.basename(name)
         path = os.path.abspath(os.path.join("static", filename))
         if not path.startswith(static_root + os.sep):

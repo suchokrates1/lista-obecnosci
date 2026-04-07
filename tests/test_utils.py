@@ -178,7 +178,7 @@ def test_email_do_koordynatora_extra_placeholder(monkeypatch, app):
 
         def fake_send(msg):
             called["subject"] = msg["Subject"]
-            called["body"] = msg.get_content()
+            called["body"] = msg.get_body(preferencelist=("plain",)).get_content()
 
         monkeypatch.setattr(utils, "_send_message", fake_send)
 
