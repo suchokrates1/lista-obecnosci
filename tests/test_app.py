@@ -46,7 +46,8 @@ def client(app):
 @pytest.fixture(scope="session", autouse=True)
 def ensure_jsdom():
     if not os.path.exists("node_modules/jsdom"):
-        subprocess.run(["npm", "install", "jsdom@22"], check=True)
+        npm_command = "npm.cmd" if os.name == "nt" else "npm"
+        subprocess.run([npm_command, "install", "jsdom@22"], check=True)
 
 
 def test_start_fails_without_mail_vars(tmp_path, monkeypatch):
@@ -446,7 +447,7 @@ def test_panel_raport_email_sending(client, app, monkeypatch):
 
     sent = {}
 
-    def fake_email(buf, data, typ=None, course=None, trainer=None):
+    def fake_email(buf, data, typ=None, course=None, trainer=None, invoice_pdf_buf=None):
         sent["called"] = True
 
     monkeypatch.setattr("routes.panel.generuj_raport_miesieczny", dummy_report)

@@ -13,6 +13,9 @@ instance/
 # Dokumenty Word i generowane pliki
 *.docx
 *.pdf
+reports/
+invoices/
+nul
 
 # Logi
 *.log

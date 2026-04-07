@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, jsonify, render_template
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 from flask_wtf import CSRFProtect
@@ -47,7 +47,7 @@ def create_app():
         raise RuntimeError("SECRET_KEY environment variable must be set")
     app.config["SECRET_KEY"] = secret_key
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "DATABASE_URL", "sqlite:///obecnosc.db"
+        "DATABASE_URL", "sqlite:///instance/obecnosc.db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -99,6 +99,10 @@ def create_app():
     app.context_processor(inject_table_widths)
     app.add_template_filter(month_name, "month_name")
 
+    @app.get("/healthz")
+    def healthz():
+        return jsonify({"status": "ok"})
+
     @app.cli.command("purge-tokens")
     def purge_tokens_command() -> None:
         """Remove expired password reset tokens."""
@@ -144,7 +148,7 @@ def create_app():
                     buf = BytesIO()
                     doc.save(buf)
                     buf.seek(0)
-                    
+
                     # Automatyczne generowanie faktury
                     invoice_pdf_buffer = None
                     from invoice_helper import generate_invoice_for_report
@@ -154,25 +158,25 @@ def create_app():
                         prowadzacy_id=trainer.id,
                         trainer_name=f"{trainer.imie} {trainer.nazwisko}"
                     )
-                    
+
                     if invoice_success:
                         click.echo(f"Invoice: {invoice_msg}")
                     else:
                         click.echo(f"Invoice error: {invoice_msg}", err=True)
-                    
+
                     # Wysyłanie emaila z raportem i fakturą
                     try:
                         email_do_koordynatora(
-                            buf, 
-                            f"{month}_{year}", 
-                            typ="raport", 
+                            buf,
+                            f"{month}_{year}",
+                            typ="raport",
                             trainer=trainer,
                             invoice_pdf_buf=invoice_pdf_buffer
                         )
                         click.echo(f"Sent {filename}")
                         if invoice_pdf_buffer:
-                            click.echo(f"Invoice PDF attached to email")
-                            
+                            click.echo("Invoice PDF attached to email")
+
                     except smtplib.SMTPException:
                         logger.exception("Failed to send report e-mail")
                         click.echo(f"Failed to send e-mail for {filename}", err=True)

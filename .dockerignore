@@ -28,8 +28,11 @@ instance/
 *.bak
 *.swp
 
-# Migrations are not needed inside the image
-migrations/
+# Test and local JS dependencies
+tests/
+node_modules/
+package-lock.json
+package.json
 
 # Misc system files
 .DS_Store
