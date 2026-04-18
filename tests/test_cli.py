@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from io import BytesIO
 
 import pytest
 from docx import Document
@@ -87,3 +88,47 @@ def test_generate_reports_email(app, monkeypatch, tmp_path):
     )
     assert result.exit_code == 0
     assert sent.get("called")
+
+
+def test_send_demo_invoice_cli(app, monkeypatch, tmp_path):
+    trainer_id, _ = _setup_data(app)
+
+    def dummy_report(*_a, **_k):
+        doc = Document()
+        doc.add_paragraph("raport")
+        return doc
+
+    sent = {}
+
+    def fake_email(buf, data, typ=None, course=None, trainer=None, invoice_pdf_buf=None):
+        sent["called"] = True
+        sent["to"] = os.environ.get("EMAIL_RECIPIENT")
+        sent["invoice_pdf"] = invoice_pdf_buf.read()
+
+    def fake_generate_invoice_for_report(**_kwargs):
+        return True, "Faktura wysłana do KSeF. Numer KSeF: 123.", BytesIO(b"pdf")
+
+    monkeypatch.setattr("app.generuj_raport_miesieczny", dummy_report)
+    monkeypatch.setattr("app.email_do_koordynatora", fake_email)
+    monkeypatch.setattr("invoice_helper.generate_invoice_for_report", fake_generate_invoice_for_report)
+    runner = app.test_cli_runner()
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(
+        args=[
+            "send-demo-invoice",
+            "--month",
+            "5",
+            "--year",
+            "2025",
+            "--trainer-id",
+            str(trainer_id),
+            "--email-to",
+            "demo@example.com",
+        ]
+    )
+
+    assert result.exit_code == 0
+    assert sent["called"]
+    assert sent["to"] == "demo@example.com"
+    assert sent["invoice_pdf"] == b"pdf"

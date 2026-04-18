@@ -1,10 +1,6 @@
-"""
-Helper functions for invoice generation and sending
-Funkcje pomocnicze do generowania i wysyłania faktur
-"""
+"""Helper functions for invoice generation and sending."""
 import logging
 from typing import Optional, Tuple
-from datetime import datetime
 from io import BytesIO
 from model import Zajecia
 from ksef_invoice import (
@@ -18,6 +14,22 @@ from ksef_client import send_invoice_to_ksef
 from invoice_pdf import generate_invoice_pdf, save_invoice_pdf
 
 logger = logging.getLogger(__name__)
+
+
+def _format_ksef_result(result) -> str:
+    if not result:
+        return "Faktura wysłana do KSeF"
+    if result.ksef_number:
+        return (
+            "Faktura wysłana do KSeF. "
+            f"Numer KSeF: {result.ksef_number}. "
+            f"Sesja: {result.session_reference_number}."
+        )
+    return (
+        "Faktura przekazana do KSeF. "
+        f"Sesja: {result.session_reference_number}, "
+        f"faktura: {result.invoice_reference_number}."
+    )
 
 
 def calculate_monthly_hours(prowadzacy_id: int, month: int, year: int) -> float:
@@ -62,8 +74,8 @@ def generate_and_send_invoice(
         save_to_disk: Czy zapisać XML faktury na dysk
     
     Returns:
-        Tuple[bool, Optional[str], Optional[str], Optional[BytesIO]]: 
-            (sukces, numer referencyjny KSeF/ścieżka pliku, komunikat błędu, PDF buffer)
+        Tuple[bool, Optional[str], Optional[str], Optional[BytesIO]]:
+            (sukces, opis wyniku/ścieżka, komunikat błędu, PDF buffer)
     """
     try:
         # Oblicz liczbę godzin
@@ -98,16 +110,18 @@ def generate_and_send_invoice(
         
         # Jeśli KSeF jest włączony, wyślij fakturę
         if is_ksef_enabled():
-            success, ref_number, error = send_invoice_to_ksef(invoice_xml)
+            success, ksef_result, error = send_invoice_to_ksef(invoice_xml)
             
             if success:
-                # Zwiększ licznik faktur
                 increment_invoice_counter()
                 logger.info(
-                    f"Invoice generated and sent to KSeF: {invoice.invoice_number}, "
-                    f"Reference: {ref_number}"
+                    "Invoice generated and sent to KSeF: %s, session=%s, invoice=%s, ksef=%s",
+                    invoice.invoice_number,
+                    ksef_result.session_reference_number,
+                    ksef_result.invoice_reference_number,
+                    ksef_result.ksef_number,
                 )
-                return True, ref_number, None, pdf_buffer
+                return True, _format_ksef_result(ksef_result), None, pdf_buffer
             else:
                 logger.error(f"Failed to send invoice to KSeF: {error}")
                 return False, saved_path, error, pdf_buffer
@@ -153,11 +167,9 @@ def generate_invoice_for_report(
     )
     
     if success:
-        if result and result.startswith('http'):
-            # Numer referencyjny KSeF
-            return True, f"Faktura wysłana do KSeF. Numer referencyjny: {result}", pdf_buffer
+        if is_ksef_enabled() and result:
+            return True, result, pdf_buffer
         elif result:
-            # Ścieżka do pliku
             return True, f"Faktura wygenerowana: {result}", pdf_buffer
         else:
             return True, "Faktura wygenerowana pomyślnie", pdf_buffer

@@ -16,6 +16,29 @@
   <form method="POST">
     {% set placeholders = ['{date}', '{course}', '{name}', '{login}', '{link}'] %}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <h5 class="mb-3">Projekt</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6 form-floating">
+        <input type="text" class="form-control" id="course_name" name="course_name" placeholder="Nazwa projektu" value="{{ values.course_name }}">
+        <label for="course_name">Nazwa projektu (np. ShareOKO IV):</label>
+      </div>
+      <div class="col-md-3 form-floating">
+        <input type="number" step="0.5" class="form-control" id="project_total_hours" name="project_total_hours" placeholder="Godziny" value="{{ values.project_total_hours }}">
+        <label for="project_total_hours">Godzin w projekcie:</label>
+      </div>
+      <div class="col-md-3 form-floating">
+        <input type="number" step="0.01" class="form-control" id="project_hourly_rate" name="project_hourly_rate" placeholder="Stawka" value="{{ values.project_hourly_rate }}">
+        <label for="project_hourly_rate">Stawka za godzinę (PLN):</label>
+      </div>
+      <div class="col-md-6 form-floating">
+        <input type="date" class="form-control" id="project_start_date" name="project_start_date" value="{{ values.project_start_date }}">
+        <label for="project_start_date">Data rozpoczęcia projektu:</label>
+      </div>
+    </div>
+    <hr class="my-4">
+
+    <h5 class="mb-3">Poczta i powiadomienia</h5>
     <div class="row g-3">
       <div class="col-md-6 form-floating">
         <input type="text" class="form-control" id="smtp_host" name="smtp_host" placeholder="SMTP host" value="{{ values.smtp_host }}" tabindex="1">
@@ -196,8 +219,20 @@
             <label for="ksef_nip">NIP do KSeF:</label>
           </div>
           <div class="col-md-6 form-floating">
-            <input type="password" class="form-control" id="ksef_token" name="ksef_token" placeholder="Token" value="{{ values.ksef_token }}">
-            <label for="ksef_token">Token autoryzacyjny KSeF:</label>
+            <input type="password" class="form-control" id="ksef_token_demo" name="ksef_token_demo" placeholder="Token demo" value="{{ values.ksef_token_demo }}">
+            <label for="ksef_token_demo">Token KSeF demo:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="password" class="form-control" id="ksef_token_test" name="ksef_token_test" placeholder="Token test" value="{{ values.ksef_token_test }}">
+            <label for="ksef_token_test">Token KSeF test:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="password" class="form-control" id="ksef_token_production" name="ksef_token_production" placeholder="Token produkcyjny" value="{{ values.ksef_token_production }}">
+            <label for="ksef_token_production">Token KSeF produkcja:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="password" class="form-control" id="ksef_token" name="ksef_token" placeholder="Fallback token" value="{{ values.ksef_token }}">
+            <label for="ksef_token">Awaryjny token KSeF:</label>
           </div>
         </div>
 
@@ -234,6 +269,14 @@
           <div class="col-md-6 form-floating">
             <input type="text" class="form-control" id="invoice_issuer_phone" name="invoice_issuer_phone" placeholder="Telefon" value="{{ values.invoice_issuer_phone }}">
             <label for="invoice_issuer_phone">Telefon:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_bank_account" name="invoice_issuer_bank_account" placeholder="Rachunek" value="{{ values.invoice_issuer_bank_account }}">
+            <label for="invoice_issuer_bank_account">Numer rachunku bankowego:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_issuer_bank_name" name="invoice_issuer_bank_name" placeholder="Bank" value="{{ values.invoice_issuer_bank_name }}">
+            <label for="invoice_issuer_bank_name">Nazwa banku:</label>
           </div>
         </div>
 
@@ -280,8 +323,20 @@
             <label for="invoice_currency">Waluta:</label>
           </div>
           <div class="col-md-4 form-floating">
-            <input type="number" class="form-control" id="invoice_vat_rate" name="invoice_vat_rate" placeholder="VAT %" value="{{ values.invoice_vat_rate }}">
-            <label for="invoice_vat_rate">Stawka VAT (%):</label>
+            <input type="text" class="form-control" id="invoice_vat_rate" name="invoice_vat_rate" placeholder="VAT" value="{{ values.invoice_vat_rate }}">
+            <label for="invoice_vat_rate">Stawka VAT lub `zw`:</label>
+          </div>
+          <div class="col-md-12 form-floating">
+            <input type="text" class="form-control" id="invoice_vat_exemption_reason" name="invoice_vat_exemption_reason" placeholder="Podstawa zwolnienia" value="{{ values.invoice_vat_exemption_reason }}">
+            <label for="invoice_vat_exemption_reason">Podstawa zwolnienia z VAT:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_pkwiu" name="invoice_pkwiu" placeholder="PKWiU" value="{{ values.invoice_pkwiu }}">
+            <label for="invoice_pkwiu">PKWiU:</label>
+          </div>
+          <div class="col-md-6 form-floating">
+            <input type="text" class="form-control" id="invoice_issue_place" name="invoice_issue_place" placeholder="Miejsce" value="{{ values.invoice_issue_place }}">
+            <label for="invoice_issue_place">Miejsce wystawienia:</label>
           </div>
           <div class="col-md-6 form-floating">
             <input type="number" class="form-control" id="invoice_payment_deadline_days" name="invoice_payment_deadline_days" placeholder="Dni" value="{{ values.invoice_payment_deadline_days }}">
@@ -295,6 +350,10 @@
             </select>
             <label for="invoice_payment_method">Sposób płatności:</label>
           </div>
+          <div class="col-md-12 form-floating">
+            <input type="text" class="form-control" id="invoice_payment_description" name="invoice_payment_description" placeholder="Tytuł płatności" value="{{ values.invoice_payment_description }}">
+            <label for="invoice_payment_description">Tytuł płatności:</label>
+          </div>
         </div>
 
         <h6 class="mb-3">Numeracja faktur</h6>
@@ -306,6 +365,32 @@
           <div class="col-md-6 form-floating">
             <input type="number" class="form-control" id="invoice_number_counter" name="invoice_number_counter" placeholder="Licznik" value="{{ values.invoice_number_counter }}">
             <label for="invoice_number_counter">Aktualny licznik:</label>
+          </div>
+          <div class="col-md-12 form-floating">
+            <input type="text" class="form-control" id="invoice_number_template" name="invoice_number_template" placeholder="Szablon numeru" value="{{ values.invoice_number_template }}">
+            <label for="invoice_number_template">Szablon numeru ({prefix}, {counter}, {counter_padded}, {month}, {month_padded}, {year}):</label>
+          </div>
+        </div>
+
+        <h6 class="mt-4 mb-3">Daty na fakturze</h6>
+        <div class="row g-3">
+          <div class="col-md-4 form-floating">
+            <select class="form-select" id="invoice_issue_date_mode" name="invoice_issue_date_mode">
+              <option value="report_month_day" {% if values.invoice_issue_date_mode == 'report_month_day' %}selected{% endif %}>Stały dzień miesiąca raportu</option>
+              <option value="today" {% if values.invoice_issue_date_mode == 'today' %}selected{% endif %}>Bieżąca data</option>
+            </select>
+            <label for="invoice_issue_date_mode">Data wystawienia:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <input type="number" min="1" max="31" class="form-control" id="invoice_issue_day_of_month" name="invoice_issue_day_of_month" placeholder="Dzień" value="{{ values.invoice_issue_day_of_month }}">
+            <label for="invoice_issue_day_of_month">Dzień miesiąca dla daty wystawienia:</label>
+          </div>
+          <div class="col-md-4 form-floating">
+            <select class="form-select" id="invoice_sale_date_mode" name="invoice_sale_date_mode">
+              <option value="issue_date" {% if values.invoice_sale_date_mode == 'issue_date' %}selected{% endif %}>Taka sama jak data wystawienia</option>
+              <option value="month_end" {% if values.invoice_sale_date_mode == 'month_end' %}selected{% endif %}>Ostatni dzień miesiąca raportu</option>
+            </select>
+            <label for="invoice_sale_date_mode">Data wykonania usługi:</label>
           </div>
         </div>
       </div>

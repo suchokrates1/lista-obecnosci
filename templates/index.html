@@ -11,7 +11,7 @@
   </style>
 {% endblock %}
 {% block content %}
-  <h1 class="mb-4 text-center">Lista obecności – ShareOKO</h1>
+  <h1 class="mb-4 text-center">Lista obecności – {{ course_name }}</h1>
 
   <div aria-live="polite" role="status">
     {% with messages = get_flashed_messages(with_categories=True) %}
