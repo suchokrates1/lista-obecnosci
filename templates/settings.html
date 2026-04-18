@@ -13,7 +13,7 @@
       {% endif %}
     {% endwith %}
   </div>
-  <form method="POST">
+  <form method="POST" enctype="multipart/form-data">
     {% set placeholders = ['{date}', '{course}', '{name}', '{login}', '{link}'] %}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -34,6 +34,20 @@
       <div class="col-md-6 form-floating">
         <input type="date" class="form-control" id="project_start_date" name="project_start_date" value="{{ values.project_start_date }}">
         <label for="project_start_date">Data rozpoczęcia projektu:</label>
+      </div>
+    </div>
+
+    <h6 class="mb-2 mt-3">Wzory dokumentów</h6>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="szablon_docx" class="form-label">Lista obecności (szablon.docx):</label>
+        <input type="file" class="form-control" id="szablon_docx" name="szablon_docx" accept=".docx">
+        {% if szablon_exists %}<small class="text-muted">Aktualny plik: szablon.docx ({{ szablon_size }})</small>{% else %}<small class="text-danger">Brak pliku szablon.docx!</small>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label for="rejestr_docx" class="form-label">Rejestr godzin (rejestr.docx):</label>
+        <input type="file" class="form-control" id="rejestr_docx" name="rejestr_docx" accept=".docx">
+        {% if rejestr_exists %}<small class="text-muted">Aktualny plik: rejestr.docx ({{ rejestr_size }})</small>{% else %}<small class="text-danger">Brak pliku rejestr.docx!</small>{% endif %}
       </div>
     </div>
     <hr class="my-4">
