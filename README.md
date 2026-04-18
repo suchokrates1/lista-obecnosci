@@ -51,7 +51,9 @@ Copy `.env.example` to `.env` and adjust the values, or export them manually:
 
 ### KSeF Invoice Integration
 
-The application supports automatic invoice generation and submission to the Polish KSeF (Krajowy System e-Faktur) system when monthly reports are sent. Configure the following variables:
+The application supports automatic invoice generation and submission to KSeF 2.0 when monthly reports are sent. The XML is generated in FA(3) format and the PDF is prepared for invoices with VAT exemption (`zw`) as well as regular VAT invoices.
+
+Configure the following variables:
 
 - **KSeF Configuration:**
   - `KSEF_ENABLED` – set to `1` to enable automatic invoice generation
@@ -68,6 +70,8 @@ The application supports automatic invoice generation and submission to the Poli
   - `INVOICE_ISSUER_COUNTRY` – country code (e.g., PL)
   - `INVOICE_ISSUER_EMAIL` – email address
   - `INVOICE_ISSUER_PHONE` – phone number
+  - `INVOICE_ISSUER_BANK_ACCOUNT` – bank account number shown on the invoice
+  - `INVOICE_ISSUER_BANK_NAME` – bank name
 
 - **Invoice Recipient (Contractor Data):**
   - `INVOICE_RECIPIENT_NAME` – contractor's company name
@@ -81,24 +85,38 @@ The application supports automatic invoice generation and submission to the Poli
   - `INVOICE_SERVICE_NAME` – base service name (month and year are appended automatically)
   - `INVOICE_HOURLY_RATE` – rate per hour in PLN
   - `INVOICE_CURRENCY` – currency code (default: PLN)
-  - `INVOICE_VAT_RATE` – VAT percentage (default: 23)
+  - `INVOICE_VAT_RATE` – VAT rate or `zw`
+  - `INVOICE_VAT_EXEMPTION_REASON` – legal basis for VAT exemption
+  - `INVOICE_PKWIU` – optional PKWiU code
   - `INVOICE_PAYMENT_DEADLINE_DAYS` – payment deadline in days (default: 14)
   - `INVOICE_PAYMENT_METHOD` – payment method code (1=transfer, 2=cash, 6=card)
+  - `INVOICE_PAYMENT_DESCRIPTION` – payment title for transfer
+  - `INVOICE_ISSUE_PLACE` – place of issue shown on the invoice
 
 - **Invoice Numbering:**
   - `INVOICE_NUMBER_PREFIX` – invoice number prefix (e.g., FV)
   - `INVOICE_NUMBER_COUNTER` – current invoice counter
+  - `INVOICE_NUMBER_TEMPLATE` – numbering template using `{prefix}`, `{counter}`, `{counter_padded}`, `{month}`, `{month_padded}`, `{year}`
+  - `INVOICE_ISSUE_DATE_MODE` – `report_month_day` or `today`
+  - `INVOICE_ISSUE_DAY_OF_MONTH` – day of month used with `report_month_day`
+  - `INVOICE_SALE_DATE_MODE` – `issue_date` or `month_end`
 
 When a monthly report is sent via email, the system automatically:
 1. Calculates total hours for the month
-2. Generates an invoice in FA(2) XML format
+2. Generates an invoice in FA(3) XML format
 3. Generates a PDF version of the invoice
 4. Attaches both the monthly report (DOCX) and invoice (PDF) to the email
-5. If `KSEF_ENABLED=1`, sends the invoice XML to KSeF
+5. If `KSEF_ENABLED=1`, authenticates to KSeF 2.0 using `challenge` + encrypted KSeF token, opens an online session, sends the encrypted invoice, closes the session, and polls for invoice status
 6. If `KSEF_ENABLED=0`, saves the invoice XML locally to `invoices/YYYY/MM/`
 7. Increments the invoice counter
 
-Invoice numbers follow the format: `PREFIX/NNN/MM/YYYY` (e.g., `FV/001/12/2025`)
+For an explicit end-to-end demo run there is also a CLI command:
+
+`flask send-demo-invoice --month 5 --year 2025 --trainer-id 1 --email-to you@example.com`
+
+This command generates the monthly report buffer, builds the invoice, sends it to KSeF when enabled, and emails the report with the invoice PDF attached.
+
+By default invoice numbers follow the Vest Media style: `PREFIX/N/YYYY` (e.g., `A1/1/2026`). You can change this through `INVOICE_NUMBER_TEMPLATE`, for example back to `PREFIX/NNN/MM/YYYY` using `{prefix}/{counter_padded}/{month_padded}/{year}`.
 
   - `REGISTRATION_EMAIL_SUBJECT` / `REGISTRATION_EMAIL_BODY` – templates for registration notifications (`{name}`, `{login}`, `{link}`).
   - `REG_EMAIL_SUBJECT` / `REG_EMAIL_BODY` – templates for the account activation e-mail.
@@ -224,9 +242,9 @@ The tests create a temporary SQLite database and verify route availability, regi
 
 The invoice functionality is provided by four modules:
 
-- **`ksef_invoice.py`** – FA(2) XML invoice generator compatible with KSeF specifications
+- **`ksef_invoice.py`** – FA(3) XML invoice generator and invoice domain model
 - **`invoice_pdf.py`** – PDF invoice generator using ReportLab
-- **`ksef_client.py`** – KSeF API client for submitting invoices to the system
+- **`ksef_client.py`** – KSeF 2.0 client with token authentication, encryption, session handling, and invoice download helpers
 - **`invoice_helper.py`** – Helper functions for invoice generation integrated with monthly reports
 
 Generated invoice files (both XML and PDF) are saved to `invoices/YYYY/MM/` directory when invoicing is enabled.

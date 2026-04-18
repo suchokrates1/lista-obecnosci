@@ -10,7 +10,7 @@ from flask import (
 )
 from flask_login import current_user
 from utils.auth import role_required
-from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik, Setting
+from model import db, Prowadzacy, Zajecia, Uczestnik, Uzytkownik, Setting, ArchivedProject
 from utils import (
     email_do_koordynatora,
     send_plain_email,
@@ -60,6 +60,20 @@ def admin_dashboard():
         )
         if ostatnie_zajecia:
             ostatnie[p.id] = ostatnie_zajecia.data
+
+    # Project hours tracking
+    project_total = float(os.getenv("PROJECT_TOTAL_HOURS", "0") or "0")
+    project_start = os.getenv("PROJECT_START_DATE", "")
+    used_hours_query = db.session.query(db.func.coalesce(db.func.sum(Zajecia.czas_trwania), 0))
+    if project_start:
+        try:
+            start_dt = datetime.strptime(project_start, "%Y-%m-%d")
+            used_hours_query = used_hours_query.filter(Zajecia.data >= start_dt)
+        except ValueError:
+            pass
+    used_hours = float(used_hours_query.scalar())
+    remaining_hours = max(project_total - used_hours, 0)
+
     return render_template(
         "admin.html",
         prowadzacy=prowadzacy,
@@ -69,6 +83,9 @@ def admin_dashboard():
         new_users=new_users,
         selected_p_id=p_id,
         edit_mode=edit_mode,
+        project_total_hours=project_total,
+        project_used_hours=used_hours,
+        project_remaining_hours=remaining_hours,
     )
 
 
@@ -77,6 +94,10 @@ def admin_dashboard():
 def admin_settings():
 
     keys = [
+        "course_name",
+        "project_total_hours",
+        "project_hourly_rate",
+        "project_start_date",
         "smtp_host",
         "smtp_port",
         "email_recipient",
@@ -110,6 +131,9 @@ def admin_settings():
         "ksef_environment",
         "ksef_nip",
         "ksef_token",
+        "ksef_token_demo",
+        "ksef_token_test",
+        "ksef_token_production",
         "invoice_issuer_name",
         "invoice_issuer_nip",
         "invoice_issuer_address",
@@ -118,6 +142,8 @@ def admin_settings():
         "invoice_issuer_country",
         "invoice_issuer_email",
         "invoice_issuer_phone",
+        "invoice_issuer_bank_account",
+        "invoice_issuer_bank_name",
         "invoice_recipient_name",
         "invoice_recipient_nip",
         "invoice_recipient_address",
@@ -128,10 +154,18 @@ def admin_settings():
         "invoice_hourly_rate",
         "invoice_currency",
         "invoice_vat_rate",
+        "invoice_vat_exemption_reason",
+        "invoice_pkwiu",
         "invoice_payment_deadline_days",
         "invoice_payment_method",
+        "invoice_payment_description",
+        "invoice_issue_place",
         "invoice_number_prefix",
         "invoice_number_counter",
+        "invoice_number_template",
+        "invoice_issue_date_mode",
+        "invoice_issue_day_of_month",
+        "invoice_sale_date_mode",
     ]
 
     if request.method == "POST":
@@ -526,7 +560,7 @@ def approve_user(id):
             user.login,
             "REG_EMAIL_SUBJECT",
             "REG_EMAIL_BODY",
-            "Aktywacja konta w ShareOKO",
+            f"Aktywacja konta w {os.getenv('COURSE_NAME', 'ShareOKO')}",
             "Twoje konto zostało zatwierdzone i jest już aktywne.",
         )
     except smtplib.SMTPException:
@@ -652,6 +686,14 @@ def admin_statystyki(trainer_id):
         total_sessions=total,
         edit_mode=edit_mode,
     )
+
+
+@routes_bp.route("/admin/archiwum")
+@role_required("admin")
+def admin_archiwum():
+    """Show archived projects with participants and their stats."""
+    projects = ArchivedProject.query.order_by(ArchivedProject.archived_at.desc()).all()
+    return render_template("admin_archiwum.html", projects=projects)
 
 
 @routes_bp.route("/admin/trainer/<int:id>/update_inline", methods=["POST"])

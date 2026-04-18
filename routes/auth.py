@@ -112,7 +112,7 @@ def reset_request():
                         user.login,
                         'RESET_EMAIL_SUBJECT',
                         'RESET_EMAIL_BODY',
-                        'Reset hasła w ShareOKO',
+                        f'Reset hasła w {os.getenv("COURSE_NAME", "ShareOKO")}',
                         'Aby ustawić nowe hasło, otwórz link: {link}',
                         link=link
                     )

@@ -104,6 +104,37 @@ class PasswordResetToken(db.Model):
 
     user = db.relationship("Uzytkownik")
 
+
+class ArchivedProject(db.Model):
+    __tablename__ = "archived_project"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    archived_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    participants = db.relationship(
+        "ArchivedParticipant", back_populates="project", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover - trivial
+        return f"<ArchivedProject id={self.id} name='{self.name}'>"
+
+
+class ArchivedParticipant(db.Model):
+    __tablename__ = "archived_participant"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("archived_project.id"), nullable=False)
+    participant_name = db.Column(db.String, nullable=False)
+    trainer_name = db.Column(db.String)
+    sessions_present = db.Column(db.Integer, default=0)
+    total_sessions = db.Column(db.Integer, default=0)
+    percent = db.Column(db.Float, default=0)
+
+    project = db.relationship("ArchivedProject", back_populates="participants")
+
+    def __repr__(self) -> str:  # pragma: no cover - trivial
+        return f"<ArchivedParticipant id={self.id} name='{self.participant_name}'>"
+
+
 def init_db(app):
     with app.app_context():
         db.create_all()

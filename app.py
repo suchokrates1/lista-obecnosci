@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 from flask_wtf import CSRFProtect
 from dotenv import load_dotenv
+from contextlib import contextmanager
 import logging
 import os
 from model import db, Uzytkownik, Prowadzacy, Zajecia
@@ -35,6 +36,27 @@ def inject_is_admin():
 def inject_table_widths():
     from utils import TABLE_COLUMN_WIDTHS
     return {"table_widths": TABLE_COLUMN_WIDTHS}
+
+
+def inject_course_name():
+    """Expose the configurable project name to all templates."""
+    return {"course_name": os.getenv("COURSE_NAME", "ShareOKO")}
+
+
+@contextmanager
+def temporary_env_var(name: str, value: str | None):
+    previous = os.environ.get(name)
+    if value is None:
+        yield
+        return
+    os.environ[name] = value
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = previous
 
 
 def create_app():
@@ -98,6 +120,7 @@ def create_app():
 
     app.context_processor(inject_is_admin)
     app.context_processor(inject_table_widths)
+    app.context_processor(inject_course_name)
     app.add_template_filter(month_name, "month_name")
 
     @app.get("/healthz")
@@ -181,6 +204,67 @@ def create_app():
                     except smtplib.SMTPException:
                         logger.exception("Failed to send report e-mail")
                         click.echo(f"Failed to send e-mail for {filename}", err=True)
+
+    @app.cli.command("send-demo-invoice")
+    @click.option("--month", required=True, type=int, help="Month number (1-12)")
+    @click.option("--year", required=True, type=int, help="Full year")
+    @click.option("--trainer-id", required=True, type=int, help="Trainer ID")
+    @click.option("--email-to", type=str, help="Override EMAIL_RECIPIENT for this run")
+    def send_demo_invoice_command(month: int, year: int, trainer_id: int, email_to: str | None) -> None:
+        """Generate report, invoice PDF and run KSeF demo flow for one trainer."""
+        if not 1 <= month <= 12 or year < 2000:
+            raise click.BadParameter("Invalid month or year")
+
+        with app.app_context():
+            trainer = db.session.get(Prowadzacy, trainer_id)
+            if trainer is None:
+                raise click.BadParameter(f"Trainer {trainer_id} not found")
+
+            sessions = Zajecia.query.filter_by(prowadzacy_id=trainer.id).all()
+            doc = generuj_raport_miesieczny(
+                trainer,
+                sessions,
+                "rejestr.docx",
+                "static",
+                month,
+                year,
+            )
+
+            report_buffer = BytesIO()
+            doc.save(report_buffer)
+            report_buffer.seek(0)
+
+            from invoice_helper import generate_invoice_for_report
+
+            invoice_success, invoice_message, invoice_pdf_buffer = generate_invoice_for_report(
+                month=month,
+                year=year,
+                prowadzacy_id=trainer.id,
+                trainer_name=f"{trainer.imie} {trainer.nazwisko}",
+            )
+
+            if not invoice_success:
+                raise click.ClickException(invoice_message)
+
+            click.echo(invoice_message)
+
+            with temporary_env_var("EMAIL_RECIPIENT", email_to):
+                try:
+                    email_do_koordynatora(
+                        report_buffer,
+                        f"{month}_{year}",
+                        typ="raport",
+                        trainer=trainer,
+                        invoice_pdf_buf=invoice_pdf_buffer,
+                    )
+                except smtplib.SMTPException as error:
+                    logger.exception("Failed to send demo invoice e-mail")
+                    raise click.ClickException(str(error)) from error
+
+            if email_to:
+                click.echo(f"Email sent to {email_to}")
+            else:
+                click.echo("Email sent to configured coordinator address")
 
     @app.errorhandler(403)
     def forbidden(_):
