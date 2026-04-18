@@ -23,6 +23,7 @@ from utils import (
 from doc_generator import generuj_raport_miesieczny, generuj_liste_obecnosci
 from io import BytesIO
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 import smtplib
@@ -92,6 +93,25 @@ def admin_dashboard():
 @routes_bp.route("/admin/settings", methods=["GET", "POST"])
 @role_required("admin")
 def admin_settings():
+
+    def _template_info():
+        """Return dict with szablon/rejestr file info for the template."""
+        info = {}
+        for name in ("szablon", "rejestr"):
+            path = f"{name}.docx"
+            exists = os.path.exists(path)
+            info[f"{name}_exists"] = exists
+            if exists:
+                size = os.path.getsize(path)
+                if size >= 1_048_576:
+                    info[f"{name}_size"] = f"{size / 1_048_576:.1f} MB"
+                elif size >= 1024:
+                    info[f"{name}_size"] = f"{size / 1024:.0f} KB"
+                else:
+                    info[f"{name}_size"] = f"{size} B"
+            else:
+                info[f"{name}_size"] = ""
+        return info
 
     keys = [
         "course_name",
@@ -223,7 +243,8 @@ def admin_settings():
                 "admin_login", admin_user.login if admin_user else ""
             )
             return render_template(
-                "settings.html", values=values, widths=widths, admin_login=admin_login
+                "settings.html", values=values, widths=widths, admin_login=admin_login,
+                **_template_info()
             )
 
         for key in keys:
@@ -250,6 +271,16 @@ def admin_settings():
             else:
                 db.session.add(Setting(key=key, value=val))
             os.environ[key.upper()] = val
+
+        # Handle document template uploads
+        for field, filename in [("szablon_docx", "szablon.docx"), ("rejestr_docx", "rejestr.docx")]:
+            uploaded = request.files.get(field)
+            if uploaded and uploaded.filename:
+                orig = secure_filename(uploaded.filename)
+                if not orig.lower().endswith(".docx"):
+                    flash(f"Plik {orig} nie jest plikiem .docx", "danger")
+                    continue
+                uploaded.save(filename)
 
         admin_login = request.form.get("admin_login")
         admin_password = request.form.get("admin_password")
@@ -290,7 +321,8 @@ def admin_settings():
     admin_user = Uzytkownik.query.filter_by(role="admin").first()
     admin_login = admin_user.login if admin_user else ""
     return render_template(
-        "settings.html", values=values, widths=widths, admin_login=admin_login
+        "settings.html", values=values, widths=widths, admin_login=admin_login,
+        **_template_info()
     )
 
 
