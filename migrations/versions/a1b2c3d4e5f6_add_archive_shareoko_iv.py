@@ -114,8 +114,10 @@ def upgrade():
     conn.execute(sa.text("DELETE FROM obecnosci"))
     conn.execute(sa.text("DELETE FROM uczestnik"))
 
-    # 4. Add new participants to all existing trainers
-    for trainer in trainers:
+    # 4. Add new participants only to trainer "Dawid Suchodolski" (podcasts)
+    dawid = [t for t in trainers if t[1] == "Dawid" and t[2] and t[2].strip() == "Suchodolski"]
+    target_trainers = dawid if dawid else trainers[:1]
+    for trainer in target_trainers:
         trainer_id = trainer[0]
         for name in NEW_PARTICIPANTS:
             conn.execute(
