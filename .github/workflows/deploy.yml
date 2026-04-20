@@ -99,11 +99,12 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           APP_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: 100.66.220.72
           username: suchokrates1
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: APP_IMAGE
+          envs: APP_IMAGE,GHCR_TOKEN
           command_timeout: 8m
           script_stop: true
           script: |
@@ -111,6 +112,7 @@ jobs:
             cd /home/suchokrates1/obecnosc
             git pull --ff-only origin master
             mkdir -p reports invoices static
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u suchokrates1 --password-stdin
             export APP_IMAGE
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml run --rm web flask db upgrade
