@@ -163,6 +163,7 @@ def test_successful_register(client, app, monkeypatch):
         "nazwisko": "B",
         "numer_umowy": "1",
         "nazwa_zajec": "Z",
+        "assistant_name": "Asystent Testowy",
         "uczestnik": ["X"],
         "login": "ok@example.com",
         "haslo": "pass",
@@ -178,6 +179,8 @@ def test_successful_register(client, app, monkeypatch):
     assert resp.headers["Location"].endswith("/login")
     with app.app_context():
         assert Uzytkownik.query.count() == 1
+        prow = Prowadzacy.query.first()
+        assert prow.assistant_name == "Asystent Testowy"
 
 
 def test_register_with_new_participant_fields(client, app, monkeypatch):
@@ -190,6 +193,7 @@ def test_register_with_new_participant_fields(client, app, monkeypatch):
             ("nazwisko", "B"),
             ("numer_umowy", "1"),
             ("nazwa_zajec", "Z"),
+            ("assistant_name", "Asystent Testowy"),
             ("uczestnik", "X"),
             ("uczestnik", "Y\nZ"),
             ("login", "new@example.com"),
@@ -208,6 +212,7 @@ def test_register_with_new_participant_fields(client, app, monkeypatch):
         prow = Prowadzacy.query.first()
         names = [u.imie_nazwisko for u in prow.uczestnicy]
         assert names == ["X", "Y", "Z"]
+        assert prow.assistant_name == "Asystent Testowy"
 
 
 def test_login_success(client, app):
@@ -1086,6 +1091,8 @@ def test_panel_profile_edit_mode(client, trainer):
     assert "name=\"nazwisko\"" in html2
     assert "name=\"domyslny_czas\"" in html2
     assert "name=\"podpis\"" in html2
+    assert "name=\"assistant_name\"" in html2
+    assert "name=\"podpis_asystenta\"" in html2
 
 
 def test_panel_edit_profile_shows_form_fields(client, trainer):
@@ -1103,6 +1110,7 @@ def test_panel_profile_post_updates_trainer(client, app, trainer):
         "nazwisko": "Nazwisko",
         "numer_umowy": "99",
         "nazwa_zajec": "NZ",
+        "assistant_name": "Asystent Dokumentu",
         "domyslny_czas": "3",
     }
     resp = client.post("/panel/profil", data=data, follow_redirects=False)
@@ -1113,7 +1121,78 @@ def test_panel_profile_post_updates_trainer(client, app, trainer):
         assert prow.nazwisko == "Nazwisko"
         assert prow.numer_umowy == "99"
         assert prow.nazwa_zajec == "NZ"
+        assert prow.assistant_name == "Asystent Dokumentu"
         assert prow.domyslny_czas == 3.0
+
+
+def test_panel_filters_history_to_current_project_start(client, app, monkeypatch):
+    monkeypatch.setenv("PROJECT_START_DATE", "2023-04-01")
+    login_val = _create_trainer(app)
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        old_session = Zajecia(
+            prowadzacy_id=prow.id,
+            data=datetime(2023, 3, 15),
+            czas_trwania=1.0,
+        )
+        current_session = Zajecia(
+            prowadzacy_id=prow.id,
+            data=datetime(2023, 4, 15),
+            czas_trwania=1.0,
+        )
+        db.session.add_all([old_session, current_session])
+        db.session.commit()
+
+    client.post(
+        "/login", data={"login": login_val, "hasło": "pass"}, follow_redirects=False
+    )
+    resp = client.get("/panel")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert "2023-04-15" in html
+    assert "2023-03-15" not in html
+
+
+def test_panel_attendance_percent_uses_current_edition_sessions_only(client, app, monkeypatch):
+    monkeypatch.setenv("PROJECT_START_DATE", "2023-04-01")
+    login_val = _create_trainer(app)
+    with app.app_context():
+        prow = Prowadzacy.query.first()
+        for zajecie in Zajecia.query.filter_by(prowadzacy_id=prow.id).all():
+            db.session.delete(zajecie)
+        db.session.flush()
+        uczestnik = Uczestnik(imie_nazwisko="Osoba", prowadzacy_id=prow.id)
+        db.session.add(uczestnik)
+        db.session.flush()
+
+        old_present = Zajecia(
+            prowadzacy_id=prow.id,
+            data=datetime(2023, 3, 20),
+            czas_trwania=1.0,
+        )
+        old_present.obecni.append(uczestnik)
+        current_absent = Zajecia(
+            prowadzacy_id=prow.id,
+            data=datetime(2023, 4, 10),
+            czas_trwania=1.0,
+        )
+        current_present = Zajecia(
+            prowadzacy_id=prow.id,
+            data=datetime(2023, 4, 17),
+            czas_trwania=1.0,
+        )
+        current_present.obecni.append(uczestnik)
+        db.session.add_all([old_present, current_absent, current_present])
+        db.session.commit()
+
+    client.post(
+        "/login", data={"login": login_val, "hasło": "pass"}, follow_redirects=False
+    )
+    resp = client.get("/panel")
+    assert resp.status_code == 200
+    html = resp.data.decode()
+    assert "50%" in html
+    assert ">1/2<" in html
 
 
 def test_panel_edit_history_inputs(client, trainer):
@@ -1221,7 +1300,7 @@ def test_load_regform_restores_values(ensure_jsdom):
         "<div class='participant-group'><input class='participant-input' name='uczestnik'><button type='button' class='remove-participant'>Usuń</button></div>"
         "</div>"
         "<button type='button' id='addParticipant'>Dodaj</button>"
-        "<input id='imie'><input id='nazwisko'><input id='numer_umowy'><input id='nazwa_zajec'>"
+        "<input id='imie'><input id='nazwisko'><input id='numer_umowy'><input id='nazwa_zajec'><input id='assistant_name'>"
         "<input id='login'><input id='haslo'>"
         "</form>"
     )
@@ -1230,6 +1309,7 @@ def test_load_regform_restores_values(ensure_jsdom):
     assert result["nazwisko"] == "B"
     assert result["numer"] == "1"
     assert result["nazwa"] == "Zajęcia"
+    assert result["assistantName"] == "Asystent Testowy"
     assert result["login"] == "x@example.com"
     assert result["haslo"] == "pass"
     assert result["participants"] == ["P1", "P2"]

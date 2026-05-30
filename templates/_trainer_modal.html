@@ -25,14 +25,22 @@
             <input type="text" class="form-control" id="nazwa_zajec" name="nazwa_zajec" placeholder="Nazwa zajęć" required tabindex="4">
             <label for="nazwa_zajec">Nazwa zajęć:</label>
           </div>
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="assistant_name" name="assistant_name" placeholder="Imię i nazwisko asystenta" tabindex="5">
+            <label for="assistant_name">Imię i nazwisko asystenta:</label>
+          </div>
           <!-- List of participants moved to dedicated page -->
           <div class="form-floating mb-3">
-            <input class="form-control" type="file" name="nowy_podpis" id="nowy_podpis" accept=".png,.jpg,.jpeg" tabindex="4">
-            <label for="nowy_podpis">Plik podpisu (.png lub .jpg):</label>
+            <input class="form-control" type="file" name="nowy_podpis" id="nowy_podpis" accept=".png,.jpg,.jpeg" tabindex="6">
+            <label for="nowy_podpis">Podpis trenera (.png lub .jpg):</label>
+          </div>
+          <div class="form-floating mb-3">
+            <input class="form-control" type="file" name="nowy_podpis_asystenta" id="nowy_podpis_asystenta" accept=".png,.jpg,.jpeg" tabindex="7">
+            <label for="nowy_podpis_asystenta">Podpis asystenta (.png lub .jpg):</label>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success" tabindex="5">Zapisz prowadzącego</button>
+          <button type="submit" class="btn btn-success" tabindex="8">Zapisz prowadzącego</button>
         </div>
       </form>
     </div>

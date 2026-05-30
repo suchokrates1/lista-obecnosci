@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 import logging
 import os
+from pathlib import Path
+import re
 from typing import Dict, Optional
 import uuid
 import xml.etree.ElementTree as ET
@@ -169,8 +171,9 @@ def load_invoice_settings_from_env() -> Dict[str, str]:
         "invoice_issue_place": os.getenv("INVOICE_ISSUE_PLACE", ""),
         "invoice_number_prefix": os.getenv("INVOICE_NUMBER_PREFIX", "FV"),
         "invoice_number_counter": os.getenv("INVOICE_NUMBER_COUNTER", "1"),
+        "invoice_number_counter_period": os.getenv("INVOICE_NUMBER_COUNTER_PERIOD", ""),
         "invoice_number_template": os.getenv(
-            "INVOICE_NUMBER_TEMPLATE", "{prefix}/{counter}/{year}"
+            "INVOICE_NUMBER_TEMPLATE", "{prefix}{counter}/{month}/{year}"
         ),
         "invoice_issue_date_mode": os.getenv("INVOICE_ISSUE_DATE_MODE", "report_month_day"),
         "invoice_issue_day_of_month": os.getenv("INVOICE_ISSUE_DAY_OF_MONTH", "26"),
@@ -178,11 +181,128 @@ def load_invoice_settings_from_env() -> Dict[str, str]:
     }
 
 
+def _invoice_period(month: int, year: int) -> str:
+    return f"{year:04d}-{month:02d}"
+
+
+def _invoice_number_pattern(prefix: str, month: int, year: int) -> re.Pattern[str]:
+    return re.compile(rf"^{re.escape(prefix)}(?P<counter>\d+)/{month}/{year}$")
+
+
+def _extract_invoice_counter(
+    invoice_number: Optional[str], prefix: str, month: int, year: int
+) -> Optional[int]:
+    if not invoice_number:
+        return None
+    match = _invoice_number_pattern(prefix, month, year).match(invoice_number.strip())
+    if not match:
+        return None
+    return int(match.group("counter"))
+
+
+def _max_local_invoice_counter(prefix: str, month: int, year: int) -> Optional[int]:
+    year_dir = Path("invoices") / str(year)
+    if not year_dir.exists():
+        return None
+
+    counters: list[int] = []
+    for path in year_dir.rglob("faktura_*.xml"):
+        if "failed" in {part.lower() for part in path.parts}:
+            continue
+        invoice_number = path.stem[len("faktura_") :].replace("_", "/")
+        counter = _extract_invoice_counter(invoice_number, prefix, month, year)
+        if counter is not None:
+            counters.append(counter)
+    return max(counters) if counters else None
+
+
+def _max_recent_ksef_invoice_counter(settings: Dict[str, str], prefix: str, month: int, year: int) -> Optional[int]:
+    if (settings.get("ksef_enabled") or "0") not in {"1", "true", "True", "yes", "on"}:
+        return None
+
+    environment = (settings.get("ksef_environment") or "demo").strip().lower()
+    token = (
+        settings.get(f"ksef_token_{environment}")
+        or settings.get("ksef_token")
+        or ""
+    ).strip()
+    nip = (settings.get("ksef_nip") or "").strip()
+    if not token or not nip:
+        return None
+
+    try:
+        from ksef_client import KSeFClient
+
+        client = KSeFClient(environment=environment, nip=nip, token=token)
+        now = datetime.utcnow()
+        from_dt = (now - timedelta(days=89)).isoformat(timespec="seconds") + "Z"
+        to_dt = now.isoformat(timespec="seconds") + "Z"
+        page_offset = 0
+        counters: list[int] = []
+
+        while True:
+            response = client._authorized_request(
+                "POST",
+                f"/invoices/query/metadata?sortOrder=Desc&pageOffset={page_offset}&pageSize=250",
+                json_data={
+                    "subjectType": "Subject1",
+                    "dateRange": {"dateType": "Issue", "from": from_dt, "to": to_dt},
+                    "formType": "FA",
+                },
+            )
+            data = response.json()
+            for invoice in data.get("invoices") or []:
+                counter = _extract_invoice_counter(
+                    invoice.get("invoiceNumber"), prefix, month, year
+                )
+                if counter is not None:
+                    counters.append(counter)
+            if not data.get("hasMore"):
+                break
+            page_offset += 1
+            if page_offset >= 4:
+                break
+
+        return max(counters) if counters else None
+    except Exception as exc:
+        logger.warning("Could not inspect recent KSeF invoice numbers: %s", exc)
+        return None
+
+
+def _invoice_counter_for_period(settings: Dict[str, str], month: int, year: int) -> int:
+    raw_counter = settings.get("invoice_number_counter", "1") or "1"
+    try:
+        counter = int(raw_counter)
+    except ValueError:
+        logger.warning("Invalid INVOICE_NUMBER_COUNTER %r, falling back to 1", raw_counter)
+        counter = 1
+
+    stored_period = (settings.get("invoice_number_counter_period") or "").strip()
+    if stored_period != _invoice_period(month, year):
+        return 1
+    return max(counter, 1)
+
+
+def _next_invoice_counter(settings: Dict[str, str], prefix: str, month: int, year: int) -> int:
+    next_counter = _invoice_counter_for_period(settings, month, year)
+    local_counter = _max_local_invoice_counter(prefix, month, year)
+    if local_counter is not None:
+        next_counter = max(next_counter, local_counter + 1)
+
+    ksef_counter = _max_recent_ksef_invoice_counter(settings, prefix, month, year)
+    if ksef_counter is not None:
+        next_counter = max(next_counter, ksef_counter + 1)
+
+    return next_counter
+
+
 def generate_invoice_number(month: int, year: int) -> str:
     settings = load_invoice_settings_from_env()
     prefix = settings.get("invoice_number_prefix", "FV") or "FV"
-    counter = int(settings.get("invoice_number_counter", "1") or "1")
-    template = settings.get("invoice_number_template", "{prefix}/{counter}/{year}")
+    counter = _next_invoice_counter(settings, prefix, month, year)
+    template = (settings.get("invoice_number_template") or "").strip()
+    if not template:
+        template = "{prefix}{counter}/{month}/{year}"
     values = {
         "prefix": prefix,
         "counter": counter,
@@ -195,7 +315,7 @@ def generate_invoice_number(month: int, year: int) -> str:
         return template.format(**values)
     except (KeyError, ValueError) as exc:
         logger.warning("Invalid INVOICE_NUMBER_TEMPLATE %r: %s", template, exc)
-        return f"{prefix}/{counter}/{year}"
+        return f"{prefix}{counter}/{month}/{year}"
 
 
 def _resolve_issue_date(month: int, year: int, settings: Dict[str, str]) -> datetime:
@@ -222,14 +342,42 @@ def _resolve_sale_date(issue_date: datetime, month: int, year: int, settings: Di
     return issue_date
 
 
-def increment_invoice_counter() -> None:
+def increment_invoice_counter(month: int, year: int, invoice_number: Optional[str] = None) -> None:
     from model import Setting, db
 
-    setting = Setting.query.filter_by(key="invoice_number_counter").first()
-    if setting:
-        current = int(setting.value)
-        setting.value = str(current + 1)
-        db.session.commit()
+    counter_setting = Setting.query.filter_by(key="invoice_number_counter").first()
+    if counter_setting is None:
+        counter_setting = Setting(key="invoice_number_counter", value="1")
+        db.session.add(counter_setting)
+
+    period_setting = Setting.query.filter_by(key="invoice_number_counter_period").first()
+    if period_setting is None:
+        period_setting = Setting(key="invoice_number_counter_period", value="")
+        db.session.add(period_setting)
+
+    current_period = _invoice_period(month, year)
+    prefix_setting = Setting.query.filter_by(key="invoice_number_prefix").first()
+    prefix = prefix_setting.value if prefix_setting and prefix_setting.value else "FV"
+    issued_counter = _extract_invoice_counter(invoice_number, prefix, month, year)
+
+    if issued_counter is not None:
+        next_counter = issued_counter + 1
+    elif (period_setting.value or "").strip() == current_period:
+        try:
+            current_counter = int(counter_setting.value or "1")
+        except ValueError:
+            logger.warning(
+                "Invalid invoice_number_counter %r in settings, resetting to 2",
+                counter_setting.value,
+            )
+            current_counter = 1
+        next_counter = max(current_counter, 1) + 1
+    else:
+        next_counter = 2
+
+    counter_setting.value = str(next_counter)
+    period_setting.value = current_period
+    db.session.commit()
 
 
 def create_invoice_from_monthly_report(

@@ -25,10 +25,20 @@ class Prowadzacy(db.Model):
     nazwa_zajec = db.Column(db.String)
     podpis_filename = db.Column(db.String)
     domyslny_czas = db.Column(db.Float)
+    assistant_name = db.Column(db.String)
+    assistant_signature_filename = db.Column(db.String)
 
     uczestnicy = db.relationship("Uczestnik", back_populates="prowadzacy", cascade="all, delete-orphan")
     zajecia = db.relationship("Zajecia", back_populates="prowadzacy", cascade="all, delete-orphan")
     user = db.relationship("Uzytkownik", back_populates="prowadzacy", uselist=False)
+
+    @property
+    def attendance_trainer_name(self) -> str:
+        return " ".join(
+            part.strip()
+            for part in (self.imie or "", self.nazwisko or "")
+            if part and part.strip()
+        )
 
     def __repr__(self) -> str:  # pragma: no cover - trivial
         return f"<Prowadzacy id={self.id} imie='{self.imie}'>"
@@ -157,7 +167,7 @@ def add_zajecie(prowadzacy_id, data, czas, obecni_uczestnicy):
     db.session.add(zajecie)
     db.session.commit()
 
-def add_or_update_prowadzacy(id=None, imie=None, nazwisko=None, podpis_filename=None, numer_umowy=None, domyslny_czas=None, uczestnicy_lista=None):
+def add_or_update_prowadzacy(id=None, imie=None, nazwisko=None, podpis_filename=None, numer_umowy=None, domyslny_czas=None, uczestnicy_lista=None, assistant_name=None, assistant_signature_filename=None):
     if id:
         prowadzacy = get_prowadzacy_by_id(id)
         if not prowadzacy:
@@ -170,6 +180,8 @@ def add_or_update_prowadzacy(id=None, imie=None, nazwisko=None, podpis_filename=
     prowadzacy.nazwisko = nazwisko
     prowadzacy.podpis_filename = podpis_filename
     prowadzacy.numer_umowy = numer_umowy
+    prowadzacy.assistant_name = assistant_name
+    prowadzacy.assistant_signature_filename = assistant_signature_filename
     if domyslny_czas is not None:
         try:
             prowadzacy.domyslny_czas = float(str(domyslny_czas).replace(',', '.'))

@@ -11,7 +11,7 @@ def ensure_template_exists(path: str) -> None:
 
 logger = logging.getLogger(__name__)
 
-def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path, nazwa_zajec=None):
+def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path, nazwa_zajec=None, assistant_name=None, assistant_signature_path=None):
     template = "szablon.docx"
     ensure_template_exists(template)
     doc = Document(template)
@@ -44,6 +44,23 @@ def generuj_liste_obecnosci(data, czas, obecni, trener, podpis_path, nazwa_zajec
                 run.add_picture(podpis_path, width=Cm(3.5))
             except Exception:
                 logger.exception("Błąd przy podpisie")
+        if assistant_name:
+            try:
+                if len(tabela_trener.columns) >= 3:
+                    tabela_trener.cell(1, 2).text = assistant_name
+                else:
+                    existing = tabela_trener.cell(1, 0).text.strip()
+                    separator = "\n" if existing else ""
+                    tabela_trener.cell(1, 0).text = f"{existing}{separator}Asystent: {assistant_name}".strip()
+            except Exception:
+                logger.exception("Błąd przy nazwisku asystenta")
+        if assistant_signature_path and os.path.exists(assistant_signature_path):
+            try:
+                if len(tabela_trener.columns) >= 4:
+                    run = tabela_trener.cell(1, 3).paragraphs[0].clear().add_run()
+                    run.add_picture(assistant_signature_path, width=Cm(3.5))
+            except Exception:
+                logger.exception("Błąd przy podpisie asystenta")
 
     return doc
 

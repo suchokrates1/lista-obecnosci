@@ -425,7 +425,9 @@ def dodaj_prowadzacego():
     nazwisko = request.form.get("nowy_nazwisko")
     numer_umowy = request.form.get("nowy_umowa")
     nazwa_zajec = request.form.get("nazwa_zajec")
+    assistant_name = request.form.get("assistant_name", "").strip() or None
     podpis = request.files.get("nowy_podpis")
+    assistant_signature = request.files.get("nowy_podpis_asystenta")
 
     if not imie or not nazwisko:
         flash("Wszystkie pola są wymagane", "danger")
@@ -440,22 +442,35 @@ def dodaj_prowadzacego():
         prow.nazwisko = nazwisko
         prow.numer_umowy = numer_umowy
         prow.nazwa_zajec = nazwa_zajec
+        prow.assistant_name = assistant_name
     else:
         prow = Prowadzacy(
             imie=imie,
             nazwisko=nazwisko,
             numer_umowy=numer_umowy,
             nazwa_zajec=nazwa_zajec,
+            assistant_name=assistant_name,
         )
         db.session.add(prow)
         db.session.flush()
 
     sanitized = None
+    assistant_sanitized = None
     if podpis and podpis.filename:
         try:
             sanitized, error = validate_signature(podpis)
         except SignatureValidationError:
             flash("Nie udało się przetworzyć obrazu podpisu", "danger")
+            return redirect(url_for("routes.admin_dashboard"))
+        if error:
+            flash(error, "danger")
+            return redirect(url_for("routes.admin_dashboard"))
+
+    if assistant_signature and assistant_signature.filename:
+        try:
+            assistant_sanitized, error = validate_signature(assistant_signature)
+        except SignatureValidationError:
+            flash("Nie udało się przetworzyć obrazu podpisu asystenta", "danger")
             return redirect(url_for("routes.admin_dashboard"))
         if error:
             flash(error, "danger")
@@ -476,6 +491,22 @@ def dodaj_prowadzacego():
             except Exception:
                 logger.exception("Failed to remove old signature file: %s", old_path)
         prow.podpis_filename = filename
+
+    if assistant_signature and assistant_sanitized:
+        try:
+            assistant_filename = process_signature(assistant_signature.stream)
+        except Exception:
+            flash("Nie udało się przetworzyć obrazu podpisu asystenta", "danger")
+            return redirect(url_for("routes.admin_dashboard"))
+        if prow.assistant_signature_filename:
+            old_path = os.path.join("static", prow.assistant_signature_filename)
+            try:
+                os.remove(old_path)
+            except FileNotFoundError:
+                logger.warning("Old assistant signature file not found: %s", old_path)
+            except Exception:
+                logger.exception("Failed to remove old assistant signature file: %s", old_path)
+        prow.assistant_signature_filename = assistant_filename
 
     db.session.commit()
     flash("Prowadzący zapisany", "success")
@@ -659,8 +690,10 @@ def pobierz_zajecie_admin(id):
         zaj.data.strftime("%Y-%m-%d"),
         str(zaj.czas_trwania).replace(".", ","),
         obecni,
-        f"{prow.imie} {prow.nazwisko}",
+        prow.attendance_trainer_name,
         os.path.join("static", prow.podpis_filename),
+        assistant_name=prow.assistant_name,
+        assistant_signature_path=os.path.join("static", prow.assistant_signature_filename) if prow.assistant_signature_filename else None,
     )
 
     buf = BytesIO()
@@ -739,6 +772,8 @@ def admin_update_trainer_inline(id):
     prow.nazwisko = request.form.get("nazwisko", prow.nazwisko)
     prow.numer_umowy = request.form.get("numer_umowy", prow.numer_umowy)
     prow.nazwa_zajec = request.form.get("nazwa_zajec", prow.nazwa_zajec)
+    if "assistant_name" in request.form:
+        prow.assistant_name = request.form.get("assistant_name", "").strip() or None
     db.session.commit()
     flash("Prowadzący zaktualizowany", "success")
     return redirect(url_for("routes.admin_dashboard", edit=1))

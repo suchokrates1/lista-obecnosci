@@ -349,6 +349,7 @@ def test_parse_registration_form_new_field(app):
             ("nazwisko", "B"),
             ("numer_umowy", "1"),
             ("nazwa_zajec", "Z"),
+            ("assistant_name", "Asystent Testowy"),
             ("uczestnik", "X"),
             ("uczestnik", "Y\nZ"),
             ("login", "u2@example.com"),
@@ -358,6 +359,12 @@ def test_parse_registration_form_new_field(app):
     data, error = utils.parse_registration_form(form, MultiDict())
     assert error is None
     assert data["uczestnicy"] == ["X", "Y", "Z"]
+    assert data["assistant_name"] == "Asystent Testowy"
+
+
+def test_attendance_trainer_name_falls_back_to_profile_name():
+    prow = Prowadzacy(imie="Jan", nazwisko="Kowalski")
+    assert prow.attendance_trainer_name == "Jan Kowalski"
 
 
 def test_attach_cid_images_no_escape(monkeypatch, tmp_path):

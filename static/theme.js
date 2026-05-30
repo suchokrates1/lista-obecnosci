@@ -101,6 +101,10 @@ function loadRegForm() {
     const el = document.getElementById('nazwa_zajec');
     if (el) el.value = data.nazwa_zajec;
   }
+  if (data.assistant_name !== undefined) {
+    const el = document.getElementById('assistant_name');
+    if (el) el.value = data.assistant_name;
+  }
   if (data.login !== undefined) {
     const el = document.getElementById('login');
     if (el) el.value = data.login;
@@ -183,9 +187,10 @@ function removeParticipantField(btn) {
       });
     });
 
-    const sigInput = document.getElementById('podpis');
-    const sigPreview = document.getElementById('podpisPreview');
-    if (sigInput && sigPreview) {
+    function bindSignaturePreview(inputId, previewId) {
+      const sigInput = document.getElementById(inputId);
+      const sigPreview = document.getElementById(previewId);
+      if (!sigInput || !sigPreview) return;
       sigInput.addEventListener('change', function () {
         const file = this.files && this.files[0];
         if (file && file.type.startsWith('image/')) {
@@ -201,6 +206,9 @@ function removeParticipantField(btn) {
         }
       });
     }
+
+    bindSignaturePreview('podpis', 'podpisPreview');
+    bindSignaturePreview('podpis_asystenta', 'podpisAsystentaPreview');
 
     const addBtn = document.getElementById('addParticipant');
     if (addBtn) addBtn.addEventListener('click', function(){ addParticipantField(); });

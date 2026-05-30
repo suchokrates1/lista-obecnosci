@@ -118,6 +118,27 @@ def get_smtp_settings() -> tuple[str | None, int | None, str | None, str | None]
     return host, port, login, password
 
 
+def get_project_start_datetime() -> datetime | None:
+    """Return the configured current edition start date."""
+    project_start = os.getenv("PROJECT_START_DATE", "").strip()
+    if not project_start:
+        return None
+    try:
+        return datetime.strptime(project_start, "%Y-%m-%d")
+    except ValueError:
+        logger.warning("Invalid PROJECT_START_DATE value: %s", project_start)
+        return None
+
+
+def get_current_edition_sessions_query(prowadzacy_id: int):
+    """Return a query for sessions belonging to the active project edition."""
+    query = Zajecia.query.filter_by(prowadzacy_id=prowadzacy_id)
+    project_start = get_project_start_datetime()
+    if project_start is not None:
+        query = query.filter(Zajecia.data >= project_start)
+    return query
+
+
 def _send_message(msg: EmailMessage) -> None:
     """Send ``msg`` immediately using SMTP settings from environment."""
     host, port, login, password = get_smtp_settings()
@@ -274,8 +295,10 @@ def przetworz_liste_obecnosci(form, wybrany):
         data_str,
         czas,
         sorted([ucz.imie_nazwisko for ucz in obecni_uczestnicy], key=str.lower),
-        f"{wybrany.imie} {wybrany.nazwisko}",
-        os.path.join("static", wybrany.podpis_filename)
+        wybrany.attendance_trainer_name,
+        os.path.join("static", wybrany.podpis_filename),
+        assistant_name=wybrany.assistant_name,
+        assistant_signature_path=os.path.join("static", wybrany.assistant_signature_filename) if wybrany.assistant_signature_filename else None,
     )
 
     buf = BytesIO()
@@ -386,9 +409,11 @@ def send_attendance_list(zajecie, queue: bool = False) -> bool:
         zajecie.data.strftime("%Y-%m-%d"),
         str(zajecie.czas_trwania).replace(".", ","),
         obecni,
-        f"{prow.imie} {prow.nazwisko}",
+        prow.attendance_trainer_name,
         os.path.join("static", prow.podpis_filename),
         prow.nazwa_zajec,
+        assistant_name=prow.assistant_name,
+        assistant_signature_path=os.path.join("static", prow.assistant_signature_filename) if prow.assistant_signature_filename else None,
     )
 
     buf = BytesIO()
@@ -493,10 +518,12 @@ def parse_registration_form(form, files):
     nazwisko = form.get("nazwisko")
     numer_umowy = form.get("numer_umowy")
     nazwa_zajec = form.get("nazwa_zajec")
+    assistant_name = (form.get("assistant_name") or "").strip() or None
     lista_uczestnikow = form.get("lista_uczestnikow")
     login_val = form.get("login")
     haslo = form.get("haslo")
     podpis = files.get("podpis")
+    assistant_signature = files.get("podpis_asystenta")
 
     uczestnik_values = [v for v in form.getlist("uczestnik") if v]
     if uczestnik_values:
@@ -529,15 +556,28 @@ def parse_registration_form(form, files):
             return None, error
         valid_signature = True
 
+    valid_assistant_signature = False
+    if assistant_signature and getattr(assistant_signature, "filename", None):
+        try:
+            _sanitized, error = validate_signature(assistant_signature)
+        except SignatureValidationError:
+            return None, "Nie udało się przetworzyć obrazu podpisu asystenta"
+        if error:
+            return None, error
+        valid_assistant_signature = True
+
     return {
         "imie": imie,
         "nazwisko": nazwisko,
         "numer_umowy": numer_umowy,
         "nazwa_zajec": nazwa_zajec,
+        "assistant_name": assistant_name,
         "login": login_val,
         "haslo": haslo,
         "podpis": podpis,
+        "assistant_signature": assistant_signature,
         "valid_signature": valid_signature,
+        "valid_assistant_signature": valid_assistant_signature,
         "uczestnicy": uczestnicy,
     }, None
 
@@ -553,11 +593,22 @@ def create_trainer(data):
             logger.exception("Failed to process signature image")
             return None, "Nie udało się przetworzyć obrazu podpisu"
 
+    assistant_signature_filename = None
+    assistant_signature = data.get("assistant_signature")
+    if assistant_signature and data.get("valid_assistant_signature"):
+        try:
+            assistant_signature_filename = process_signature(assistant_signature.stream)
+        except Exception:
+            logger.exception("Failed to process assistant signature image")
+            return None, "Nie udało się przetworzyć obrazu podpisu asystenta"
+
     prow = Prowadzacy(
         imie=data["imie"],
         nazwisko=data["nazwisko"],
         numer_umowy=data["numer_umowy"],
         nazwa_zajec=data["nazwa_zajec"],
+        assistant_name=data.get("assistant_name"),
+        assistant_signature_filename=assistant_signature_filename,
         podpis_filename=filename,
     )
     db.session.add(prow)
@@ -581,15 +632,17 @@ def create_trainer(data):
 def get_participant_stats(prow):
     """Return sorted participants, sessions, stats map and total session count."""
     uczestnicy = sorted(prow.uczestnicy, key=lambda x: x.imie_nazwisko.lower())
-    zajecia = (
-        Zajecia.query.filter_by(prowadzacy_id=prow.id)
-        .order_by(Zajecia.data.desc())
-        .all()
-    )
+    project_start = get_project_start_datetime()
+    zajecia = get_current_edition_sessions_query(prow.id).order_by(Zajecia.data.desc()).all()
     total_sessions = len(zajecia)
     stats = {}
     for u in uczestnicy:
-        present = sum(1 for z in u.zajecia if z.prowadzacy_id == prow.id)
+        present = sum(
+            1
+            for z in u.zajecia
+            if z.prowadzacy_id == prow.id
+            and (project_start is None or z.data >= project_start)
+        )
         percent = (present / total_sessions * 100) if total_sessions else 0
         stats[u.id] = {"uczestnik": u, "present": present, "percent": percent}
     return uczestnicy, zajecia, stats, total_sessions
