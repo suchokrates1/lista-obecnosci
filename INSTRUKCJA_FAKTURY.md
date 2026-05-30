@@ -126,7 +126,7 @@ Prowadzenie zajęć z tworzenia podcastów w ramach projektu ShareOko III - grud
 
 **Aktualny licznik** - numer kolejnej faktury (np. 1 dla pierwszej faktury)
 
-**Szablon numeru faktury** - domyślnie `{prefix}/{counter}/{year}`
+**Szablon numeru faktury** - domyślnie `{prefix}{counter}/{month}/{year}`
 
 Domyślny format numeru faktury: `A1/1/2026`
 - A1 - prefiks

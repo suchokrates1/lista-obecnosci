@@ -15,6 +15,7 @@ from utils import (
     process_signature,
     email_do_koordynatora,
     send_attendance_list,
+    get_current_edition_sessions_query,
     get_participant_stats,
     get_monthly_summary,
 )
@@ -35,7 +36,7 @@ def panel():
     edit_profile = request.args.get("edit_profile") == "1"
     page = request.args.get("page", 1, type=int)
     pagination = (
-        Zajecia.query.filter_by(prowadzacy_id=prow.id)
+        get_current_edition_sessions_query(prow.id)
         .order_by(Zajecia.data.desc())
         .paginate(page=page, per_page=10, error_out=False)
     )
@@ -47,6 +48,13 @@ def panel():
         else ""
     )
     podsumowanie = get_monthly_summary(all_zajecia)
+    project_total_hours = float(os.getenv("PROJECT_TOTAL_HOURS", "0") or "0")
+    project_used_hours = float(sum(podsumowanie.values()))
+    project_progress_percent = (
+        min(project_used_hours / project_total_hours * 100, 100)
+        if project_total_hours
+        else 0
+    )
     return render_template(
         "panel.html",
         prowadzacy=prow,
@@ -56,6 +64,9 @@ def panel():
         ostatnie=ostatnie,
         domyslny_czas=domyslny_czas,
         podsumowanie=podsumowanie,
+        project_total_hours=project_total_hours,
+        project_used_hours=project_used_hours,
+        project_progress_percent=project_progress_percent,
         stats=stats,
         total_sessions=total_sessions,
         edit_mode=edit_mode,
@@ -75,6 +86,7 @@ def panel_update_profile():
     prow.nazwisko = request.form.get("nazwisko")
     prow.numer_umowy = request.form.get("numer_umowy")
     prow.nazwa_zajec = request.form.get("nazwa_zajec")
+    prow.assistant_name = request.form.get("assistant_name", "").strip() or None
     czas_val = request.form.get("domyslny_czas", "").strip()
     if czas_val:
         try:
@@ -85,12 +97,24 @@ def panel_update_profile():
         prow.domyslny_czas = None
 
     podpis = request.files.get("podpis")
+    assistant_signature = request.files.get("podpis_asystenta")
     sanitized = None
+    assistant_sanitized = None
     if podpis and podpis.filename:
         try:
             sanitized, error = validate_signature(podpis)
         except SignatureValidationError:
             flash("Nie udało się przetworzyć obrazu podpisu", "danger")
+            return redirect(url_for("routes.panel"))
+        if error:
+            flash(error, "danger")
+            return redirect(url_for("routes.panel"))
+
+    if assistant_signature and assistant_signature.filename:
+        try:
+            assistant_sanitized, error = validate_signature(assistant_signature)
+        except SignatureValidationError:
+            flash("Nie udało się przetworzyć obrazu podpisu asystenta", "danger")
             return redirect(url_for("routes.panel"))
         if error:
             flash(error, "danger")
@@ -111,6 +135,22 @@ def panel_update_profile():
             except Exception:
                 logger.exception("Failed to remove old signature file: %s", old_path)
         prow.podpis_filename = filename
+
+    if assistant_signature and assistant_sanitized:
+        try:
+            assistant_filename = process_signature(assistant_signature.stream)
+        except Exception:
+            flash("Nie udało się przetworzyć obrazu podpisu asystenta", "danger")
+            return redirect(url_for("routes.panel"))
+        if prow.assistant_signature_filename:
+            old_path = os.path.join("static", prow.assistant_signature_filename)
+            try:
+                os.remove(old_path)
+            except FileNotFoundError:
+                logger.warning("Old assistant signature file not found: %s", old_path)
+            except Exception:
+                logger.exception("Failed to remove old assistant signature file: %s", old_path)
+        prow.assistant_signature_filename = assistant_filename
 
     db.session.commit()
     flash("Dane zaktualizowane", "success")
@@ -188,8 +228,10 @@ def pobierz_zajecie(id):
         zaj.data.strftime("%Y-%m-%d"),
         str(zaj.czas_trwania).replace(".", ","),
         obecni,
-        f"{prow.imie} {prow.nazwisko}",
+        prow.attendance_trainer_name,
         os.path.join("static", prow.podpis_filename),
+        assistant_name=prow.assistant_name,
+        assistant_signature_path=os.path.join("static", prow.assistant_signature_filename) if prow.assistant_signature_filename else None,
     )
 
     buf = BytesIO()

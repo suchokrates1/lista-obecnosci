@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from pypdf import PdfReader
 
@@ -23,9 +24,9 @@ def test_create_invoice_matches_vest_media_numbering_and_dates(monkeypatch):
         "INVOICE_HOURLY_RATE": "150.00",
         "INVOICE_VAT_RATE": "zw",
         "INVOICE_PAYMENT_DEADLINE_DAYS": "14",
-        "INVOICE_NUMBER_PREFIX": "A1",
+        "INVOICE_NUMBER_PREFIX": "A",
         "INVOICE_NUMBER_COUNTER": "1",
-        "INVOICE_NUMBER_TEMPLATE": "{prefix}/{counter}/{year}",
+        "INVOICE_NUMBER_TEMPLATE": "{prefix}{counter}/{month}/{year}",
         "INVOICE_ISSUE_DATE_MODE": "report_month_day",
         "INVOICE_ISSUE_DAY_OF_MONTH": "26",
         "INVOICE_SALE_DATE_MODE": "issue_date",
@@ -39,6 +40,107 @@ def test_create_invoice_matches_vest_media_numbering_and_dates(monkeypatch):
     assert invoice.issue_date.strftime("%Y-%m-%d") == "2026-01-26"
     assert invoice.sale_date.strftime("%Y-%m-%d") == "2026-01-26"
     assert invoice.payment_deadline.strftime("%Y-%m-%d") == "2026-02-09"
+
+
+def test_create_invoice_falls_back_when_number_template_is_blank(monkeypatch):
+    env = {
+        "INVOICE_ISSUER_NAME": "Jan Kowalski",
+        "INVOICE_ISSUER_NIP": "1234567890",
+        "INVOICE_ISSUER_ADDRESS": "ul. Testowa 1",
+        "INVOICE_ISSUER_POSTAL": "00-001",
+        "INVOICE_ISSUER_CITY": "Warszawa",
+        "INVOICE_RECIPIENT_NAME": "Vest Media",
+        "INVOICE_RECIPIENT_NIP": "0987654321",
+        "INVOICE_RECIPIENT_ADDRESS": "ul. Klienta 2",
+        "INVOICE_RECIPIENT_POSTAL": "00-002",
+        "INVOICE_RECIPIENT_CITY": "Krakow",
+        "INVOICE_SERVICE_NAME": "Prowadzenie zajec podcastowych",
+        "INVOICE_HOURLY_RATE": "150.00",
+        "INVOICE_VAT_RATE": "zw",
+        "INVOICE_PAYMENT_DEADLINE_DAYS": "14",
+        "INVOICE_NUMBER_PREFIX": "A",
+        "INVOICE_NUMBER_COUNTER": "4",
+        "INVOICE_NUMBER_COUNTER_PERIOD": "2026-05",
+        "INVOICE_NUMBER_TEMPLATE": "   ",
+        "INVOICE_ISSUE_DATE_MODE": "report_month_day",
+        "INVOICE_ISSUE_DAY_OF_MONTH": "26",
+        "INVOICE_SALE_DATE_MODE": "issue_date",
+    }
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    invoice = create_invoice_from_monthly_report(hours=8, month=5, year=2026)
+
+    assert invoice.invoice_number == "A4/5/2026"
+
+
+def test_create_invoice_resets_counter_for_new_report_month(monkeypatch):
+    env = {
+        "INVOICE_ISSUER_NAME": "Jan Kowalski",
+        "INVOICE_ISSUER_NIP": "1234567890",
+        "INVOICE_ISSUER_ADDRESS": "ul. Testowa 1",
+        "INVOICE_ISSUER_POSTAL": "00-001",
+        "INVOICE_ISSUER_CITY": "Warszawa",
+        "INVOICE_RECIPIENT_NAME": "Vest Media",
+        "INVOICE_RECIPIENT_NIP": "0987654321",
+        "INVOICE_RECIPIENT_ADDRESS": "ul. Klienta 2",
+        "INVOICE_RECIPIENT_POSTAL": "00-002",
+        "INVOICE_RECIPIENT_CITY": "Krakow",
+        "INVOICE_SERVICE_NAME": "Prowadzenie zajec podcastowych",
+        "INVOICE_HOURLY_RATE": "150.00",
+        "INVOICE_VAT_RATE": "zw",
+        "INVOICE_PAYMENT_DEADLINE_DAYS": "14",
+        "INVOICE_NUMBER_PREFIX": "A",
+        "INVOICE_NUMBER_COUNTER": "7",
+        "INVOICE_NUMBER_COUNTER_PERIOD": "2026-05",
+        "INVOICE_NUMBER_TEMPLATE": "   ",
+        "INVOICE_ISSUE_DATE_MODE": "report_month_day",
+        "INVOICE_ISSUE_DAY_OF_MONTH": "26",
+        "INVOICE_SALE_DATE_MODE": "issue_date",
+    }
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    invoice = create_invoice_from_monthly_report(hours=8, month=6, year=2026)
+
+    assert invoice.invoice_number == "A1/6/2026"
+
+
+def test_create_invoice_uses_existing_local_numbers(monkeypatch, tmp_path):
+    env = {
+        "INVOICE_ISSUER_NAME": "Jan Kowalski",
+        "INVOICE_ISSUER_NIP": "1234567890",
+        "INVOICE_ISSUER_ADDRESS": "ul. Testowa 1",
+        "INVOICE_ISSUER_POSTAL": "00-001",
+        "INVOICE_ISSUER_CITY": "Warszawa",
+        "INVOICE_RECIPIENT_NAME": "Vest Media",
+        "INVOICE_RECIPIENT_NIP": "0987654321",
+        "INVOICE_RECIPIENT_ADDRESS": "ul. Klienta 2",
+        "INVOICE_RECIPIENT_POSTAL": "00-002",
+        "INVOICE_RECIPIENT_CITY": "Krakow",
+        "INVOICE_SERVICE_NAME": "Prowadzenie zajec podcastowych",
+        "INVOICE_HOURLY_RATE": "150.00",
+        "INVOICE_VAT_RATE": "zw",
+        "INVOICE_PAYMENT_DEADLINE_DAYS": "14",
+        "INVOICE_NUMBER_PREFIX": "A",
+        "INVOICE_NUMBER_COUNTER": "1",
+        "INVOICE_NUMBER_TEMPLATE": "   ",
+        "INVOICE_ISSUE_DATE_MODE": "report_month_day",
+        "INVOICE_ISSUE_DAY_OF_MONTH": "26",
+        "INVOICE_SALE_DATE_MODE": "issue_date",
+        "KSEF_ENABLED": "0",
+    }
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    monkeypatch.chdir(tmp_path)
+    invoice_dir = Path("invoices") / "2026" / "05"
+    invoice_dir.mkdir(parents=True)
+    (invoice_dir / "faktura_A2_5_2026.xml").write_text("test", encoding="utf-8")
+
+    invoice = create_invoice_from_monthly_report(hours=8, month=5, year=2026)
+
+    assert invoice.invoice_number == "A3/5/2026"
 
 
 def test_generate_fa3_xml_for_vat_exempt_invoice(monkeypatch):

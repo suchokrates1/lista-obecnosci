@@ -95,7 +95,7 @@ Configure the following variables:
 
 - **Invoice Numbering:**
   - `INVOICE_NUMBER_PREFIX` – invoice number prefix (e.g., FV)
-  - `INVOICE_NUMBER_COUNTER` – current invoice counter
+  - `INVOICE_NUMBER_COUNTER` – next invoice number within the current report month
   - `INVOICE_NUMBER_TEMPLATE` – numbering template using `{prefix}`, `{counter}`, `{counter_padded}`, `{month}`, `{month_padded}`, `{year}`
   - `INVOICE_ISSUE_DATE_MODE` – `report_month_day` or `today`
   - `INVOICE_ISSUE_DAY_OF_MONTH` – day of month used with `report_month_day`
@@ -116,7 +116,7 @@ For an explicit end-to-end demo run there is also a CLI command:
 
 This command generates the monthly report buffer, builds the invoice, sends it to KSeF when enabled, and emails the report with the invoice PDF attached.
 
-By default invoice numbers follow the Vest Media style: `PREFIX/N/YYYY` (e.g., `A1/1/2026`). You can change this through `INVOICE_NUMBER_TEMPLATE`, for example back to `PREFIX/NNN/MM/YYYY` using `{prefix}/{counter_padded}/{month_padded}/{year}`.
+By default invoice numbers follow the Vest Media style: `PREFIXN/M/YYYY` (e.g., `A2/5/2026`). The counter is tracked separately for each report month. You can change this through `INVOICE_NUMBER_TEMPLATE`, for example to `PREFIX/NNN/MM/YYYY` using `{prefix}/{counter_padded}/{month_padded}/{year}`.
 
   - `REGISTRATION_EMAIL_SUBJECT` / `REGISTRATION_EMAIL_BODY` – templates for registration notifications (`{name}`, `{login}`, `{link}`).
   - `REG_EMAIL_SUBJECT` / `REG_EMAIL_BODY` – templates for the account activation e-mail.

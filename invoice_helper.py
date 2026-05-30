@@ -113,7 +113,7 @@ def generate_and_send_invoice(
             success, ksef_result, error = send_invoice_to_ksef(invoice_xml)
             
             if success:
-                increment_invoice_counter()
+                increment_invoice_counter(month, year, invoice.invoice_number)
                 logger.info(
                     "Invoice generated and sent to KSeF: %s, session=%s, invoice=%s, ksef=%s",
                     invoice.invoice_number,
@@ -127,7 +127,7 @@ def generate_and_send_invoice(
                 return False, saved_path, error, pdf_buffer
         else:
             # KSeF wyłączony - tylko generuj i zapisz
-            increment_invoice_counter()
+            increment_invoice_counter(month, year, invoice.invoice_number)
             logger.info(
                 f"Invoice generated (KSeF disabled): {invoice.invoice_number}, "
                 f"Saved to: {saved_path}"
